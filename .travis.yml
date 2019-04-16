@@ -1,22 +1,28 @@
-language: python
 cache: pip
+
 dist: xenial
+
+language: python
+
 python:
   - "3.6"
+
 jobs:
   include:
+
     - name: Unit Tests
       addons:
-        postgresql: "11"
         apt:
           packages:
             - postgresql-11
+        postgresql: "11"
       install:
         - pip install pytest-cov python-coveralls -r requirements.txt
       script:
         - python setup.py test --addopts='--cov coveralls --cov-report term-missing'
       after_success:
         - coveralls
+
     - name: Lint
       install:
         - pip install flake8
