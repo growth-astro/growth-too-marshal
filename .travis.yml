@@ -1,12 +1,18 @@
 language: python
 python:
   - "3.6"
-addons:
-  apt:
-    packages:
-      - postgresql-11
-  postgresql: "11"
-install:
-  - pip install -r requirements.txt
-script:
-  - python setup.py test
+jobs:
+  include:
+    - addons:
+        apt:
+          packages:
+            - postgresql-11
+        postgresql: "11"
+      install:
+        - pip install -r requirements.txt
+      script:
+        - python setup.py test
+    - install:
+        - pip install flake8
+      script:
+        - flake8 --show-source growth
