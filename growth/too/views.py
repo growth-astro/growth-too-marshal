@@ -554,7 +554,7 @@ def plan_manual():
                     telescope, queue_name)
             ).delay()
 
-            flash('Submitted observing plan','success')
+            flash('Submitted observing plan', 'success')
 
     return render_template(
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
@@ -945,17 +945,14 @@ def get_json_data(plan):
                         ra_diff, dec_diff = 0.0, 0.0
                     elif jj == 1:
                         ra_diff, dec_diff = 60.0/3600.0, 60.0/3600.0
-                    decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                                queue_name,
-                                                                cnt, nrows,
-                                                                ra_diff=ra_diff,
-                                                                dec_diff=dec_diff)
+                    decam_dict = tasks.scheduler.get_decam_dict(
+                        data_row, queue_name, cnt, nrows,
+                        ra_diff=ra_diff, dec_diff=dec_diff)
                     decam_dicts.append(decam_dict)
                     cnt = cnt + 1
             else:
-                decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                            queue_name,
-                                                            cnt, nrows)
+                decam_dict = tasks.scheduler.get_decam_dict(
+                    data_row, queue_name, cnt, nrows)
                 decam_dicts.append(decam_dict)
                 cnt = cnt + 1
         json_data = decam_dicts
