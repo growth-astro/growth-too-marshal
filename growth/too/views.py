@@ -105,10 +105,10 @@ def get_marshallink(dateobs):
     except OperationalError:
         warnings.warn('growth-db does not appear to be accessible.')
         return 'None'
-
+    else:
         event = models.Event.query.filter_by(dateobs=dateobs).all()
         if len(event) == 0 or event is None:
-            marshallink = 'None'
+            return 'None'
         else:
             event = event[0]
             scienceprogram = None
@@ -119,7 +119,7 @@ def get_marshallink(dateobs):
                     'Electromagnetic Counterparts to Gravitational Waves'
             elif 'AMON' in event.tags:
                 scienceprogram = 'IceCube'
-        return growthdb.get_marshallink(current_user.name, scienceprogram)
+            return growthdb.get_marshallink(current_user.name, scienceprogram)
 
 
 def human_time(*args, **kwargs):
@@ -319,7 +319,7 @@ def plan(dateobs):
         'plan.html', event=models.Event.query.get_or_404(dateobs))
 
 
-@app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')
+@app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
 def download_json(dateobs, telescope, plan_name):
 
     plan = models.Plan.query.filter_by(
@@ -329,12 +329,14 @@ def download_json(dateobs, telescope, plan_name):
     return jsonify(json_data)
 
 
-@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')
+@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
 def plan_json(dateobs, telescope, plan_name):
     return jsonify([
         planned_observation.field_id
         for planned_observation in
-        one_or_404(models.Plan.query.filter_by(dateobs=dateobs, telescope=telescope, plan_name=plan_name)).planned_observations
+        one_or_404(models.Plan.query.filter_by(
+            dateobs=dateobs, telescope=telescope, plan_name=plan_name)
+        ).planned_observations
     ])
 
 
@@ -775,13 +777,14 @@ def get_queue_transient_name(plan):
     gcn_notice = event.gcn_notices[-1]
     stream = gcn_notice.stream
 
-    queue_name = "{0}_{1}_{2}_{3}".format(str(plan.dateobs).replace(" ","-"),
-                                          plan.plan_name,
-                                          str(plan.validity_window_start).replace(" ","-"),
-                                          str(plan.validity_window_end).replace(" ","-"))
+    queue_name = "{0}_{1}_{2}_{3}".format(
+        str(plan.dateobs).replace(" ", "-"),
+        plan.plan_name,
+        str(plan.validity_window_start).replace(" ", "-"),
+        str(plan.validity_window_end).replace(" ", "-"))
 
-    transient_name = "{0}_{1}".format(stream,
-                                      str(plan.dateobs).replace(" ", "-"))
+    transient_name = "{0}_{1}".format(
+        stream, str(plan.dateobs).replace(" ", "-"))
 
     return queue_name, transient_name
 
@@ -805,11 +808,11 @@ def get_json_data_manual(form):
 
     program_id = 2
     bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
-    json_data = {'queue_name': "ToO_"+queue_name,
+    json_data = {'queue_name': "ToO_" + queue_name,
                  'validity_window_mjd': [start_mjd, end_mjd]}
     targets = []
     cnt = 1
-    for filt in filters:            
+    for filt in filters:
         filter_id = bands[filt]
         for field_id in field_ids:
             field = one_or_404(models.Field.query.filter_by(
@@ -849,17 +852,14 @@ def get_json_data_manual(form):
                         ra_diff, dec_diff = 0.0, 0.0
                     elif jj == 1:
                         ra_diff, dec_diff = 60.0/3600.0, 60.0/3600.0
-                    decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                                queue_name,
-                                                                cnt, nrows,
-                                                                ra_diff=ra_diff,
-                                                                dec_diff=dec_diff)
+                    decam_dict = tasks.scheduler.get_decam_dict(
+                        data_row, queue_name, cnt, nrows,
+                        ra_diff=ra_diff, dec_diff=dec_diff)
                     decam_dicts.append(decam_dict)
                     cnt = cnt + 1
             else:
-                decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                            queue_name,
-                                                            cnt, nrows)
+                decam_dict = tasks.scheduler.get_decam_dict(
+                    data_row, queue_name, cnt, nrows)
                 decam_dicts.append(decam_dict)
                 cnt = cnt + 1
         json_data = decam_dicts
@@ -1069,7 +1069,7 @@ def health_growth_marshal():
     Returns an HTTP 204 No Content response on success,
     or an HTTP 500 Internal Server Error response on failure.
     """
-    from . import growthdb
+    from . import growthdb  # noqa: F401
     return '', 204  # No Content
 
 

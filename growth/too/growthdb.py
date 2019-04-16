@@ -1,5 +1,6 @@
 """SQLAlchemy ORM classes for GROWTH Marshal database, with columns discovered
 by reflection."""
+import warnings
 
 from .flask import app
 from .models import db
@@ -16,8 +17,9 @@ class Users(db.Model):
 
 class SciencePrograms(db.Model):
     __bind_key__ = 'growthdb'
-    __table__ = Table('scienceprograms', db.metadata, autoload=True,
-    autoload_with=db.get_engine(app, bind=__bind_key__))
+    __table__ = Table(
+        'scienceprograms', db.metadata, autoload=True,
+        autoload_with=db.get_engine(app, bind=__bind_key__))
 
 
 def get_marshallink(username, program_name):
@@ -29,7 +31,8 @@ def get_marshallink(username, program_name):
     else:
         programid_string = user[0].group_memberships
 
-    program = session.query(SciencePrograms).filter_by(name=program_name).all()
+    program = db.session.query(
+        SciencePrograms).filter_by(name=program_name).all()
     if len(program) == 0 or program is None:
         warnings.warn('Science program missing from growth-db')
         return 'None'

@@ -43,7 +43,7 @@ def get_body_text(message):
     """Get the text parts of a message as one big string, with carriage returns
     and/or linefeeds normalized to linefeeds."""
     return '\n'.join(part.get_payload() for part in
-        email.iterators.typed_subpart_iterator(message))
+                     email.iterators.typed_subpart_iterator(message))
 
 
 def append_text_plain(message, text):
@@ -81,9 +81,6 @@ class ReplyMessage(Message):
 
 @celery.task(ignore_result=True, shared=False)
 def compose_too(telescope, queue_name):
-    original_message_id = '<{0}_{1}-{2}>'.format(
-        telescope, queue_name, app.config['MAIL_DEFAULT_SENDER'])
-
     body = render_template('too.email', telescope=telescope,
                            queue_name=queue_name)
 
