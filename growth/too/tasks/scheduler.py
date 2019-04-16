@@ -100,7 +100,7 @@ def ping_gattini():
         f.flush()
 
         dest = os.path.join(GATTINI_PATH, '.ztf-test')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
@@ -113,7 +113,7 @@ def ping_kped():
         f.flush()
 
         dest = os.path.join(KPED_PATH, '.ztf-test')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
@@ -126,7 +126,7 @@ def ping_growth_india():
         f.flush()
 
         dest = os.path.join(GROWTH_INDIA_PATH, '.ztf-test')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
@@ -139,7 +139,7 @@ def ping_decam():
         f.flush()
 
         dest = os.path.join(DECAM_PATH, '.ztf-test')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
@@ -157,49 +157,49 @@ def schedule_ztf(json_data):
 @celery.task(ignore_result=True, shared=False)
 def schedule_gattini(json_data):
 
-    with tempfile.NamedTemporaryFile(mode='w') as fid:
-        json.dump(json_data, fid, indent=4, sort_keys=True)
-        fid.flush()
+    with tempfile.NamedTemporaryFile(mode='w') as f:
+        json.dump(json_data, f, indent=4, sort_keys=True)
+        f.flush()
 
         dest = os.path.join(GATTINI_PATH, json_data["queue_name"] + '.json')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_kped(json_data):
 
-    with tempfile.NamedTemporaryFile(mode='w') as fid:
-        json.dump(json_data, fid, indent=4, sort_keys=True)
-        fid.flush()
+    with tempfile.NamedTemporaryFile(mode='w') as f:
+        json.dump(json_data, f, indent=4, sort_keys=True)
+        f.flush()
 
         dest = os.path.join(KPED_PATH, json_data["queue_name"] + '.json')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_growth_india(json_data):
 
-    with tempfile.NamedTemporaryFile(mode='w') as fid:
-        json.dump(json_data, fid, indent=4, sort_keys=True)
-        fid.flush()
+    with tempfile.NamedTemporaryFile(mode='w') as f:
+        json.dump(json_data, f, indent=4, sort_keys=True)
+        f.flush()
 
         dest = os.path.join(GROWTH_INDIA_PATH,
                             json_data["queue_name"] + '.json')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_decam(json_data, queue_name):
 
-    with tempfile.NamedTemporaryFile(mode='w') as fid:
-        json.dump(json_data, fid, indent=4, sort_keys=True)
-        fid.flush()
+    with tempfile.NamedTemporaryFile(mode='w') as f:
+        json.dump(json_data, f, indent=4, sort_keys=True)
+        f.flush()
 
         dest = os.path.join(DECAM_PATH, queue_name + '.json')
-        subprocess.run(['scp', '-oBatchMode=yes', '-v', fid.name, dest],
+        subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
 

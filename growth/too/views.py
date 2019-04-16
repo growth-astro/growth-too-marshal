@@ -2,7 +2,6 @@ import sys
 import functools
 import warnings
 import datetime
-from datetime import timedelta
 import os
 import urllib.parse
 import math
@@ -22,10 +21,8 @@ from astropy.table import Table
 from astropy_healpix import HEALPix
 import pandas as pd
 import h5py
-import healpy as hp
 from ligo.skymap import io
 from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
-import matplotlib.pyplot as plt
 import matplotlib.style
 
 from flask import (
@@ -33,15 +30,13 @@ from flask import (
     Response, url_for)
 from flask_login import (
     current_user, login_required, login_user, logout_user, LoginManager)
-from wtforms import (
-    BooleanField, FloatField, Form, RadioField, SubmitField, TextField)
+from wtforms import BooleanField, FloatField, RadioField, TextField
 from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from pyvo.dal import TAPService
 
 from .flask import app
 from .jinja import atob

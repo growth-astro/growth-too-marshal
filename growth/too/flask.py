@@ -1,13 +1,9 @@
 import datetime
 import os
-import warnings
 
 from flask import Flask
 from flask_humanize import Humanize
 from werkzeug.routing import BaseConverter
-
-import getpass
-import socket
 
 
 # Application object

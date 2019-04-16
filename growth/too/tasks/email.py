@@ -68,10 +68,13 @@ class ReplyMessage(Message):
             kwargs["subject"] = original["Subject"]
         else:
             kwargs["subject"] = "Re: " + original["Subject"]
-        kwargs["body"] = kwargs.get("body", "") + "\n" + render_template("reply.email",
-            original_date=original["Date"],
-            original_from=original["From"],
-            original_body=get_body_text(original)
+        kwargs["body"] = (
+            kwargs.get("body", "") + "\n" + render_template(
+                "reply.email",
+                original_date=original["Date"],
+                original_from=original["From"],
+                original_body=get_body_text(original)
+            )
         )
         super(ReplyMessage, self).__init__(**kwargs)
 
@@ -81,8 +84,8 @@ def compose_too(telescope, queue_name):
     original_message_id = '<{0}_{1}-{2}>'.format(
         telescope, queue_name, app.config['MAIL_DEFAULT_SENDER'])
 
-    body=render_template('too.email', telescope=telescope,
-                             queue_name=queue_name)
+    body = render_template('too.email', telescope=telescope,
+                           queue_name=queue_name)
 
     message = Message(
         subject='Re: {0}-{1}'.format(telescope, queue_name),
@@ -103,9 +106,6 @@ def email_everyone(dateobs):
     for user in models.User.query.filter(models.User.email.isnot(None)):
         if user_is_on_duty(now, user):
             emails.append(user.email)
-
-    original_message_id = '<{0}-{1}>'.format(
-        str(event.dateobs).replace(" ","-"), app.config['MAIL_DEFAULT_SENDER'])
 
     body = render_template('event_new.email', event=event)
 

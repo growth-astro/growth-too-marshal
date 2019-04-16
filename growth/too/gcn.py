@@ -218,5 +218,6 @@ def handle(payload, root):
                 render_template('event_new_text.txt', event=event))
             tasks.email.email_everyone.delay(dateobs)
 
+
 def listen():
     gcn.listen(handler=handle)

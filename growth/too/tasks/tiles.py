@@ -98,7 +98,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["tilingDir"] = tiling_directory
     params["event"] = ""
     params["telescopes"] = [tele]
-    if schedule_strategy=="catalog":
+    if schedule_strategy == "catalog":
         params["tilesType"] = "galaxy"
         params["catalogDir"] = catalog_directory
         params["galaxy_catalog"] = "CLU"
@@ -106,7 +106,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["writeCatalog"] = False
         params["catalog_n"] = 1.0
         params["powerlaw_dist_exp"] = 1.0
-    elif schedule_strategy=="tiling":
+    elif schedule_strategy == "tiling":
         if tele == "ZTF":
             params["tilesType"] = "ranked"
         else:
@@ -262,7 +262,7 @@ def get_planned_observations(
                 segmentlist = segmentlist + tile_struct["segmentlist"]
                 segmentlist = segmentlist.coalesce()
 
-                if params["tilesType"]=="galaxy":
+                if params["tilesType"] == "galaxy":
                     ref_filter_mags, ref_filter_bands = [], []
                     ref_filter_ids = []
 
@@ -312,17 +312,15 @@ def get_planned_observations(
         for ii in range(len(coverage_struct["ipix"])):
             data = coverage_struct["data"][ii, :]
             filt = coverage_struct["filters"][ii]
-
-
             filter_id = filter_ids[filt]
-
             mjd = data[2]
             tt = time.Time(mjd, format='mjd')
 
             if config_struct["overhead_per_exposure"] is not None:
                 overhead_per_exposure = config_struct["overhead_per_exposure"]
-            else: overhead_per_exposure = 0.0
- 
+            else:
+                overhead_per_exposure = 0.0
+
             exposure_time, field_id, prob = data[4], data[5], data[6]
 
             yield models.PlannedObservation(

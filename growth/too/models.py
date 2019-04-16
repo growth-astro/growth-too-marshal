@@ -288,7 +288,7 @@ class Event(db.Model):
     @property
     def ned_gwf(self):
         return "https://ned.ipac.caltech.edu/gwf/events"
-        
+
     @property
     def HasNS(self):
         notice = self.gcn_notices[0]
@@ -309,7 +309,7 @@ class Event(db.Model):
         else:
             return 'HasRemnant: '+elem.attrib.get('value', '')
 
-    @property 
+    @property
     def FAR(self):
         notice = self.gcn_notices[0]
         root = lxml.etree.fromstring(notice.content)
@@ -601,7 +601,7 @@ class Plan(db.Model):
     planned_observations = db.relationship(
         'PlannedObservation', backref='plan',
         order_by=lambda: PlannedObservation.obstime)
-    
+
     @property
     def start_observation(self):
         """Time of the first planned observation."""
@@ -622,8 +622,8 @@ class Plan(db.Model):
 
     @property
     def tot_time_with_overheads(self):
-        overhead = sum(_.overhead_per_exposure for _ in self.planned_observations)
-        # sum the overhead time and convert from seconds to minutes
+        overhead = sum(
+            _.overhead_per_exposure for _ in self.planned_observations)
         return overhead + self.total_time
 
 
