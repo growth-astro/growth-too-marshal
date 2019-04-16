@@ -28,6 +28,7 @@ def database():
 def flask(monkeypatch):
     """Set the Flask TESTING flag."""
     monkeypatch.setitem(app.config, 'TESTING', True)
+    monkeypatch.setitem(app.config, 'SERVER_NAME', 'example.edu')
     yield app.test_client()
 
 
