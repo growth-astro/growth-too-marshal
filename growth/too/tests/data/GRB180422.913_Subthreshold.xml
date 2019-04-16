@@ -1,0 +1,99 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<voe:VOEvent
+      ivorn="ivo://nasa.gsfc.gcn/Fermi#GBM_SubThresh_2018-04-22T21:54:11.00_546126856_0-001"
+      role="test" version="2.0"
+      xmlns:voe="http://www.ivoa.net/xml/VOEvent/v2.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v2.0  http://www.ivoa.net/xml/VOEvent/VOEvent-v2.0.xsd" >
+  <Who>
+    <AuthorIVORN>ivo://nasa.gsfc.tan/gcn</AuthorIVORN>
+    <Author>
+      <shortName>Fermi (via VO-GCN)</shortName>
+      <contactName>Julie McEnery</contactName>
+      <contactPhone>+1-301-286-1632</contactPhone>
+      <contactEmail>Julie.E.McEnery@nasa.gov</contactEmail>
+    </Author>
+    <Date>2018-04-23T00:30:42</Date>
+    <Description>This VOEvent message was created with GCN VOE version: 1.25 07feb18</Description>
+  </Who>
+  <What>
+    <Param name="Packet_Type"    value="131" />
+    <Param name="Pkt_Ser_Num"    value="6" />
+    <Param name="Trans_Num"      value="546126856" ucd="meta.id" />
+    <Param name="Trans_TJD"      value="18230" unit="days" ucd="time" />
+    <Param name="Trans_SOD"      value="78851.048000" unit="sec" ucd="time" />
+    <Param name="Trans_Duration" value="1.407" unit="sec" ucd="time.interval" />
+    <Param name="Earth_angle"    value="149.00" unit="deg" ucd="pos.az.zd" />
+    <Param name="Reliability"    value="2" unit="dn" />
+    <Param name="Trigger_ID"     value="0x0" />
+    <Param name="Misc_flags"     value="0x40000001" />
+    <Group name="Trigger_ID" >
+      <Param name="Temporal_Prox_Match"   value="false" />
+      <Param name="Test_Submission"       value="false" />
+    </Group>
+    <Group name="Misc_Flags" >
+      <Param name="Spectral_class"        value="hard" />
+      <Param name="Duration_class"        value="short" />
+      <Param name="Values_Out_of_Range"   value="false" />
+      <Param name="Flt_Generated"         value="false" />
+      <Param name="Gnd_Generated"         value="true" />
+    </Group>
+    <Param name="HealPix_URL"     value="https://gcn.gsfc.nasa.gov/notices_gbm_sub/gbm_subthresh_546126856.048000_healpix.fits"  ucd="meta.ref.url" />
+    <Param name="Map_URL"         value="https://gcn.gsfc.nasa.gov/notices_gbm_sub/gbm_subthresh_546126856.048000_map.png"  ucd="meta.ref.url" />
+    <Param name="LC_URL"          value="https://gcn.gsfc.nasa.gov/notices_gbm_sub/gbm_subthresh_546126856.048000_lc.pdf"  ucd="meta.ref.url" />
+    <Param name="Coords_Type"     value="1" unit="dn" />
+    <Param name="Coords_String"   value="source_object" />
+    <Group name="Obs_Support_Info" >
+      <Description>The Sun and Moon values are valid at the time the VOEvent XML message was created.</Description>
+      <Param name="Sun_RA"        value="30.62" unit="deg" ucd="pos.eq.ra" />
+      <Param name="Sun_Dec"       value="12.45" unit="deg" ucd="pos.eq.dec" />
+      <Param name="Sun_Distance"  value="119.09" unit="deg" ucd="pos.angDistance" />
+      <Param name="Sun_Hr_Angle"  value="8.50" unit="hr" />
+      <Param name="Moon_RA"       value="126.45" unit="deg" ucd="pos.eq.ra" />
+      <Param name="Moon_Dec"      value="18.56" unit="deg" ucd="pos.eq.dec" />
+      <Param name="MOON_Distance" value="122.83" unit="deg" ucd="pos.angDistance" />
+      <Param name="Moon_Illum"    value="51.34" unit="%" ucd="arith.ratio" />
+      <Param name="Galactic_Long" value="42.84" unit="deg" ucd="pos.galactic.lon" />
+      <Param name="Galactic_Lat"  value="26.04" unit="deg" ucd="pos.galactic.lat" />
+      <Param name="Ecliptic_Long" value="260.94" unit="deg" ucd="pos.ecliptic.lon" />
+      <Param name="Ecliptic_Lat"  value="42.96" unit="deg" ucd="pos.ecliptic.lat" />
+    </Group>
+    <Description>The Fermi-GBM location of a transient.</Description>
+  </What>
+  <WhereWhen>
+    <ObsDataLocation>
+      <ObservatoryLocation id="GEOLUN" />
+      <ObservationLocation>
+        <AstroCoordSystem id="UTC-FK5-GEO" />
+        <AstroCoords coord_system_id="UTC-FK5-GEO">
+          <Time unit="s">
+            <TimeInstant>
+              <ISOTime>2018-04-22T21:54:11.05</ISOTime>
+            </TimeInstant>
+          </Time>
+          <Position2D unit="deg">
+            <Name1>RA</Name1>
+            <Name2>Dec</Name2>
+            <Value2>
+              <C1>262.9700</C1>
+              <C2>19.7399</C2>
+            </Value2>
+            <Error2Radius>22.1299</Error2Radius>
+          </Position2D>
+        </AstroCoords>
+      </ObservationLocation>
+    </ObsDataLocation>
+  <Description>The RA,Dec coordinates are of the type: source_object.</Description>
+  </WhereWhen>
+  <How>
+    <Description>Fermi Satellite, GBM Instrument</Description>
+    <Reference uri="http://gcn.gsfc.nasa.gov/fermi.html" type="url" />
+  </How>
+  <Why importance="0.5">
+    <Inference probability="0.5">
+      <Concept>process.variation.trans;em.gamma</Concept>
+    </Inference>
+  </Why>
+  <Description>
+  </Description>
+</voe:VOEvent>

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>GROWTH ToO Marshal: Localization "{{ localization.localization_name }}"</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='skymap.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class=svg-aspect-1><svg></svg></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-resize/1.1/jquery.ba-resize.min.js" integrity="sha256-yB+FMa+R5HU3QWCoX8AIv9YOOcJPsDyY6F/EmMq1NbE=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js" integrity="sha256-hYXbQJK4qdJiAeDVjjQ9G0D6A0xLnDQ4eJI9dkm7Fpk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo/1.9.1/d3-geo.min.js" integrity="sha256-ujoopDSgXv5+tOiVuGRi+I6JoUNBTqAmNAeyhOtbgYw=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-drag/1.2.1/d3-drag.min.js" integrity="sha256-z4hJglIzarwrV3VkxfLntjyQ8CXStVQr/ICkosUWHrs=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/d3-geo-zoom" integrity="sha256-aB3PfIrVSVDY1ZQb/ELYPUOxejsP8rY5FSwv2KTgsbY=" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='skymap.js') }}"></script>
+<script>
+    $('svg').skymap("{{ url_for('localization_json', dateobs=dateobs, localization_name=localization.localization_name) }}");
+</script>
+{% endblock %}

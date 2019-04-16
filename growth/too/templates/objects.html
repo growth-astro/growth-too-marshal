@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/css/dataTables.bootstrap4.min.css" integrity="sha256-F+DaKAClQut87heMIC6oThARMuWne8+WzxIDT7jXuPA=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" integrity="sha256-mfb+mieZDwLASMlQTUNXrZQr8OXvQyEDfV3Xz3E7DSU=" crossorigin="anonymous">
+    <title>ToO Marshal</title>
+    <style>
+        .table {
+            width: 100% !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            {% include 'event_header.html' %}
+            {% include 'nav_bar.html' %}
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <div class="alert alert-warning">
+                    <h4 class=alert-heading>Mock up</h4>
+                    <p>This tab is a mock-up using fake data.</p>
+                </div>
+            </li>
+            <li class=list-group-item>
+                <h3>Candidates</h3>
+                <table id="candidates" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th> 
+                            <th>Telescope</th> 
+                            <th>RA</th> 
+                            <th>DEC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ZTF19awesome</td>
+                            <td>ZTF</td>
+                            <td>7:08:03.2592</td>
+                            <td>56:02:02.892</td>
+                        </tr>
+                        <tr>
+                            <td>GROWTH19ab</td>
+                            <td>DECam</td>
+                            <td>23:18:03.2592</td>
+                            <td>-36:00:00.8</td>
+                        </tr>
+                        <tr>
+                            <td>GROWTH19bt</td>
+                            <td>DECam</td>
+                            <td>18:10:33.231</td>
+                            <td>-40:43:23.12</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </li>
+            <li class=list-group-item>
+                <h3>Galaxies</h3>
+                <table id="galaxies" class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th> 
+                            <th>NAME</th> 
+                            <th>RA</th> 
+                            <th>DEC</th>
+                            <th>SFR FUV</th>
+                            <th>Mstar</th> 
+                            <th>DIST (Mpc)</th>
+                            <th>MAG</th>
+                            <th>PROB</th> 
+                            <th>PRIORITY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>2MASX J07070325+5601031</td>
+                            <td>7:07:03.2592</td>
+                            <td>56:01:02.892</td>
+                            <td>2.887e-01</td>
+                            <td>1.140e+10</td>
+                            <td>111.0</td>
+                            <td>nan</td>
+                            <td>1.081e-22</td>
+                            <td>5.112e-06</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>2MASX J06292278-2831060</td>
+                            <td>6:29:22.7904</td>
+                            <td>-28:31:06.204</td>
+                            <td>nan</td>
+                            <td>3.105e+10</td>
+                            <td>101.6</td>
+                            <td>15.3</td>
+                            <td>2.131e-19</td>
+                            <td>1.646e-05</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </li>
+        </ul>
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/js/jquery.dataTables.min.js" integrity="sha256-t5ZQTZsbQi8NxszC10CseKjJ5QeMw5NINtOXQrESGSU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
+    <script>
+    (function() {
+        $('#galaxies').DataTable({
+	    scrollX: true,
+            searching: true,
+            orderFixed: [0, 'asc'],
+            columnDefs: [
+                {
+                    'targets': [0],
+                    'visible': false
+                }
+            ],       	
+        });
+        $('#galaxies tbody').on('click', 'tr', function () {
+            $(this).toggleClass('table-primary');
+        });
+
+        $('#candidates').DataTable({
+	    scrollX: true,
+            searching: true,
+        rowGroup: {
+                dataSrc: 1
+            }
+        });
+        $('#candidates tbody').on('click', 'tr', function () {
+            $(this).toggleClass('table-primary');
+        });
+    })();
+    </script>
+{% endblock %}

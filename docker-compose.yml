@@ -1,0 +1,159 @@
+# To rebuild containers, run:
+#   docker-compose build
+#
+# To initialize the database, run:
+#   docker-compose run flask db create
+#
+# To start me up, run:
+#   docker-compose up --build
+#
+#
+###########
+#
+# Here are some useful commands to clear what's already in place,
+# in case one wants to start fresh.  
+#
+# To stop and remove ALL docker images
+#    docker kill $(docker ps -a -q)
+#    docker rm $(docker ps -a -q)
+#
+# To drop the database before building a new one, if necessary
+#    docker volume rm growth-too-marshal_too-data
+#    docker-compose run flask db drop --preserve user
+#
+# Then run again the building instructions at
+# the beginning of this document.
+#
+
+
+version: '3.3'
+
+networks:
+  internal: {}
+  growth_net:
+    external: true
+
+secrets:
+  htpasswd:
+    file: docker/htpasswd
+  twilio:
+    file: docker/twilio.cfg
+  # Secrets for SSH tunnel to mountain.
+  # Technically, only id-rsa needs to be secret.
+  id_rsa:
+    file: docker/id_rsa
+  id_rsa.pub:
+    file: docker/id_rsa.pub
+
+volumes:
+  too-data:
+
+services:
+  postgres:
+    image: postgres:11
+    networks:
+      - internal
+    volumes:
+      - too-data:/var/lib/postgresql/data
+    restart: always
+  redis:
+    image: redis
+    networks:
+      - internal
+    restart: always
+  tunnel:
+    build:
+      context: docker
+      dockerfile: Dockerfile.tunnel
+    image: tunnel
+    networks:
+      - internal
+    restart: always
+    secrets:
+      - id_rsa
+      - id_rsa.pub
+  flower:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: celery flower --url-prefix=flower
+    depends_on:
+      - redis
+    networks:
+      - internal
+    restart: always
+  celery:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    command: celery worker --loglevel info --concurrency 4
+    environment:
+      HOST_HOSTNAME: "${HOSTNAME}"
+    external_links:
+      - growth-db
+    networks:
+      - internal
+      - growth_net
+    restart: always
+    secrets:
+      - twilio
+      - id_rsa
+      - id_rsa.pub
+  gcn:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: gcn
+    depends_on:
+      - celery
+      - postgres
+      - redis
+    environment:
+      HOST_HOSTNAME: "${HOSTNAME}"
+    external_links:
+      - growth-db
+    networks:
+      - internal
+      - growth_net
+    restart: always
+    secrets:
+      - twilio
+  flask:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: run --with-threads --host=0.0.0.0 --port 8081
+    depends_on:
+      - postgres
+      - redis
+      - tunnel
+    environment:
+      HOST_HOSTNAME: "${HOSTNAME}"
+    external_links:
+      - growth-db
+    networks:
+      - internal
+      - growth_net
+    restart: always
+    secrets:
+      - htpasswd
+      - id_rsa
+      - id_rsa.pub
+      - twilio
+  nginx:
+    build:
+      context: docker
+      dockerfile: Dockerfile.nginx
+    depends_on:
+      - flask
+      - flower
+    networks:
+      - internal
+    ports:
+      - "8081:8081"
+    restart: always
+    secrets:
+      - htpasswd

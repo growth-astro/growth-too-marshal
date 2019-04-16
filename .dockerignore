@@ -1,0 +1,14 @@
+*.egg-info
+*.pyc
+__pycache__
+.eggs
+.cache
+.coverage*
+.pytest_cache
+build
+dist
+htmlcov
+Dockerfile*
+docker-compose.yml
+.git
+.gitignore

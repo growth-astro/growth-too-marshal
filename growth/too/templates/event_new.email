@@ -1,0 +1,1 @@
+The GROWTH Target of Opportunity Marshal received a new {{ event.tags|join(' ') }} event about {{ (now() - event.dateobs)|humanize() }} at {{ event.dateobs.isoformat() }}.

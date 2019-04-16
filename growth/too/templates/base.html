@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fork-awesome/1.1.7/css/fork-awesome.min.css" integrity="sha256-gsmEoJAws/Kd3CjuOQzLie5Q3yshhvmo7YNtBG7aaEY=" crossorigin="anonymous" />
+<link rel="stylesheet" href="{{url_for('static', filename='common.css')}}" />
+{% block head %}
+<title>Hello world!</title>
+{% endblock %}
+<nav class="navbar navbar-dark bg-dark navbar-expand-lg mb-4">
+    <a class="navbar-brand" href="{{ url_for('index') }}">
+        GROWTH ToO Marshal
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            {% if current_user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle btn btn-outline-primary" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-user"></i>
+                    {{ current_user.name }}
+                </a>
+                <div class=dropdown-menu aria-labelledby=dropdownMenuButton>
+                    <a class=dropdown-item href="{{ url_for('user') }}"><i class="fa fa-sliders mr-2"></i> Settings</a>
+                    <form action="{{ url_for('user_test') }}" method="post">
+                        <button type=submit class=dropdown-item><i class="fa fa-mobile mr-2"></i> Test Phone Alert</a></button>
+                    </form>
+                    <a class=dropdown-item href="{{ url_for('health') }}"><i class="fa fa-heartbeat mr-2"></i> Health</a>
+                    <a class=dropdown-item href="/flower"><i class="fa fa-tachometer mr-2"></i> Dashboard</a>
+                    <a class=dropdown-item href="{{ url_for('logout') }}"><i class="fa fa-sign-out mr-2"></i> Sign out</a>
+                </div>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+<div class="container" style="max-width: 8in">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{category}}">{{message}}</div>
+        {% endfor %}
+    {% endwith %}
+    {% block body %}
+    {% endblock %}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha256-CjSoeELFOcH0/uxWu6mC/Vlrc1AARqbm/jiiImDGV3s=" crossorigin="anonymous"></script>
+{% block scripts %}
+{% endblock %}

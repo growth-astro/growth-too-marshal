@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+<title>GROWTH ToO Marshal: Localization "{{ localization.localization_name }}"</title>
+{% endblock %}
+
+{% block body %}
+<header>
+<br>
+<h3>Quadrants Information</h3>
+<br>
+<div style="overflow: auto; width:900px; height:500px;">
+{{ quadrants_table }}
+</div>
+</header>
+{% endblock %}
+

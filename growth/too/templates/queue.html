@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>GROWTH Queue Page</title>
+{% endblock %}
+
+{% block body %}
+<div class=container>
+    <div class="card mb-3">
+        <form class=card-body method=post>
+            {{form.hidden_tag()}}
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for="queue_name" class=form-label>Queue Name</label>
+                    {{ render_field(form.queue_name, class='custom-select') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-3">
+                    <button type=submit id=delete class="btn btn-primary" name="btnform">Delete Queue</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</form>
+
+<header>
+<br>
+<h3>Queue List</h3>
+<br>
+{{ queue_names }}
+<h3>Current Queue Table</h3>
+<br>
+<div style="overflow: auto; width:900px; height:500px;">
+{{ queue_info }}
+</div>
+</header>
+{% endblock %}

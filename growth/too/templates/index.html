@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>ToO Marshal</title>
+{% endblock %}
+
+{% block body %}
+    <h2>Events</h2>
+    <div class=list-group>
+        {% for event in events %}
+        <a href="{{url_for('event', dateobs=event.dateobs)}}" class="list-group-item">
+            {% include 'event_header.html' %}
+        </a>
+        {% endfor %}
+    </ul>
+    <h2>Queue</h2>
+    <a href="{{url_for('queue')}}">Queue Information</a>
+    <a href="{{url_for('plan_manual')}}">Manual Observation</a>
+{% endblock %}

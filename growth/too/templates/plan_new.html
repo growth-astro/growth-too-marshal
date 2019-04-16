@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>GROWTH ToO Marshal: Create observing plan</title>
+{% endblock %}
+
+{% block body %}
+<div class=container>
+    <div class="card mb-3">
+        <div class=card-header>
+            Create Observation Plan
+        </div>
+        <div class="card-img">
+            <div class="position-absolute d-flex justify-content-center w-100 mx-auto" style="top: 300px">
+                <div class="spinner-border" role="status" id=airmass-loading>
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <img class=img-fluid alt="Airmas chart" id=airmass>
+        </div>
+        <form class=card-body method=post>
+            {{form.hidden_tag()}}
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for=telescope class=form-label>Telescope</label>
+                    {{ render_field(form.telescope, class='custom-select') }}
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for="localization" class=form-label>Localization</label>
+                    {{ render_field(form.localization, class='custom-select') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for=validity_window_start>Start time</label>
+                    {{ render_field(form.validity_window_start) }}
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for=validity_window_start>End time</label>
+                    {{ render_field(form.validity_window_end) }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-4">
+                    <label for=exposure_time>Exposure time (s)</label>
+                    {{ render_field(form.exposure_time) }}
+                </div>
+                <div class="form-group col-sm-4">
+                    <label for=filters>Filters</label>
+                    {{ render_field(form.filters, placeholder='comma or space separated list') }}
+                    <small class="form-text text-muted">Available filters: <span id="available-filters"></span></small>
+                </div>
+                <div class="form-group col-sm-4">
+                    <label>Options</label>
+                    <div class="custom-control custom-switch">
+                        {{ render_field(form.dither, class='custom-control-input') }}
+                        <label for=dither class=custom-control-label>Dither</label>
+                    </div>
+                    <div class="custom-control custom-switch">
+                        {{ render_field(form.references, class='custom-control-input') }}
+                        <label for=references class=custom-control-label>Require references</label>
+                    </div>
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for="name">Integrated probability</label>
+                    <div class="d-flex mt-2">
+                        {{ render_field(form.probability, min=0, max=100, step=5, class='custom-range') }}
+                        <output for=probability class=ml-2>{{form.probability.data}}</output>
+                    </div>
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for="name">Maximum airmass</label>
+                    <div class="d-flex mt-2">
+                        {{ render_field(form.airmass_limit, min=1, max=5, step=0.25, class='custom-range') }}
+                        <output for=airmass_limit class=ml-2>{{'%.02f'|format(form.airmass_limit.data)}}</output>
+                    </div>
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-9">
+                    <label class=d-block>Algorithm</label>
+                    <div class="btn-group btn-group-toggle" data-toggle=buttons>
+                        {% for subfield in form.schedule %}
+                            <label class="btn btn-sm btn-secondary {% if subfield.checked %}active{% endif %}">
+                                {{ subfield()|safe }} {{ subfield.label }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="form-group col-sm-3">
+                    <label>Scheduling</label>
+                    <div class=form-group>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            {% for subfield in form.filterschedule %}
+                                <label class="btn btn-sm btn-secondary {% if subfield.checked %}active{% endif %}">
+                                    {{ subfield()|safe }} {{ subfield.label }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col-sm-3">
+                    <label>Strategy</label>
+                    <div class=form-group>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            {% for subfield in form.schedule_strategy %}
+                                <label class="btn btn-sm btn-secondary {% if subfield.checked %}active{% endif %}">
+                                    {{ subfield()|safe }} {{ subfield.label }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-12">
+                    <label for=plan_name>Plan name</label>
+                    {{ render_field(form.plan_name, placeholder='Plan name') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-3">
+                    <button type=submit id=create class="btn btn-primary" name="btnform">Create</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('#probability').on('input', function() {
+    $("output[for='probability']").text($(this).val());
+});
+$('#airmass_limit').on('input', function() {
+    $("output[for='airmass_limit']").text(parseFloat($(this).val()).toFixed(2));
+});
+$('#telescope').on('input', function() {
+    var telescope = $(this).val();
+    var available_filters = {
+        {% for telescope in telescopes %}
+            '{{telescope.telescope}}': '{{telescope.filters|join(', ')}}',
+        {% endfor %}
+    };
+    $('#dither').prop('disabled', telescope != 'DECam');
+    $('#references').prop('checked', telescope == 'ZTF');
+    $('#references').prop('disabled', telescope == 'Gattini');
+    $('#available-filters').text(available_filters[telescope]); 
+});
+$('#telescope, #localization').on('input', function() {
+    var telescope = $('#telescope').val();
+    var localization = $('#localization').val();
+    var url = "{{url_for('localization_airmass', dateobs=form.dateobs.data, localization_name='_localization_', telescope='_telescope_')}}".replace('_localization_', localization).replace('_telescope_', telescope);
+    $('#airmass-loading').removeClass('invisible');
+    $('#airmass').prop('src', url);
+});
+$('#telescope').trigger('input');
+$('#airmass').on('load', function() {
+    $('#airmass-loading').addClass('invisible');
+});
+</script>
+{% endblock %}

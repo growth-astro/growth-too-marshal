@@ -1,0 +1,31 @@
+astropy >= 3.1
+astropy-healpix>=0.3
+celery[redis] >= 4.3.0rc1  # https://github.com/celery/celery/pull/4852
+ephem
+flask
+flask_celeryext
+flask_humanize
+flask_login
+flask_mail
+flask_sqlalchemy
+flask_twilio >= 0.0.6
+flask_wtf
+gwemopt >= 0.0.38
+healpy
+h5py
+ligo-gracedb
+ligo-segments
+ligo.skymap >= 0.1.6
+lxml
+networkx
+pandas
+passlib
+psycopg2
+pygcn >= 0.1.15
+pytz
+pyvo
+redis >= 3.2.0
+sqlalchemy >= 1.2.0
+sqlalchemy_utils[phone]
+wtforms_alchemy
+wtforms_components

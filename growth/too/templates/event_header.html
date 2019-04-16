@@ -1,0 +1,14 @@
+<div class="d-flex justify-content-between">
+    <h5 {% if event.retracted %}class="retracted"{% endif %}>
+        {{event.dateobs.strftime('%y%m%d')}}
+        <small>
+            {{event.dateobs.strftime('%H:%M:%S')}}
+            ({{ (now() - event.dateobs)|humanize() }})
+        </small>
+    </h5>
+    <div>
+        {% for tag in event.tags %}
+            <span class="badge badge-primary badge-pill">{{tag}}</span>
+        {% endfor %}
+    </div>
+</div>

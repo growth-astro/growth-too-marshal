@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Multiple events: {{ date }}</title>
+{% endblock %}
+
+{% block body %}
+    <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">Multiple events</h4>
+        <p>There are multiple events on the date {{ date }}. Which one did you mean?</p>
+    </div>
+    <div class=list-group>
+        {% for event in events %}
+        <a href="{{url_for('event', dateobs=event.dateobs)}}" class="list-group-item">
+            {% include 'event_header.html' %}
+        </a>
+        {% endfor %}
+    </ul>
+{% endblock %}

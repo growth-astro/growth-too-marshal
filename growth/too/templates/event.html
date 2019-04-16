@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>ToO Marshal</title>
+{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            {% include 'event_header.html' %}
+            {% include 'nav_bar.html' %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% if event.lightcurve %}
+                <li class=list-group-item>
+                    <h6>Light curve</h6>
+                    <img src="{{ event.lightcurve }}" class=lightcurve>
+                </li>
+            {% endif %}
+            <li class=list-group-item>
+                <h6>GCN Notices</h6>
+                <ul>
+                    {% for gcn_notice in event.gcn_notices %}
+                        <li>
+                            <a href="{{url_for('gcn_notice', ivorn=gcn_notice.ivorn|quote_plus)}}">
+                                {{gcn_notice.notice_type.name}} at {{gcn_notice.date}}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            {% if event.gracedb %}
+                <li class=list-group-item>
+                    <h6>Grace DB</h6>
+                    <a href="{{event.gracedb}}">
+                        Grace DB page for latest GCN
+                    </a>
+                </li>
+            {% endif %}
+            {% if event.ned_gwf %}
+                <li class=list-group-item>
+                    <h6>NED-GWF catalogue</h6>
+                    <a href="{{event.ned_gwf}}">
+                        Galaxy list for latest GCN
+                    </a>
+                </li>
+            {% endif %}
+            <li class=list-group-item>
+                <h6>Marshal Links</h6>
+                <ul>
+                    {% if not marshallink == "None" %}
+                        <li>
+                        <a href="{{ marshallink }}">Transient page</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('img.lightcurve').on('error', function() {
+        console.log(this);
+        $(this).replaceWith('<small>(Not yet available)</small>');
+    });
+    $('img.airmass').on('error', function() {
+        console.log(this);
+        $(this).replaceWith('<small>(Airmass chart not yet available)</small>');
+    });
+</script>
+{% endblock %}

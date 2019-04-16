@@ -1,0 +1,90 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<voe:VOEvent
+      ivorn="ivo://nasa.gsfc.gcn/AMON#Event2015-05-29T02:17:28.00_000071-697"
+      role="observation" version="2.0"
+      xmlns:voe="http://www.ivoa.net/xml/VOEvent/v2.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.ivoa.net/xml/VOEvent/v2.0  http://www.ivoa.net/xml/VOEvent/VOEvent-v2.0.xsd" >
+  <Who>
+    <AuthorIVORN>ivo://nasa.gsfc.tan/gcn</AuthorIVORN>
+    <Author>
+      <shortName>GCN (via VO-TAN)</shortName>
+      <contactName>Scott Barthelmy</contactName>
+      <contactPhone>+1-301-286-3106</contactPhone>
+      <contactEmail>scott@milkyway.gsfc.nasa.gov</contactEmail>
+    </Author>
+    <Date>2015-05-29T02:19:23</Date>
+    <Description>This VOEvent message was created with TAN VOE version: 1.18 28may15</Description>
+  </Who>
+  <What>
+    <Param name="Packet_Type"  value="157" />
+    <Param name="Pkt_Ser_Num"  value="0" />
+    <Param name="TrigID"       value="71" ucd="meta.id" />
+    <Param name="Event_TJD"    value="17171" unit="days" ucd="time" />
+    <Param name="Event_SOD"    value="8248.00" unit="sec" ucd="time" />
+    <Param name="Nevents"      value="2" unit="dn" ucd="arith.count" />
+    <Param name="Stream"       value="1" unit="dn" ucd="meta.id" />
+    <Param name="Observation"  value="-1" unit="dn" ucd="meta.id" />
+    <Param name="Rev"          value="0" unit="dn" ucd="meta.id" />
+    <Param name="False_pos"    value="2.4143e-04" unit="tbd"  ucd="arith.rate,stat.falsealarm" />
+    <Param name="pvalue"       value="1.0000e+00" unit="tbd"  ucd="arith.rate,stat.falsealarm" />
+    <Param name="deltaT"       value="19.6600" unit="sec"  ucd="time.timeduration" />
+    <Param name="sigmaT"       value="0.0000" unit="sec"  ucd="time.timeduration" />
+    <Param name="Trigger_ID"    value="0x0" />
+    <Param name="Misc_flags"    value="0x1000000" />
+    <Group name="Trigger_ID" >
+      <Param name="SubType"        value="indi" />
+      <Param name="Test"           value="false" />
+      <Param name="RADec_valid"    value="false" />
+      <Param name="Retraction"     value="false" />
+      <Param name="InternalTest"   value="false" />
+    </Group>
+    <Group name="Misc_flags" >
+      <Param name="Near_Bright_Star"      value="false" />
+      <Param name="Err_Circle_in_Galaxy"  value="false" />
+      <Param name="Galaxy_in_Err_Circle"  value="false" />
+      <Param name="Flt_Generated"         value="true" />
+      <Param name="Gnd_Generated"         value="false" />
+    </Group>
+    <Param name="SKYMAP_URL" value="https://some.amon.addr/events/" ucd="meta.ref.url">
+        <Description>Provides the location probability map for AMON_Coincidence event detections.</Description>
+    </Param>
+    <Description>Temporal and/or spatial coincidence between 2 or more events.</Description>
+  </What>
+  <WhereWhen>
+    <ObsDataLocation>
+      <ObservatoryLocation id="GEOLUN" />
+      <ObservationLocation>
+        <AstroCoordSystem id="UTC-FK5-GEO" />
+        <AstroCoords coord_system_id="UTC-FK5-GEO">
+          <Time unit="s">
+            <TimeInstant>
+              <ISOTime>2015-05-29T02:17:28.00</ISOTime>
+            </TimeInstant>
+          </Time>
+          <Position2D unit="deg">
+            <Name1>RA</Name1>
+            <Name2>Dec</Name2>
+            <Value2>
+              <C1>0.0000</C1>
+              <C2>0.0000</C2>
+            </Value2>
+            <Error2Radius>0.0000</Error2Radius>
+          </Position2D>
+        </AstroCoords>
+      </ObservationLocation>
+    </ObsDataLocation>
+  <Description>The RA,Dec coordinates are of the type: source_object.</Description>
+  </WhereWhen>
+  <How>
+    <Description>GCN</Description>
+    <Reference uri="http://gcn.gsfc.nasa.gov/gcn/amon.html" type="url" />
+  </How>
+  <Why importance="1.0">
+    <Inference probability="1.0">
+      <Concept>process.variation.burst;em</Concept>
+    </Inference>
+  </Why>
+  <Description>
+  </Description>
+</voe:VOEvent>

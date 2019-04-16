@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>ToO Marshal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/css/dataTables.bootstrap4.min.css" integrity="sha256-F+DaKAClQut87heMIC6oThARMuWne8+WzxIDT7jXuPA=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" integrity="sha256-mfb+mieZDwLASMlQTUNXrZQr8OXvQyEDfV3Xz3E7DSU=" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='skymap.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            {% include 'event_header.html' %}
+            {% include 'nav_bar.html' %}
+        </div>
+        <div class=svg-aspect-1><svg></svg></div>
+        <form method=post>
+            <div class=btn-toolbar role=toolbar id=toolbar>
+                <a class="ml-2 btn btn-secondary" href="{{url_for('plan_new', dateobs=event.dateobs)}}" title="Create new plan..."><i class="fa fa-plus-square"></i> New...</a>
+                <button disabled type=submit name=delete class="ml-2 btn btn-secondary" title="Delete selected plans"><i class="fa fa-trash"></i> Delete</button>
+                <button disabled type=submit name=go class='ml-2 btn btn-danger' title="Submit selected plans to queue"><i class="fa fa-rocket"></i> Go!</button>
+            </div>
+            <table id=plans class="table">
+                <thead>
+                    <tr>
+                        <th>Telescope</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>First obs</th>
+                        <th>Number exposures</th>
+                        <th>Tot exposure (min)</th>
+                        <th>Tot time (min)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in event.plans %}
+                    <tr>
+                        <td>{{plan.telescope}}</td>
+                        <td>
+                            <a download href="{{url_for('download_json', dateobs=plan.dateobs, telescope=plan.telescope, plan_name=plan.plan_name)}}"><i class="fa fa-download mr-1"></i></a>
+                            {{plan.plan_name}}
+                            <input type=checkbox name="{{plan.telescope|btoa}}_{{plan.plan_name|btoa}}" class=invisible>
+                        </td>
+                        <td>{{plan.status.name}}</td>
+                        <td>{{plan.start_observation}} </td>
+                        <td>{{plan.num_observations}} </td>
+                        <td>{{ "%.1f"|format(plan.total_time / 60)}} </td>
+                        <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }} </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/js/jquery.dataTables.min.js" integrity="sha256-t5ZQTZsbQi8NxszC10CseKjJ5QeMw5NINtOXQrESGSU=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js" integrity="sha256-hYXbQJK4qdJiAeDVjjQ9G0D6A0xLnDQ4eJI9dkm7Fpk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo/1.9.1/d3-geo.min.js" integrity="sha256-ujoopDSgXv5+tOiVuGRi+I6JoUNBTqAmNAeyhOtbgYw=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-drag/1.2.1/d3-drag.min.js" integrity="sha256-z4hJglIzarwrV3VkxfLntjyQ8CXStVQr/ICkosUWHrs=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/d3-geo-zoom" integrity="sha256-aB3PfIrVSVDY1ZQb/ELYPUOxejsP8rY5FSwv2KTgsbY=" crossorigin="anonymous"></script>
+<script src="{{url_for('static', filename='skymap.js')}}"></script>
+<script>
+(function() {
+
+    let skymap = $('svg').skymap();
+
+    $('#toolbar .btn').tooltip();
+
+    $('#plans').DataTable({
+        info: false,
+        paging: false,
+        searching: false,
+        scrollX: true,
+        orderFixed: [0, 'asc'],
+        columnDefs: [
+            {
+                'targets': [0],
+                'visible': false
+            }
+        ],
+        rowGroup: {
+            dataSrc: 0
+        }
+    });
+
+    let localization_url = '{{url_for('localization_json', dateobs=event.dateobs, localization_name=event.localizations[-1].localization_name)}}';
+    d3.json(localization_url, (error, contours) => {
+        if (error)
+            throw error;
+
+        skymap.localization(contours);
+    });
+
+    $('#plans tbody').on('click', 'tr', function () {
+        let checkbox = $(this).find('input');
+        let id = checkbox.prop('name');
+        let [telescope, plan_name] = id.split('_').map(atob);
+        let value = !checkbox.prop('checked');
+
+        checkbox.prop('checked', value);
+        $(this).toggleClass('table-primary', value);
+
+        $("#toolbar [name='delete'], #toolbar [name='go']").prop('disabled',
+            $('#plans tbody input:checked').length == 0);
+
+            d3.json('plan/telescope/' + telescope + '/' + plan_name + '/json', (error, field_ids) => {
+            if (error)
+                throw error;
+
+            field_ids.forEach(field_id => {
+                d3.json('/telescope/' + telescope + '/field/' + field_id + '/json', (error, geometry) => {
+                    if (error)
+                        throw error;
+
+                    d3.select('svg').append('path').datum(geometry).classed('field', true);
+                    skymap.redraw();
+                });
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

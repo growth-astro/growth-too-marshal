@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>ToO Marshal: Login</title>
+    <style>
+        form input#user {
+          margin-bottom: -1px;
+          border-bottom-right-radius: 0;
+          border-bottom-left-radius: 0;
+        }
+        form input#password {
+          margin-bottom: 10px;
+          border-top-left-radius: 0;
+          border-top-right-radius: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <form method=post>
+        <div class="text-center">
+            <h3>
+                Please log in
+            </h3>
+            <p>Use your GROWTH Marshal user name and password to log in to the GROWTH ToO Marshal.</p>
+            <div class="form-group form-row">
+                <input type=text name=user id=user class="form-control form-control-lg" placeholder="User name">
+                <input type=password name=password id=password class="form-control form-control-lg" placeholder="Password">
+            </div>
+            <div class="form-group form-row">
+                <div class=form-check>
+                    <input class=form-check-input type=checkbox name=remember id=remember>
+                    <label class=form-check-label for=remember>Remember me on this device</label>
+                </div>
+            </div>
+            <div class="form-group form-row">
+                <input type=submit name=submit value="Log in" class="btn btn-primary btn-lg btn-block">
+            </div>
+        </div>
+    </form>
+{% endblock %}

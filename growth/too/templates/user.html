@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>GROWTH ToO Marshal: user {{user.name}}</title>
+    <style>
+        #timezone-picker .hoverZone {
+            display: block;
+            min-height: 2em;
+        }
+        #timezone-picker {
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <form class=card method=post>
+        <div class="card-header d-flex justify-content-between">
+            <h5>
+                <i class="fa fa-sliders mr-2"></i> Notification settings for {{user.name}}
+            </h5>
+        </div>
+        <div class=card-body>
+            {{ form.hidden_tag() }}
+            <div class="form-group form-row">
+                <label for=email class="col-sm-2 col-form-label">Email</label>
+                <div class="col-sm-10">
+                    {{ render_field(form.email, placeholder='Enter email address') }}
+                </div>
+            </div>
+            <div class="form-group form-row">
+                <label for=phone class="col-sm-2 col-form-label">Mobile</label>
+                <div class="input-group col-sm-10">
+                    {{ render_field(form.phone, placeholder='Enter mobile number') }}
+                </div>
+            </div>
+            <div class="form-group form-row">
+                <label for=timezone class="col-sm-2 col-form-label">Time zone</label>
+                <div class="col-sm-10 form-inline">
+                    {{ render_field(form.timezone, type='hidden') }}
+                    <button autocomplete=off type=button class="btn btn-outline-secondary dropdown-toggle mr-sm-3" data-toggle="collapse" id=timezone-btn name=timezone-btn data-target="#timezone-picker-row" aria-expanded=false aria-described-by="#timezone-help">
+                        {{ form.timezone.data }}
+                    </button>
+                    <small id=timezone-help class="form-text text-muted">
+                        Tap to pick your time zone from a map.
+                    </small>
+                </div>
+            </div>
+            <div class="collapse" id=timezone-picker-row>
+                <div id=timezone-picker></div>
+            </div>
+            <div class="form-group form-row">
+                <div class="col-sm-2">
+                    Hours
+                </div>
+                <div class="col-sm-10">
+                    <div class="form-row">
+                        <div class=col-sm-6>
+                            <div class=input-group>
+                                <div class=input-group-prepend>
+                                    <span class=input-group-text id=alert_from-prepend>From</span>
+                                </div>
+                                {{ render_field(form.alert_from) }}
+                            </div>
+                        </div>
+                        <div class=col-sm-6>
+                            <div class=input-group>
+                                <div class=input-group-prepend>
+                                    <span class=input-group-text id=alert_to-prepend>To</span>
+                                </div>
+                                {{ render_field(form.alert_to) }}
+                            </div>
+                        </div>
+                    </div>
+                    <small class="form-text text-muted">
+                        Leave hours blank to receive alerts at all times.
+                    </small>
+                </div>
+            </div>
+            <div id=timezone></div>
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    Alert options
+                </div>
+                <div class="col-sm-10">
+                    <div class=form-check>
+                        {{ form.voice(class='form-check-input') }}
+                        <label class=form-check-label for=voice>
+                            Voice calls
+                            <small class="text-muted ml-sm-2">(if unchecked, SMS only)</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer bg-transparent text-right">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            <input type=submit name=submit value=Save class="btn btn-primary">
+        </div>
+    </form>
+{% endblock %}
+
+{% block scripts %}
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha256-ABVkpwb9K9PxubvRrHMkk6wmWcIHUE9eBxNZLXYQ84k=" crossorigin="anonymous"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.14/moment-timezone-with-data-2012-2022.min.js" integrity="sha256-vBJSPpSAuUKYXDA+2hx2dQmyhkmM91vYjXI/o5QjnmA=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='timezone-picker.min.js') }}"></script>
+    <script>
+        $('#timezone-picker').timezonePicker({
+            quickLink: [],
+            selectBox: false
+        });
+        $('#timezone-picker').data('timezonePicker').$el.on(
+            'map:clicked', function(e) {
+                var data = $('#timezone-picker').data('timezonePicker');
+                var val = data.getValue()[0];
+                $('#timezone').val(val.timezone);
+                $('#timezone-btn').text(val.timezone + ' (' + val.zonename + ')');
+            }
+        );
+    </script>
+{% endblock %}

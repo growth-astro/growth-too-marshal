@@ -1,0 +1,1 @@
+Attention, humans. This is the Growth Target of Opportunity Marshal. There was a new {{ event.tags|join(' ') }} event about {{ (now() - event.dateobs)|humanize() }}.

@@ -1,0 +1,6 @@
+Dear humans,
+
+This is a message that a ToO observation for {{ telescope }} with queue name {{queue_name}} has been submitted.
+
+Thanks,
+{{ config.MAIL_DEFAULT_SENDER }}

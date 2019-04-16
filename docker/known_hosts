@@ -1,0 +1,8 @@
+# hale.palomar.caltech.edu:22220 SSH-2.0-OpenSSH_6.6.1
+[hale.palomar.caltech.edu]:22220 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFf75dXdEenH5BcCts7eGTljI9/a8yf/6eTVtl+Gc5Ie4idydhztqrAp12Tf/K19aVGbELZuGzLnk88lquWx/64=
+# hale.palomar.caltech.edu:22220 SSH-2.0-OpenSSH_6.6.1
+[hale.palomar.caltech.edu]:22220 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC71NyereEJ3n5bhX03A15WCGRdBuYaKM/H7xGr9csRxEX8NEaeNjFpU7SmRZg5q8+qKQUiUJ/6gTjQbweMa5ZS7ruxG6GMZNAXd4vK/VmqmoQIuAl7BBzqEaRL6y9T/LuR6kZ7hZpngqq9VaJfbO0UoXBxgiyjHWQol+WScmo+MLDPaf2s49gpz0g1KII5hMmQqhxqK3NkM52oVQiczK+w5W0gZX5WPytAhn53H0sXjbM6SlW3wA+kDNVNwLqTxt10leYBFZJnQNU8AG5rwNdZffcRGSLBWxCucbQq9vyF4qa1aZsl1itDC0wOxYsEuv8I3ABNClXYGelYV3DbmTZX
+# hale.palomar.caltech.edu:22220 SSH-2.0-OpenSSH_6.6.1
+[hale.palomar.caltech.edu]:22220 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBiLqZVrrkLMxUdh7w56KwPRk4IcOhoJyDjOYIFHm5cg
+# schoty.caltech.edu:22 SSH-2.0-OpenSSH_5.3
+schoty.caltech.edu ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA2ldXZbV/4UJLXfdqAkGzc2TY7Mfyj0lmWdl3lno+wxMFvdA12Hr0KGOgno/Rq4nYWt+LuI99iAFdVC8d1vvc7tDpP4sm2FmAIUvVjIY8lT5ELRAipsY9oX1Ug0SPG2w4KLqsYRx7HTMKmPW/cTWlSRYfrmjQdfwU951AwzsYMLQiGOMf0bGSDDuKchpJr7IotltfHz+MRez0wt//labLZy76CHFAm4URoeRXNMAIu2Ww/kyM2y4H3N8z1W35wr8FOHsI9kvO6Y1Ohq9r00EM0m5A8/GY5eStLHFly0fcjxhBMApzO6kEHY1vraprdX85EOAJCqU//2JZWrflCcuyPw==

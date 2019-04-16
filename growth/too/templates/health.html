@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>GROWTH ToO Marshal: Health</title>
+{% endblock %}
+
+{% block body %}
+    <div class=card>
+        <div class=card-header>
+            <h5><i class="fa fa-heartbeat mr-2"></i> Health</h5>
+        </div>
+        <div class=card-body>
+            <p>Status of external services:</p>
+            <table class=table>
+                {% for telescope in telescopes %}
+                    <tr>
+                        <td>{{telescope.telescope}} Queue</td>
+                        <td><span class=status-badge data-status-url="{{url_for('health_queue', telescope=telescope.telescope)}}"></span></td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td>GROWTH Transient Database</td>
+                    <td><span class=status-badge data-status-url="{{url_for('health_growth_marshal')}}"></span></td>
+                </tr>
+            </table>
+            <button type=button class="btn btn-primary" id=reload><i class="fa fa-refresh mr-2"></i> Refresh</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('.status-badge')
+        .addClass('badge badge-secondary')
+        .text('UNKNOWN')
+        .after('<div class="spinner-border spinner-border-sm ml-2 invisible" role="status"><span class="sr-only">Loading...</span></div>');
+
+    $('#reload').on('click', function() {
+        $('.status-badge').each(function() {
+            let $this = $(this);
+            let status_url = $this.data('status-url');
+            if (status_url !== undefined)
+            {
+                var $spinner = $this.siblings('.spinner-border');
+                $spinner.removeClass('invisible');
+                $.get(status_url)
+                    .done(function() {
+                        $this.removeClass('badge-danger badge-secondary');
+                        $this.addClass('badge-success');
+                        $this.text('ONLINE');
+                    })
+                    .fail(function() {
+                        $this.removeClass('badge-success badge-secondary');
+                        $this.addClass('badge-danger');
+                        $this.text('OFFLINE');
+                    })
+                    .always(function() {
+                        $spinner.addClass('invisible');
+                    });
+            }
+        });
+    });
+
+    $('#reload').click();
+</script>
+{% endblock %}
