@@ -107,10 +107,14 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["catalog_n"] = 1.0
         params["powerlaw_dist_exp"] = 1.0
     elif schedule_strategy == "tiling":
-        if tele == "ZTF":
-            params["tilesType"] = "ranked"
-        else:
-            params["tilesType"] = "moc"
+        params["tilesType"] = "moc"
+        # FIXME: commented out because this requires precomputed tile indices,
+        # which are too large to store in git.
+        #
+        # if tele == "ZTF":
+        #     params["tilesType"] = "ranked"
+        # else:
+        #     params["tilesType"] = "moc"
     params["scheduleType"] = schedule_type
     params["timeallocationType"] = "powerlaw"
     params["nside"] = 256
