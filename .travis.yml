@@ -5,10 +5,10 @@ jobs:
   include:
     - name: Unit Tests
       addons:
+        postgresql: "11"
         apt:
           packages:
             - postgresql-11
-        postgresql: "11"
       install:
         - pip install -r requirements.txt
       script:
