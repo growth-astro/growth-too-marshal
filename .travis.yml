@@ -3,7 +3,8 @@ python:
   - "3.6"
 jobs:
   include:
-    - addons:
+    - name: Unit Tests
+      addons:
         apt:
           packages:
             - postgresql-11
@@ -12,7 +13,8 @@ jobs:
         - pip install -r requirements.txt
       script:
         - python setup.py test
-    - install:
+    - name: Lint
+      install:
         - pip install flake8
       script:
         - flake8 --show-source growth
