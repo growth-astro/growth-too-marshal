@@ -2,6 +2,9 @@ language: python
 python:
   - "3.6"
 addons:
+  apt:
+    packages:
+      - postgresql-11
   postgresql: "11"
 install:
   - pip install -r requirements.txt
