@@ -11,9 +11,11 @@ jobs:
           packages:
             - postgresql-11
       install:
-        - pip install -r requirements.txt
+        - pip install python-coveralls -r requirements.txt
       script:
-        - python setup.py test
+        - python setup.py test --addopts='--cov coveralls --cov-report term-missing'
+      after_success:
+        - coveralls
     - name: Lint
       install:
         - pip install flake8
