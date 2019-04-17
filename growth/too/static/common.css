@@ -1,8 +1,25 @@
-.retracted {
+.event-tag-retracted {
     color: red;
     text-decoration: line-through;
 }
-
+.event-tag-mdc {
+	color: gray;
+}
+.cls-tag-BNS {
+    background-color: #468847;
+}
+.cls-tag-NSBH {
+    background-color: #f89406;
+}
+.cls-tag-BBH {
+    background-color: #333333;
+}
+.cls-tag-GRB {
+    background-color: #f89406;
+}
+.cls-tag-AMON {
+    background-color: #3a87ad;
+}
 .field-tooltip td, .field-tooltip th {
     vertical-align: top;
 }
