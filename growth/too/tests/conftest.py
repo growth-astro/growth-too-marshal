@@ -1,7 +1,26 @@
+from unittest.mock import Mock
+
 import pytest
 
 from .. import tasks
 from ..flask import app
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        '--run-slow-tests', action='store_true',
+        default=False, help='Run slow tests')
+
+
+@pytest.fixture
+def run_slow_tests(request):
+    return request.config.getoption("--run-slow-tests")
+
+
+@pytest.fixture(autouse=True)
+def mock_slow_functions(monkeypatch, run_slow_tests):
+    if not run_slow_tests:
+        monkeypatch.setattr('growth.too.tasks.tiles.tile.run', Mock())
 
 
 @pytest.fixture(autouse=True, scope='session')
