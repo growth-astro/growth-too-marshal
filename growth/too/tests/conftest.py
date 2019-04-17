@@ -4,24 +4,24 @@ from .. import tasks
 from ..flask import app
 
 
-@pytest.fixture(autouse=True, scope='session')
-def temp_database(postgresql_proc):
+@pytest.fixture(scope='session')
+def _db(postgresql_proc):
     """Use a disposible Postgresql database for all tests."""
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
         proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
     for key in app.config['SQLALCHEMY_BINDS']:
         app.config['SQLALCHEMY_BINDS'][key] = database_uri
+    from .. import models
+    models.create_all()
+    models.db.session.commit()
+    return models.db
 
 
 @pytest.fixture
-def database():
+def database(db_session):
     """Start from an empty database."""
-    from .. import models
-    models.create_all()
-    yield
-    models.db.session.commit()
-    models.db.drop_all()
+    pass
 
 
 @pytest.fixture
