@@ -177,9 +177,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
 
     params["doSingleExposure"] = True
     if filterScheduleType == "block":
-        params["doAlternatingFilters"] = True
-    else:
         params["doAlternatingFilters"] = False
+    else:
+        params["doAlternatingFilters"] = True
     params["filters"] = filt
     params["exposuretimes"] = exposuretimes
     params["mindiff"] = mindiff
