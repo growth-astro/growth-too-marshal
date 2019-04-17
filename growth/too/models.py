@@ -7,6 +7,7 @@ import enum
 import os
 import copy
 import gwemopt.utils
+import gwemopt.ztf_tiling
 
 from astropy import table
 from flask_login.mixins import UserMixin
@@ -179,6 +180,17 @@ def create_all():
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
                                        reference_filter_ids=ref_filter_ids))
+
+                if tele == "ZTF":
+                    quadIndices = np.arange(64)
+                    ipixs = gwemopt.ztf_tiling.get_quadrant_ipix(
+                        Localization.nside, field_id, ra, dec)
+
+                    for subfield_id, ii in zip(quadIndices, ipixs):
+                        db.session.merge(SubField(telescope=tele,
+                                                  field_id=int(field_id),
+                                                  subfield_id=int(subfield_id),
+                                                  ipix=ii))
 
 
 class User(db.Model, UserMixin):
@@ -410,6 +422,41 @@ class Field(db.Model):
         db.ARRAY(db.Integer),
         nullable=False,
         comment='GeoJSON contours')
+
+    subfields = db.relationship(lambda: SubField)
+
+
+class SubField(db.Model):
+    """SubFields"""
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            ['telescope',
+             'field_id'],
+            ['field.telescope',
+             'field.field_id']
+        ),
+    )
+
+    telescope = db.Column(
+        db.String,
+        db.ForeignKey(Telescope.telescope),
+        primary_key=True,
+        comment='Telescope')
+
+    field_id = db.Column(
+        db.Integer,
+        primary_key=True,
+        comment='Field ID')
+
+    subfield_id = db.Column(
+        db.Integer,
+        primary_key=True,
+        comment='SubField ID')
+
+    ipix = db.Column(
+        db.ARRAY(db.Integer),
+        comment='Healpix indices')
 
 
 class GcnNotice(db.Model):
