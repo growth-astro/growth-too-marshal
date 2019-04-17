@@ -179,7 +179,8 @@ def create_all():
                 db.session.merge(Field(telescope=tele,
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
-                                       reference_filter_ids=ref_filter_ids))
+                                       reference_filter_ids=ref_filter_ids,
+                                       ipix=ipix.tolist()))
 
                 if tele == "ZTF":
                     quadIndices = np.arange(64)
@@ -423,6 +424,7 @@ class Field(db.Model):
         nullable=False,
         comment='GeoJSON contours')
 
+<<<<<<< HEAD
     subfields = db.relationship(lambda: SubField)
 
 
@@ -672,6 +674,74 @@ class Plan(db.Model):
         overhead = sum(
             _.overhead_per_exposure for _ in self.planned_observations)
         return overhead + self.total_time
+
+    @property
+    def ipix(self):
+        ipix = {i for _ in self.planned_observations for i in _.field.ipix}
+        return list(ipix)
+
+    def probability(self, localization_name=None):
+
+        if localization_name is not None:
+            localization =\
+                Localization.query.filter_by(dateobs=self.dateobs,
+                                             localization_name=localization_name
+                                             ).one()
+        else:
+            localization =\
+                Localization.query.filter_by(dateobs=self.dateobs).all()[-1]
+
+        #uniq = localization.uniq
+        #probdensity = localization.probdensity
+        #nside = Localization.nside
+
+        #level_loc, ipix_loc = astropy_healpix.uniq_to_level_ipix(uniq)
+        #level_test = np.arange(np.min(level_loc)-3, np.max(level_loc)+3)
+        #nside_test = 2**level_test
+
+        #def get_idx(nside, ipix, uniq):
+        #    theta, phi = hp.pix2ang(nside, ipix)
+        #    ipix_new = hp.ang2pix(nside_test, theta, phi)
+        #    uniq_new = astropy_healpix.level_ipix_to_uniq(level_test, ipix_new)
+        #    mask = np.isin(uniq_new, uniq, assume_unique=False)
+        #    idx = uniq_new[mask]
+        #    index = np.searchsorted(uniq,idx)
+        #    if index.size:
+        #        return index[0]
+        #    else:
+        #        print(ipix,uniq_new, astropy_healpix.uniq_to_level_ipix(uniq_new))
+        #        return []
+
+        #uniq_ipix = []
+        #for ii, ipix in enumerate(self.ipix):
+        #    if ii > 1000: continue
+        #    if np.mod(ii,100) == 0:
+        #        print("%d/%d"%(ii,len(self.ipix)))
+        #    uniq_ipix.append(get_idx(nside, ipix, uniq))
+        #uniq_ipix = list(filter(None,uniq_ipix))
+        #uniq_ipix = np.array(uniq_ipix).astype(int)
+
+        prob = hp.reorder(localization.flat_2d, 'NESTED', 'RING')
+        if len(self.ipix) == 0:
+            cum_prob = 0.0
+        else:
+            cum_prob = np.sum(prob[self.ipix])
+
+        return 100*cum_prob
+
+    @property
+    def area(self):
+
+        nside = Localization.nside
+        pixarea = hp.nside2pixarea(nside)
+        pixarea_deg2 = hp.nside2pixarea(nside, degrees=True)
+
+        if len(self.ipix) == 0:
+            cum_area = 0.0
+        else:
+            cum_area = len(self.ipix) * pixarea_deg2
+
+        return cum_area
 
 
 class PlannedObservation(db.Model):

@@ -116,7 +116,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
             params["doChipGaps"] = False
     params["scheduleType"] = schedule_type
     params["timeallocationType"] = "powerlaw"
-    params["nside"] = 256
+    params["nside"] = 512
     params["powerlaw_cl"] = probability
     params["powerlaw_n"] = 1.0
     params["powerlaw_dist_exp"] = 0.0

@@ -30,6 +30,9 @@
                         <th>Number exposures</th>
                         <th>Tot exposure (min)</th>
                         <th>Tot time (min)</th>
+                        <th>Probability</th>
+                        <th>Sky Area</th>
+                        <th>GCN</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,6 +49,9 @@
                         <td>{{plan.num_observations}} </td>
                         <td>{{ "%.1f"|format(plan.total_time / 60)}} </td>
                         <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }} </td>
+                        <td>{{ "%.1f"|format(plan.probability(localization_name=event.localizations[-1].localization_name)) }} </td>
+                        <td>{{ "%.1f"|format(plan.area) }} </td>
+                        <td><a href="{{url_for('create_GCN_template', dateobs=plan.dateobs, telescope=plan.telescope, localization_name=event.localizations[-1].localization_name,plan_name=plan.plan_name)}}">link</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
