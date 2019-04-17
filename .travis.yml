@@ -19,7 +19,7 @@ jobs:
       install:
         - pip install pytest-cov python-coveralls -r requirements.txt
       script:
-        - python setup.py test --addopts='-xvv --durations=0 --cov coveralls --cov-report term-missing'
+        - python setup.py test --addopts='-vv --durations=0 --cov coveralls --cov-report term-missing'
       after_success:
         - coveralls
 
