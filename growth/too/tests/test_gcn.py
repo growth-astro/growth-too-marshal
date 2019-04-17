@@ -14,7 +14,7 @@ from . import mock_download_file
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.twilio.call_everyone')
+@mock.patch('growth.too.tasks.twilio.call_everyone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
                             celery, database, flask, mail):
@@ -73,9 +73,9 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile')
-@mock.patch('growth.too.tasks.skymaps.from_cone')
-@mock.patch('growth.too.tasks.skymaps.download')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
+@mock.patch('growth.too.tasks.skymaps.download.run')
 def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
                                   mock_contour, celery, database, flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
@@ -117,8 +117,8 @@ def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile')
-@mock.patch('growth.too.tasks.skymaps.from_cone')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
 def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
                             celery, database, flask, mail):
     # Read test GCN
@@ -136,8 +136,8 @@ def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile')
-@mock.patch('growth.too.tasks.skymaps.from_cone')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
 def test_amon_150529(mock_from_cone, mock_tile, mock_contour,
                      celery, database, flask, mail):
     # Read test GCN
@@ -154,8 +154,8 @@ def test_amon_150529(mock_from_cone, mock_tile, mock_contour,
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile')
-@mock.patch('growth.too.tasks.skymaps.from_cone')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
 def test_amon_151115(mock_from_cone, mock_tile, mock_contour,
                      celery, database, flask, mail):
     # Read test GCN
