@@ -52,6 +52,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         telescope = config_file.split("/")[-1].replace(".config", "")
         params["config"][telescope] =\
             gwemopt.utils.readParamsFromFile(config_file)
+        params["config"][telescope]["telescope"] = telescope
         if "tesselationFile" in params["config"][telescope]:
             params["config"][telescope]["tesselationFile"] =\
                 os.path.join(config_directory,
@@ -146,6 +147,10 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["doSplit"] = False
     params["doParallel"] = False
     params["doUseCatalog"] = False
+
+    params["doMinimalTiling"] = False
+    params["doIterativeTiling"] = False
+    params["galaxies_FoV_sep"] = 1.0
 
     if params["doEvent"]:
         params["skymap"], eventinfo = gwemopt.gracedb.get_event(params)
