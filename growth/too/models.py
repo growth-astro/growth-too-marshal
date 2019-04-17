@@ -186,10 +186,10 @@ def create_all():
                     ipixs = gwemopt.ztf_tiling.get_quadrant_ipix(
                         Localization.nside, field_id, ra, dec)
 
-                    for quadrant_id, ii in zip(quadIndices, ipixs):
-                        db.session.merge(Quadrant(telescope=tele,
+                    for subfield_id, ii in zip(quadIndices, ipixs):
+                        db.session.merge(SubField(telescope=tele,
                                                   field_id=int(field_id),
-                                                  quadrant_id=int(quadrant_id),
+                                                  subfield_id=int(subfield_id),
                                                   ipix=ii))
 
 
@@ -423,11 +423,11 @@ class Field(db.Model):
         nullable=False,
         comment='GeoJSON contours')
 
-    quadrants = db.relationship(lambda: Quadrant)
+    subfields = db.relationship(lambda: SubField)
 
 
-class Quadrant(db.Model):
-    """Quadrants"""
+class SubField(db.Model):
+    """SubFields"""
 
     __table_args__ = (
         db.ForeignKeyConstraint(
@@ -449,10 +449,10 @@ class Quadrant(db.Model):
         primary_key=True,
         comment='Field ID')
 
-    quadrant_id = db.Column(
+    subfield_id = db.Column(
         db.Integer,
         primary_key=True,
-        comment='Quadrant ID')
+        comment='SubField ID')
 
     ipix = db.Column(
         db.ARRAY(db.Integer),
