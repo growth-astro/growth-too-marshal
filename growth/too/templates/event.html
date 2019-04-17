@@ -25,6 +25,14 @@
                             <a href="{{url_for('gcn_notice', ivorn=gcn_notice.ivorn|quote_plus)}}">
                                 {{gcn_notice.notice_type.name}} at {{gcn_notice.date}}
                             </a>
+                            {% if 'GW' in event.tags and not event.retracted %}
+                            <ul>
+                                <li> Classification: BNS = {{gcn_notice.BNS}} {{'%'}}, BBH = {{gcn_notice.BBH}} {{'%'}}, NSBH = {{gcn_notice.MassGap}} {{'%'}}, Noise = {{gcn_notice.Noise}} {{'%'}}
+                                </li>
+                                <li> Properties: HasNS = {{gcn_notice.HasNS}} {{'%'}}, HasRemnant = {{gcn_notice.HasRemnant}} {{'%'}}, FAR = {{gcn_notice.FAR}} {{'%'}}
+                                </li>
+                            </ul>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>

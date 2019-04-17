@@ -335,35 +335,44 @@ class Event(db.Model):
     def ned_gwf(self):
         return "https://ned.ipac.caltech.edu/gwf/events"
 
+    def get_property(self, property_name, value=None):
+        root = lxml.etree.fromstring(self.content)
+        path = ".//Param[@name={}]".format(property_name)
+        elem = root.find(path)
+        value = round(float(elem.attrib.get('value', '')) * 100, 3)
+        return value
+
     @property
     def HasNS(self):
-        notice = self.gcn_notices[0]
-        root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='HasNS']")
-        if elem is None:
-            return None
-        else:
-            return 'HasNS: '+elem.attrib.get('value', '')
+        return self.get_property(property_name="'HasNS'")
 
     @property
     def HasRemnant(self):
-        notice = self.gcn_notices[0]
-        root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='HasRemnant']")
-        if elem is None:
-            return None
-        else:
-            return 'HasRemnant: '+elem.attrib.get('value', '')
+        return self.get_property(property_name="'HasRemnant'")
 
     @property
     def FAR(self):
-        notice = self.gcn_notices[0]
-        root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='FAR']")
-        if elem is None:
-            return None
-        else:
-            return 'FAR: '+elem.attrib.get('value', '')
+        return self.get_property(property_name="'FAR'")
+
+    @property
+    def BNS(self):
+        return self.get_property(property_name="'BNS'")
+
+    @property
+    def NSBH(self):
+        return self.get_property(property_name="'NSBH'")
+
+    @property
+    def BBH(self):
+        return self.get_property(property_name="'BBH'")
+
+    @property
+    def MassGap(self):
+        return self.get_property(property_name="'MassGap'")
+
+    @property
+    def Noise(self):
+        return self.get_property(property_name="'Terrestrial'")
 
 
 class Tag(db.Model):
