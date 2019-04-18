@@ -18,6 +18,6 @@ if {'build_sphinx'}.intersection(sys.argv):
 
 setup(cmdclass=versioneer.get_cmdclass(),
       install_requires=get_requirements('requirements.txt'),
-      test_requires=get_requirements('test-requirements.txt'),
+      tests_require=get_requirements('test-requirements.txt'),
       setup_requires=setup_requires,
       version=versioneer.get_version())
