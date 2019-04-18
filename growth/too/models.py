@@ -335,45 +335,6 @@ class Event(db.Model):
     def ned_gwf(self):
         return "https://ned.ipac.caltech.edu/gwf/events"
 
-    def _get_property(self, property_name, value=None):
-        root = lxml.etree.fromstring(self.content)
-        path = ".//Param[@name='{}']".format(property_name)
-        elem = root.find(path)
-        value = float(elem.attrib.get('value', '')) * 100
-        return value
-
-    @property
-    def has_ns(self):
-        return self._get_property(property_name="HasNS")
-
-    @property
-    def has_remnant(self):
-        return self._get_property(property_name="HasRemnant")
-
-    @property
-    def far(self):
-        return self._get_property(property_name="FAR")
-
-    @property
-    def bns(self):
-        return self._get_property(property_name="BNS")
-
-    @property
-    def nsbh(self):
-        return self._get_property(property_name="NSBH")
-
-    @property
-    def bbh(self):
-        return self._get_property(property_name="BBH")
-
-    @property
-    def mass_gap(self):
-        return self._get_property(property_name="MassGap")
-
-    @property
-    def noise(self):
-        return self._get_property(property_name="Terrestrial")
-
 
 class Tag(db.Model):
     """Store qualitative tags for events."""
@@ -539,6 +500,45 @@ class GcnNotice(db.Model):
         db.LargeBinary,
         nullable=False,
         comment='Raw VOEvent content'))
+
+    def _get_property(self, property_name, value=None):
+        root = lxml.etree.fromstring(self.content)
+        path = ".//Param[@name='{}']".format(property_name)
+        elem = root.find(path)
+        value = float(elem.attrib.get('value', '')) * 100
+        return value
+
+    @property
+    def has_ns(self):
+        return self._get_property(property_name="HasNS")
+
+    @property
+    def has_remnant(self):
+        return self._get_property(property_name="HasRemnant")
+
+    @property
+    def far(self):
+        return self._get_property(property_name="FAR")
+
+    @property
+    def bns(self):
+        return self._get_property(property_name="BNS")
+
+    @property
+    def nsbh(self):
+        return self._get_property(property_name="NSBH")
+
+    @property
+    def bbh(self):
+        return self._get_property(property_name="BBH")
+
+    @property
+    def mass_gap(self):
+        return self._get_property(property_name="MassGap")
+
+    @property
+    def noise(self):
+        return self._get_property(property_name="Terrestrial")
 
 
 class Localization(db.Model):
