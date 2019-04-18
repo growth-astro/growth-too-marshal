@@ -335,44 +335,44 @@ class Event(db.Model):
     def ned_gwf(self):
         return "https://ned.ipac.caltech.edu/gwf/events"
 
-    def get_property(self, property_name, value=None):
+    def _get_property(self, property_name, value=None):
         root = lxml.etree.fromstring(self.content)
-        path = ".//Param[@name={}]".format(property_name)
+        path = ".//Param[@name='{}']".format(property_name)
         elem = root.find(path)
-        value = round(float(elem.attrib.get('value', '')) * 100, 3)
+        value = float(elem.attrib.get('value', '')) * 100
         return value
 
     @property
-    def HasNS(self):
-        return self.get_property(property_name="'HasNS'")
+    def has_ns(self):
+        return self._get_property(property_name="HasNS")
 
     @property
-    def HasRemnant(self):
-        return self.get_property(property_name="'HasRemnant'")
+    def has_remnant(self):
+        return self._get_property(property_name="HasRemnant")
 
     @property
-    def FAR(self):
-        return self.get_property(property_name="'FAR'")
+    def far(self):
+        return self._get_property(property_name="FAR")
 
     @property
-    def BNS(self):
-        return self.get_property(property_name="'BNS'")
+    def bns(self):
+        return self._get_property(property_name="BNS")
 
     @property
-    def NSBH(self):
-        return self.get_property(property_name="'NSBH'")
+    def nsbh(self):
+        return self._get_property(property_name="NSBH")
 
     @property
-    def BBH(self):
-        return self.get_property(property_name="'BBH'")
+    def bbh(self):
+        return self._get_property(property_name="BBH")
 
     @property
-    def MassGap(self):
-        return self.get_property(property_name="'MassGap'")
+    def mass_gap(self):
+        return self._get_property(property_name="MassGap")
 
     @property
-    def Noise(self):
-        return self.get_property(property_name="'Terrestrial'")
+    def noise(self):
+        return self._get_property(property_name="Terrestrial")
 
 
 class Tag(db.Model):

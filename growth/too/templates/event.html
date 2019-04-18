@@ -27,9 +27,9 @@
                             </a>
                             {% if 'GW' in event.tags and not event.retracted %}
                             <ul>
-                                <li> Classification: BNS = {{gcn_notice.BNS}} {{'%'}}, BBH = {{gcn_notice.BBH}} {{'%'}}, NSBH = {{gcn_notice.MassGap}} {{'%'}}, Noise = {{gcn_notice.Noise}} {{'%'}}
+                                <li> Classification: BNS = {{ '%.3f' |format(gcn_notice.bns) }} {{'%'}}, BBH = {{ '%.3f' |format(gcn_notice.bbh) }} {{'%'}}, NSBH = {{ '%.3f' |format(gcn_notice.nsbh) }} {{'%'}}, MassGap = {{ '%.3f' |format(gcn_notice.mass_gap) }} {{'%'}}, Noise = {{ '%.3f' |format(gcn_notice.noise) }} {{'%'}}
                                 </li>
-                                <li> Properties: HasNS = {{gcn_notice.HasNS}} {{'%'}}, HasRemnant = {{gcn_notice.HasRemnant}} {{'%'}}, FAR = {{gcn_notice.FAR}} {{'%'}}
+                                <li> Properties: HasNS = {{ '%.3f' |format(gcn_notice.has_ns) }} {{'%'}}, HasRemnant = {{ '%.3f' |format(gcn_notice.has_remnant) }} {{'%'}}, FAR = {{ '%.3f' |format(gcn_notice.far) }} {{'%'}}
                                 </li>
                             </ul>
                             {% endif %}
