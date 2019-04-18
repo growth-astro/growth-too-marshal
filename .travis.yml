@@ -11,6 +11,8 @@ jobs:
   include:
 
     - name: Unit Tests
+      env:
+        CACHE_NAME: unit-tests
       addons:
         apt:
           packages:
@@ -24,6 +26,8 @@ jobs:
         - coveralls
 
     - name: Lint
+      env:
+        CACHE_NAME: lint
       install:
         - pip install flake8
       script:
