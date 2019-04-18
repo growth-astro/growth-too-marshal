@@ -111,9 +111,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     elif schedule_strategy == "tiling":
         params["tilesType"] = "moc"
         if tele == "ZTF":
-             params["doChipGaps"] = True
+            params["doChipGaps"] = True
         else:
-             params["doChipGaps"] = False
+            params["doChipGaps"] = False
     params["scheduleType"] = schedule_type
     params["timeallocationType"] = "powerlaw"
     params["nside"] = 256
