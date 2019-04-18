@@ -12,10 +12,10 @@ Configuration
 
    # Default email that receives notifications
    # Note: Without this, email alerts will be broken.
-   EMAIL_TOO="XXXXXXXXXXXXXXX@gmail.com"
+   EMAIL_TOO = "XXXXXXXXXXXXXXX@gmail.com"
    # GMail based username and password
-   MAIL_USERNAME="XXXXXXXXXXXXXX@gmail.com"
-   MAIL_PASSWORD="XXXXXXXXXXXXXXXX"
+   MAIL_USERNAME = "XXXXXXXXXXXXXX@gmail.com"
+   MAIL_PASSWORD = "XXXXXXXXXXXXXXXX"
 
    # Twilio account parameters
    # Note: Without this, phone and text alerts will be broken.
