@@ -1,5 +1,5 @@
 <div class="d-flex justify-content-between">
-    <h5 class="{% for tag in event.tags %}event-tag-{{tag}} {% endif %}">
+    <h5 class="{% for tag in event.tags %}event-tag-{{tag}} {% endfor %}">
         {{event.dateobs.strftime('%y%m%d')}}
         <small>
             {{event.dateobs.strftime('%H:%M:%S')}}
