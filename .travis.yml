@@ -17,7 +17,7 @@ jobs:
             - postgresql-11
         postgresql: "11"
       install:
-        - pip install pytest-cov python-coveralls -r requirements.txt
+        - pip install pytest-cov python-coveralls -r requirements.txt -r tests-requirements.txt
       script:
         - python setup.py test --addopts='-vv --durations=0 --cov coveralls --cov-report term-missing'
       after_success:
