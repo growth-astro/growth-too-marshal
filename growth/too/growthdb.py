@@ -3,35 +3,35 @@ by reflection."""
 import warnings
 
 from .flask import app
-from .models import db
+from . import models
 
 from sqlalchemy import Table
 
 
-class Users(db.Model):
+class Users(models.db.Model):
     __bind_key__ = 'growthdb'
     __table__ = Table(
-        'users', db.metadata, autoload=True,
-        autoload_with=db.get_engine(app, bind=__bind_key__))
+        'users', models.db.metadata, autoload=True,
+        autoload_with=models.db.get_engine(app, bind=__bind_key__))
 
 
-class SciencePrograms(db.Model):
+class SciencePrograms(models.db.Model):
     __bind_key__ = 'growthdb'
     __table__ = Table(
-        'scienceprograms', db.metadata, autoload=True,
-        autoload_with=db.get_engine(app, bind=__bind_key__))
+        'scienceprograms', models.db.metadata, autoload=True,
+        autoload_with=models.db.get_engine(app, bind=__bind_key__))
 
 
 def get_marshallink(username, program_name):
 
-    user = db.session.query(Users).filter_by(username=username).all()
+    user = models.db.session.query(Users).filter_by(username=username).all()
     if len(user) == 0 or user is None:
         warnings.warn('User missing from growth-db')
         return 'None'
     else:
         programid_string = user[0].group_memberships
 
-    program = db.session.query(
+    program = models.db.session.query(
         SciencePrograms).filter_by(name=program_name).all()
     if len(program) == 0 or program is None:
         warnings.warn('Science program missing from growth-db')
