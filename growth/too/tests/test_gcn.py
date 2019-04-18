@@ -138,24 +138,6 @@ def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
-def test_amon_150529(mock_from_cone, mock_tile, mock_contour,
-                     celery, database, flask, mail):
-    # Read test GCN
-    payload = pkg_resources.resource_string(
-        __name__, 'data/AMON_150529.xml')
-    root = lxml.etree.fromstring(payload)
-
-    # Run function under test
-    handle(payload, root)
-
-    dateobs = '2015-05-29T02:17:28'
-    event = models.Event.query.get(dateobs)
-    assert event.tags == ['AMON']
-
-
-@mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile.run')
-@mock.patch('growth.too.tasks.skymaps.from_cone.run')
 def test_amon_151115(mock_from_cone, mock_tile, mock_contour,
                      celery, database, flask, mail):
     # Read test GCN
