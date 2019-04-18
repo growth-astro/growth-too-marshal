@@ -107,15 +107,13 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["writeCatalog"] = False
         params["catalog_n"] = 1.0
         params["powerlaw_dist_exp"] = 1.0
+        params["doChipGaps"] = False
     elif schedule_strategy == "tiling":
         params["tilesType"] = "moc"
-        # FIXME: commented out because this requires precomputed tile indices,
-        # which are too large to store in git.
-        #
-        # if tele == "ZTF":
-        #     params["tilesType"] = "ranked"
-        # else:
-        #     params["tilesType"] = "moc"
+        if tele == "ZTF":
+            params["doChipGaps"] = True
+        else:
+            params["doChipGaps"] = False
     params["scheduleType"] = schedule_type
     params["timeallocationType"] = "powerlaw"
     params["nside"] = 256
@@ -143,7 +141,6 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["doFootprint"] = False
     params["doDatabase"] = True
     params["doReferences"] = doReferences
-    params["doChipGaps"] = False
     params["doSplit"] = False
     params["doParallel"] = False
     params["doUseCatalog"] = False

@@ -184,7 +184,7 @@ def create_all():
                 if tele == "ZTF":
                     quadIndices = np.arange(64)
                     ipixs = gwemopt.ztf_tiling.get_quadrant_ipix(
-                        Localization.nside, field_id, ra, dec)
+                        Localization.nside, ra, dec)
 
                     for subfield_id, ii in zip(quadIndices, ipixs):
                         db.session.merge(SubField(telescope=tele,
