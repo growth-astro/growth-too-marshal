@@ -4,8 +4,8 @@ from .. import tasks
 from ..flask import app
 
 
-@pytest.fixture(scope='session')
-def _db(postgresql_proc):
+@pytest.fixture(autouse=True, scope='session')
+def database(postgresql_proc):
     """Use a disposible Postgresql database for all tests."""
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
         proc=postgresql_proc)
@@ -15,13 +15,6 @@ def _db(postgresql_proc):
     from .. import models
     models.create_all()
     models.db.session.commit()
-    return models.db
-
-
-@pytest.fixture
-def database(db_session):
-    """Start from an empty database."""
-    pass
 
 
 @pytest.fixture

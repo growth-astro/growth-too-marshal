@@ -14,10 +14,29 @@ from . import mock_download_file
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
+def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
+                            celery, flask, mail):
+    # Read test GCN
+    payload = pkg_resources.resource_string(
+        __name__, 'data/GRB180116A_Fermi_GBM_Gnd_Pos.xml')
+    root = lxml.etree.fromstring(payload)
+
+    # Run function under test
+    handle(payload, root)
+
+    # Check that we didn't write the unhelpful "unknown" short/long class
+    dateobs = '2018-01-16T00:36:53'
+    event = models.Event.query.get(dateobs)
+    assert event.tags == ['Fermi', 'GRB']
+
+
+@mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
-                            celery, database, flask, mail):
+                            celery, flask, mail):
     # Read test GCN
     payload = pkg_resources.resource_string(
         __name__, 'data/GRB180116A_Fermi_GBM_Fin_Pos.xml')
@@ -29,7 +48,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
     dateobs = '2018-01-16T00:36:53'
     event = models.Event.query.get(dateobs)
     assert event is not None
-    gcn_notice, = event.gcn_notices
+    *_, gcn_notice = event.gcn_notices
     assert gcn_notice.content == payload
     assert gcn_notice.notice_type == gcn.NoticeType.FERMI_GBM_FIN_POS
     assert time.Time(gcn_notice.date) == time.Time('2018-01-16T00:46:05')
@@ -77,7 +96,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
 @mock.patch('growth.too.tasks.skymaps.download.run')
 def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
-                                  mock_contour, celery, database, flask, mail):
+                                  mock_contour, celery, flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
     no database conflicts."""
     for notice_type in ['Alert', 'Flt_Pos', 'Gnd_Pos', 'Fin_Pos']:
@@ -97,7 +116,7 @@ def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
                           mock_call_everyone, mock_text_everyone, celery,
-                          database, flask, mail):
+                          flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
     no database conflicts."""
     filename = 'data/GRB180422.913_Subthreshold.xml'
@@ -119,27 +138,8 @@ def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
-def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
-                            celery, database, flask, mail):
-    # Read test GCN
-    payload = pkg_resources.resource_string(
-        __name__, 'data/GRB180116A_Fermi_GBM_Gnd_Pos.xml')
-    root = lxml.etree.fromstring(payload)
-
-    # Run function under test
-    handle(payload, root)
-
-    # Check that we didn't write the unhelpful "unknown" short/long class
-    dateobs = '2018-01-16T00:36:53'
-    event = models.Event.query.get(dateobs)
-    assert event.tags == ['Fermi', 'GRB']
-
-
-@mock.patch('growth.too.tasks.skymaps.contour.run')
-@mock.patch('growth.too.tasks.tiles.tile.run')
-@mock.patch('growth.too.tasks.skymaps.from_cone.run')
 def test_amon_151115(mock_from_cone, mock_tile, mock_contour,
-                     celery, database, flask, mail):
+                     celery, flask, mail):
     # Read test GCN
     payload = pkg_resources.resource_string(
         __name__, 'data/AMON_151115.xml')

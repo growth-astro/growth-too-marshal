@@ -10,8 +10,7 @@ from ..gcn import handle
 @mock.patch('growth.too.tasks.skymaps.download.run')
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
-def test_lvc(mock_tile, mock_contour,
-             mock_download, celery, database, flask, mail):
+def test_lvc(mock_tile, mock_contour, mock_download, celery, flask, mail):
     """Very basic test of LIGO/Virgo GCN parsing."""
     # Read test GCN
     payload = pkg_resources.resource_string(

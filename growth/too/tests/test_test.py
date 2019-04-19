@@ -21,7 +21,7 @@ def test_mail(mail):
     assert tasks.email.mail.suppress
 
 
-def test_sqlalchemy(database):
+def test_sqlalchemy():
     """Check that we are using the test configuration for SQLAlchemy.
     If this test fails, then there is a danger that we might accidentally
     modify the production database!"""
