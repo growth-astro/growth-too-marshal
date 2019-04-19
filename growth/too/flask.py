@@ -41,8 +41,16 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_DEFAULT_SENDER'] = '{}@gmail.com'.format(
     app.config['MAIL_USERNAME'])
 
-# Apply instance config.
+# Apply instance configuration from application.cfg and application.cfg.d/*.
 app.config.from_pyfile('application.cfg', silent=True)
+dropin_dir = os.path.join(app.instance_path, 'application.cfg.d')
+try:
+    dropin_files = os.listdir(dropin_dir)
+except FileNotFoundError:
+    pass
+else:
+    for dropin_file in dropin_files:
+        app.config.from_pyfile(dropin_file)
 
 
 class DateTimeConverter(BaseConverter):
