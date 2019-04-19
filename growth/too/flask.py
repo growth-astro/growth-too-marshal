@@ -50,7 +50,7 @@ except FileNotFoundError:
     pass
 else:
     for dropin_file in dropin_files:
-        app.config.from_pyfile(dropin_file)
+        app.config.from_pyfile(os.path.join('application.cfg.d', dropin_file))
 
 
 class DateTimeConverter(BaseConverter):
