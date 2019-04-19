@@ -199,7 +199,8 @@ def create_all():
                 db.session.merge(Field(telescope=tele,
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
-                                       reference_filter_ids=ref_filter_ids))
+                                       reference_filter_ids=ref_filter_ids,
+                                       ipix=ipix.tolist()))
 
             if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
@@ -458,6 +459,10 @@ class Field(db.Model):
         nullable=False,
         comment='GeoJSON contours')
 
+    ipix = db.Column(
+        db.ARRAY(db.Integer),
+        comment='Healpix indices')
+
     subfields = db.relationship(lambda: SubField)
 
 
@@ -707,6 +712,25 @@ class Plan(db.Model):
         overhead = sum(
             _.overhead_per_exposure for _ in self.planned_observations)
         return overhead + self.total_time
+
+    @property
+    def ipix(self):
+        ipix = {i for _ in self.planned_observations for i in _.field.ipix}
+        return list(ipix)
+
+    @property
+    def area(self):
+
+        nside = Localization.nside
+        pixarea = hp.nside2pixarea(nside)
+        pixarea_deg2 = hp.nside2pixarea(nside, degrees=True)
+
+        if len(self.ipix) == 0:
+            cum_area = 0.0
+        else:
+            cum_area = len(self.ipix) * pixarea_deg2
+
+        return cum_area
 
 
 class PlannedObservation(db.Model):

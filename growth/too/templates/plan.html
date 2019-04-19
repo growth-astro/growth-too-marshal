@@ -37,6 +37,7 @@
                         <th>Number exposures</th>
                         <th>Tot exposure (min)</th>
                         <th>Tot time (min)</th>
+                        <th>Sky Area</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -53,6 +54,7 @@
                         <td>{{plan.num_observations}} </td>
                         <td>{{ "%.1f"|format(plan.total_time / 60)}} </td>
                         <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }} </td>
+                        <td>{{ "%.1f"|format(plan.area) }} </td>
                     </tr>
                     {% endfor %}
                 </tbody>
