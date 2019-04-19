@@ -34,6 +34,7 @@
             var center = features.features.shift().geometry.coordinates;
             proj.rotate([-center[0], -center[1]]);
 
+            svg.selectAll('path.contour').remove();
             svg.append('path')
                 .datum(features)
                 .attr('class', 'contour');

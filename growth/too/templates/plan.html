@@ -16,6 +16,13 @@
         <div class=svg-aspect-1><svg></svg></div>
         <form method=post>
             <div class=btn-toolbar role=toolbar id=toolbar>
+                <select class="ml-2 w-auto custom-select" id=localization>
+                    {% for localization in event.localizations %}
+                        <option {% if loop.last %}selected{% endif %}>
+                            {{localization.localization_name}}
+                        </option>
+                    {% endfor %}
+                </select>
                 <a class="ml-2 btn btn-secondary" href="{{url_for('plan_new', dateobs=event.dateobs)}}" title="Create new plan..."><i class="fa fa-plus-square"></i> New...</a>
                 <button disabled type=submit name=delete class="ml-2 btn btn-secondary" title="Delete selected plans"><i class="fa fa-trash"></i> Delete</button>
                 <button disabled type=submit name=go class='ml-2 btn btn-danger' title="Submit selected plans to queue"><i class="fa fa-rocket"></i> Go!</button>
@@ -86,13 +93,17 @@
         }
     });
 
-    let localization_url = '{{url_for('localization_json', dateobs=event.dateobs, localization_name=event.localizations[-1].localization_name)}}';
-    d3.json(localization_url, (error, contours) => {
-        if (error)
-            throw error;
+    $('#localization').on('input', function() {
+        let localization_name = $(this).val();
+        let url = '{{url_for('localization_json', dateobs=event.dateobs, localization_name='localization_name')}}'.replace('localization_name', localization_name);
+        d3.json(url, (error, contours) => {
+            if (error)
+                throw error;
 
-        skymap.localization(contours);
-    });
+            skymap.localization(contours);
+        });
+    }).trigger('input');
+
 
     $('#plans tbody').on('click', 'tr', function () {
         let checkbox = $(this).find('input');
