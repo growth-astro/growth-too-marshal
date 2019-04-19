@@ -715,22 +715,12 @@ class Plan(db.Model):
 
     @property
     def ipix(self):
-        ipix = {i for _ in self.planned_observations for i in _.field.ipix}
-        return list(ipix)
+        return {i for _ in self.planned_observations for i in _.field.ipix}
 
     @property
     def area(self):
-
         nside = Localization.nside
-        pixarea = hp.nside2pixarea(nside)
-        pixarea_deg2 = hp.nside2pixarea(nside, degrees=True)
-
-        if len(self.ipix) == 0:
-            cum_area = 0.0
-        else:
-            cum_area = len(self.ipix) * pixarea_deg2
-
-        return cum_area
+        return hp.nside2pixarea(nside, degrees=True) * len(self.ipix)
 
 
 class PlannedObservation(db.Model):
