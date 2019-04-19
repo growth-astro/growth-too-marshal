@@ -115,13 +115,17 @@
         let [telescope, plan_name] = id.split('_').map(atob);
         let value = !checkbox.prop('checked');
 
+        // Check/uncheck the hidden form control.
         checkbox.prop('checked', value);
+
+        // Toggle the color of the table row.
         $(this).toggleClass('table-primary', value);
 
+        // Enable the 'Go!' button if the number of selected plans is nonzero.
         $("#toolbar [name='delete'], #toolbar [name='go']").prop('disabled',
             $('#plans tbody input:checked').length == 0);
 
-            d3.json('plan/telescope/' + telescope + '/' + plan_name + '/json', (error, field_ids) => {
+        d3.json('plan/telescope/' + telescope + '/' + plan_name + '/json', (error, field_ids) => {
             if (error)
                 throw error;
 
