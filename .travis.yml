@@ -20,6 +20,9 @@ jobs:
         postgresql: "11"
       install:
         - pip install pytest-cov python-coveralls -r requirements.txt -r test-requirements.txt
+        # FIXME: Fixes a Unicode warning that clutters up unit test logs.
+        # See https://github.com/pallets/flask-sqlalchemy/issues/671
+        - pip install install git+https://github.com/pallets/flask-sqlalchemy@2.x#egg=flask-sqlalchemy
       script:
         - python setup.py test --addopts='-vv --durations=0 --cov coveralls --cov-report term-missing'
       after_success:
