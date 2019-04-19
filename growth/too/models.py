@@ -10,6 +10,8 @@ import gwemopt.utils
 import gwemopt.ztf_tiling
 
 from astropy import table
+from astropy import coordinates
+from astropy import units as u
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -26,6 +28,21 @@ from sqlalchemy_utils import EmailType, PhoneNumberType
 from .flask import app
 
 db = SQLAlchemy(app)
+
+
+def get_ztf_quadrants():
+    """Calculate ZTF quadrant footprints as offsets from the telescope
+    boresight."""
+    quad_prob = gwemopt.ztf_tiling.QuadProb(0, 0)
+    ztf_tile = gwemopt.ztf_tiling.ZTFtile(0, 0)
+    quad_cents_ra, quad_cents_dec = ztf_tile.quadrant_centers()
+    offsets = np.asarray([
+        quad_prob.getWCS(
+            quad_cents_ra[quadrant_id],
+            quad_cents_dec[quadrant_id]
+        ).calc_footprint(axes=quad_prob.quadrant_size)
+        for quadrant_id in range(64)])
+    return np.transpose(offsets, (2, 0, 1))
 
 
 def create_all():
@@ -138,7 +155,10 @@ def create_all():
                                        filters=available_filters[tele],
                                        default_plan_args=plan_args[tele]))
 
-            for field_id, ra, dec in np.loadtxt(f, usecols=range(3)):
+            fields = np.recfromtxt(
+                f, usecols=range(3), names=['field_id', 'ra', 'dec'])
+
+            for field_id, ra, dec in fields:
                 ref_filter_ids = reference_images.get(field_id, [])
                 ref_filter_mags = []
                 for val in reference_mags.get(field_id, []):
@@ -181,16 +201,31 @@ def create_all():
                                        ra=ra, dec=dec, contour=contour,
                                        reference_filter_ids=ref_filter_ids))
 
-                if tele == "ZTF":
-                    quadIndices = np.arange(64)
-                    ipixs = gwemopt.ztf_tiling.get_quadrant_ipix(
-                        Localization.nside, ra, dec)
+            if tele == "ZTF":
+                quadrant_coords = get_ztf_quadrants()
 
-                    for subfield_id, ii in zip(quadIndices, ipixs):
+                skyoffset_frames = coordinates.SkyCoord(
+                    fields['ra'], fields['dec'], unit=u.deg
+                ).skyoffset_frame()
+
+                quadrant_coords_icrs = coordinates.SkyCoord(
+                    *np.tile(
+                        quadrant_coords[:, np.newaxis, ...],
+                        (len(fields), 1, 1)), unit=u.deg,
+                    frame=skyoffset_frames[:, np.newaxis, np.newaxis]
+                ).transform_to(coordinates.ICRS)
+
+                quadrant_xyz = np.moveaxis(
+                    quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
+
+                for field_id, xyz in zip(fields['field_id'], quadrant_xyz):
+                    for subfield_id, xyz in enumerate(xyz):
+                        ipix = hp.query_polygon(
+                            Localization.nside, xyz, nest=True)
                         db.session.merge(SubField(telescope=tele,
                                                   field_id=int(field_id),
                                                   subfield_id=int(subfield_id),
-                                                  ipix=ii))
+                                                  ipix=ipix.tolist()))
 
 
 class User(db.Model, UserMixin):
