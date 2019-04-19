@@ -77,7 +77,6 @@ def create(sample):
                          'tests/data/GRB180116A_Fermi_GBM_Fin_Pos.xml',
                          'tests/data/MS181101ab-1-Preliminary.xml',
                          'tests/data/MS181101ab-4-Retraction.xml',
-                         'tests/data/AMON_150529.xml',
                          'tests/data/AMON_151115.xml']:
             payload = pkg_resources.resource_string(
                 __name__, filename)
