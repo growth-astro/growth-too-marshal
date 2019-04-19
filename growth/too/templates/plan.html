@@ -30,27 +30,30 @@
             <table id=plans class="table">
                 <thead>
                     <tr>
-                        <th>Telescope</th>
-                        <th>Name</th>
-                        <th>Status</th>
-                        <th>First obs</th>
-                        <th>Number exposures</th>
-                        <th>Tot exposure (min)</th>
-                        <th>Tot time (min)</th>
-                        <th>Sky Area</th>
+                        <th rowspan=2>Telescope</th>
+                        <th rowspan=2>Name</th>
+                        <th rowspan=2>Status</th>
+                        <th rowspan=2>Start</th>
+                        <th rowspan=2>Number of exposures</th>
+                        <th colspan=2>Time (min)</th>
+                        <th rowspan=2>Area (deg<sup>2</sup>)</th>
+                    </tr>
+                    <tr>
+                        <th>Exposure</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for plan in event.plans %}
                     <tr>
                         <td>{{plan.telescope}}</td>
-                        <td>
+                        <td class=text-nowrap>
                             <a download href="{{url_for('download_json', dateobs=plan.dateobs, telescope=plan.telescope, plan_name=plan.plan_name)}}"><i class="fa fa-download mr-1"></i></a>
                             {{plan.plan_name}}
                             <input type=checkbox name="{{plan.telescope|btoa}}_{{plan.plan_name|btoa}}" class=invisible>
                         </td>
                         <td>{{plan.status.name}}</td>
-                        <td>{{plan.start_observation}} </td>
+                        <td>{% if plan.start_observation is not none %}{{plan.start_observation.isoformat(sep=' ', timespec='minutes').replace('-', '‑')}}{% endif %}</td>
                         <td>{{plan.num_observations}} </td>
                         <td>{{ "%.1f"|format(plan.total_time / 60)}} </td>
                         <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }} </td>
