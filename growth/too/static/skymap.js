@@ -45,20 +45,6 @@
         that.redraw();
 
         /*
-        d3.json(localization, function(error, features) {
-            if (error) throw error;
-
-            // First feature is just the maximum a posteriori position.
-            // Recenter the map on this point.
-            var center = features.features.shift().geometry.coordinates;
-            proj.rotate([-center[0], -center[1]]);
-
-            svg.append('path')
-                .datum(features)
-                .attr('class', 'contour');
-
-            redraw();
-        });
 
         d3.json(fields, function(error, feature) {
             if (error) throw error;
