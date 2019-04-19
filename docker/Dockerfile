@@ -62,7 +62,9 @@ RUN rm /requirements.txt
 RUN python3 -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation.get_site_names(); download_IERS_A()'
 
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
-    ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd
+    ln -s /run/secrets/application.cfg.d /usr/var/growth.too.flask-instance/application.cfg.d && \
+    ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
+    ln -s /run/secrets/netrc /root/netrc
 COPY docker/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
 # FIXME: generate the Flask secret key here. This should probably be specified

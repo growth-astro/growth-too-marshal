@@ -34,16 +34,18 @@ networks:
     external: true
 
 secrets:
+  application.cfg.d:
+    file: secrets/application.cfg.d
   htpasswd:
-    file: docker/htpasswd
-  twilio:
-    file: docker/twilio.cfg
+    file: secrets/htpasswd
+  netrc:
+    file: secrets/netrc
   # Secrets for SSH tunnel to mountain.
   # Technically, only id-rsa needs to be secret.
   id_rsa:
-    file: docker/id_rsa
+    file: secrets/id_rsa
   id_rsa.pub:
-    file: docker/id_rsa.pub
+    file: secrets/id_rsa.pub
 
 volumes:
   too-data:
@@ -99,7 +101,7 @@ services:
       - growth_net
     restart: always
     secrets:
-      - twilio
+      - application.cfg.d
       - id_rsa
       - id_rsa.pub
   gcn:
@@ -120,7 +122,7 @@ services:
       - growth_net
     restart: always
     secrets:
-      - twilio
+      - application.cfg.d
   flask:
     build:
       context: .
@@ -139,10 +141,10 @@ services:
       - growth_net
     restart: always
     secrets:
+      - application.cfg.d
       - htpasswd
       - id_rsa
       - id_rsa.pub
-      - twilio
   nginx:
     build:
       context: docker
