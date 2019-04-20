@@ -91,9 +91,8 @@ def contour(localization_name, dateobs):
 
     # Construct contours and return as a GeoJSON feature collection.
     levels = [50, 90]
-    paths = postprocess.contour(
-        cls, levels, degrees=True, nest=True, simplify=True)
-    center = postprocess.posterior_max(prob, nest=True)
+    paths = postprocess.contour(cls, levels, degrees=True, simplify=True)
+    center = postprocess.posterior_max(prob)
     localization.contour = {
         'type': 'FeatureCollection',
         'features': [
