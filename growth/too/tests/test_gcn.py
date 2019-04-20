@@ -92,6 +92,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
 
     assert np.isclose(plan.area, 790.3129926351713)
 
+
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
