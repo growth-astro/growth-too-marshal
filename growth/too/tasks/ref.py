@@ -1,13 +1,8 @@
-import numpy as np
-import tempfile
-import requests
-
 from astropy import table
 from pyvo.dal import TAPService
 from celery.task import PeriodicTask
 from celery.utils.log import get_task_logger
 
-from ..flask import app
 from . import celery
 from .. import models
 
