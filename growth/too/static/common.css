@@ -2,3 +2,7 @@
     color: red;
     text-decoration: line-through;
 }
+
+.field-tooltip td, .field-tooltip th {
+    vertical-align: top;
+}

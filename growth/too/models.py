@@ -162,7 +162,7 @@ def create_all():
                 ref_filter_ids = reference_images.get(field_id, [])
                 ref_filter_mags = []
                 for val in reference_mags.get(field_id, []):
-                    ref_filter_mags.append("%.1f" % val)
+                    ref_filter_mags.append(val)
                 bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
                 ref_filter_bands = [bands.get(n, n) for n
                                     in ref_filter_ids]
@@ -191,9 +191,7 @@ def create_all():
                         'field_id': int(field_id),
                         'ra': ra,
                         'dec': dec,
-                        'reference_filter_ids': ref_filter_ids,
-                        'reference_filter_bands': ref_filter_bands,
-                        'reference_filter_mags': ref_filter_mags
+                        'depth': dict(zip(ref_filter_bands, ref_filter_mags))
                     }
                 }
                 db.session.merge(Field(telescope=tele,

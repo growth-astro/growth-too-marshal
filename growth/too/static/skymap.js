@@ -9,6 +9,48 @@
 
         this.redraw = function () {
             svg.selectAll('path').attr('d', path);
+
+            $(svg.selectAll('path.field').nodes()).tooltip({
+                html: true,
+                sanitize: false,
+                title: function() {
+                    var d = d3.select(this).datum();
+                    return `
+                        <table class=field-tooltip>
+                            <tr>
+                                <th class=text-left>Field</th>
+                                <td class=text-right>
+                                    ${d.properties.telescope},
+                                    ${d.properties.field_id}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class=text-left>Pos</th>
+                                <td class=text-right>
+                                    ${
+                                        Math.trunc(d.properties.ra / 15).toString().padStart(2, '0')
+                                    }<sup>h</sup>${
+                                        Math.trunc(d.properties.ra % 15).toString().padStart(2, '0')
+                                    }<sup>m</sup>,
+                                    ${
+                                        d.properties.dec >= 0 ? '+' : '-'
+                                    }${
+                                        Math.trunc(Math.abs(d.properties.dec)).toString().padStart(2, '0')
+                                    }<sup>d</sup>${
+                                        Math.trunc(Math.abs(d.properties.dec) % 1 * 60).toString().padStart(2, '0')
+                                    }<sup>m</sup>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class=text-left>Depth</th>
+                                <td class=text-right>
+                                    ${Object.entries(d.properties.depth).map((kv => '<i>' + kv[0] + '</i>=' + kv[1].toFixed(2))).join(', ')}
+                                </td>
+                            </tr>
+                        </table>
+                    `;
+                }
+            });
         }
 
         function resize() {
@@ -55,47 +97,6 @@
                 .append('path')
                 .classed('field', true)
                 .attr('id', function(d) { return 'f' + d.properties.field_key });
-
-            $(sel.nodes()).tooltip({
-                html: true,
-                sanitize: false,
-                title: function() {
-                    var d = d3.select(this).datum();
-                    return '<table>'
-                        + '<tr>'
-                        + '<th style="text-align: left">Field</th>'
-                        + '<td style="text-align: right">' + d.properties.field_key + '</td>'
-                        + '</tr>'
-                        + '<tr>'
-                        + '<th style="text-align: left">RA</th>'
-                        + '<td style="text-align: right">'
-                        + Math.trunc(d.properties.ra / 15).toString().padStart(2, '0')
-                        + '<sup>h</sup>'
-                        + Math.trunc(d.properties.ra % 15).toString().padStart(2, '0')
-                        + '<sup>m</sup>'
-                        + '</td>'
-                        + '</tr>'
-                        + '<tr>'
-                        + '<th style="text-align: left">Dec</th>'
-                        + '<td style="text-align: right">'
-                        + (d.properties.dec >= 0 ? '+' : '-')
-                        + Math.trunc(Math.abs(d.properties.dec)).toString().padStart(2, '0')
-                        + '<sup>d</sup>'
-                        + Math.trunc(Math.abs(d.properties.dec) % 1 * 60).toString().padStart(2, '0')
-                        + '<sup>m</sup>'
-                        + '</td>'
-                        + '</tr>'
-                        + '<tr>'
-                        + '<th style="text-align: left">References</th>'
-                        + '<td style="text-align: right">' + d.properties.reference_filter_bands + '</td>'
-                        + '</tr>'
-                        + '<tr>'
-                        + '<th style="text-align: left">Limiting magnitudes</th>'
-                        + '<td style="text-align: right">' + d.properties.reference_filter_mags + '</td>'
-                        + '</tr>'
-                        + '</table>';
-                }
-            });
 
             redraw();
         });
