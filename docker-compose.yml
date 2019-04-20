@@ -104,6 +104,26 @@ services:
       - application.cfg.d
       - id_rsa
       - id_rsa.pub
+  celery_beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    command: celery beat --loglevel info -s /tmp/celerybeat-schedule
+    environment:
+      HOST_HOSTNAME: "${HOSTNAME}"
+    external_links:
+      - growth-db
+    networks:
+      - internal
+      - growth_net
+    restart: always
+    secrets:
+      - application.cfg.d
+      - id_rsa
+      - id_rsa.pub
   gcn:
     build:
       context: .
