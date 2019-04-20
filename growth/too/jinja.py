@@ -10,16 +10,6 @@ import jinja2
 
 from .flask import app
 
-__all__ = ('env',)
-
-env = jinja2.Environment(
-    loader=jinja2.PackageLoader(__name__, 'templates'),
-    # The options below are suggested by the Chromium Jinja style guide,
-    # https://www.chromium.org/developers/jinja.
-    keep_trailing_newline=True,  # newline-terminate generated files
-    lstrip_blocks=True,  # so can indent control flow tags
-    trim_blocks=True  # so don't need {%- -%} everywhere
-)
 
 @app.template_filter()
 def btoa(a):
@@ -46,7 +36,7 @@ def rewrap(text):
                      for match in _rewrap_regex.finditer(text))
 
 
-env.filters['rewrap'] = rewrap
+app.jinja_env.filters['rewrap'] = rewrap
 
 @app.template_filter()
 def quote_plus(s):

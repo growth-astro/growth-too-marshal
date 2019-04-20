@@ -635,6 +635,13 @@ class Plan(db.Model):
     """Tiling information, including the event time, localization ID, tile IDs,
     and plan name"""
 
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            ['dateobs'],
+            ['event.dateobs']
+        ),
+    )
+
     dateobs = db.Column(
         db.DateTime,
         db.ForeignKey(Event.dateobs),
@@ -682,6 +689,8 @@ class Plan(db.Model):
         default=Status.WORKING,
         nullable=False,
         comment='Plan status')
+
+    event = db.relationship(Event, viewonly=True)
 
     planned_observations = db.relationship(
         'PlannedObservation', backref='plan',

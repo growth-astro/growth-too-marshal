@@ -320,24 +320,18 @@ def plan(dateobs):
 
 
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/plan/telescope/<telescope>/<plan_name>/gcn')
-def create_GCN_template(dateobs, telescope, localization_name, plan_name):
+def create_gcn_template(dateobs, telescope, localization_name, plan_name):
 
     authors = ["Fred Zwicky", "Albert Einstein"]
 
     plan = one_or_404(models.Plan.query.filter_by(dateobs=dateobs,
                                                   telescope=telescope,
                                                   plan_name=plan_name))
-    event=models.Event.query.get_or_404(dateobs)
-    gcn_notice = event.gcn_notices[-1]
+    tdiff = human_time((time.Time(plan.validity_window_start, scale='utc')
+                        -time.Time(dateobs, scale='utc')).value)
 
-    trigger_time = time.Time(dateobs, scale='utc')
-    validity_window_start = time.Time(plan.validity_window_start, scale='utc')
-    validity_window_end = time.Time(plan.validity_window_end, scale='utc')
-    tdiff = validity_window_start - trigger_time
-    tdiff = human_time(tdiff.value)
-
-    return render_template('gcn.jinga2', gcn_notice=gcn_notice, 
-                           plan=plan, tdiff=tdiff, authors=authors)    
+    return render_template('gcn.jinja2', plan=plan, tdiff=tdiff,
+                           authors=authors)    
 
 
 @app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
