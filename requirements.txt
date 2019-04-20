@@ -10,7 +10,7 @@ flask_mail
 flask_sqlalchemy
 flask_twilio >= 0.0.6
 flask_wtf
-gwemopt >= 0.0.40
+gwemopt >= 0.0.43
 healpy
 h5py
 ligo-gracedb
