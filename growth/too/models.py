@@ -17,7 +17,6 @@ from flask_sqlalchemy import SQLAlchemy
 import gcn
 import healpy as hp
 from ligo.skymap.bayestar import rasterize
-from ligo.skymap.distance import ud_grade
 import lxml.etree
 import pkg_resources
 import numpy as np
@@ -621,9 +620,8 @@ class Localization(db.Model):
     @property
     def flat_2d(self):
         """Get flat resolution HEALPix dataset, probability density only."""
-        result = hp.ud_grade(
-            rasterize(self.table_2d)['PROB'],
-            self.nside, power=-2, order_in='NESTED', order_out='NESTED')
+        order = hp.nside2order(Localization.nside)
+        result = rasterize(self.table_2d, order)['PROB']
         return hp.reorder(result, 'NESTED', 'RING')
 
     @property
@@ -631,10 +629,9 @@ class Localization(db.Model):
         """Get flat resolution HEALPix dataset, probability density and
         distance."""
         if self.is_3d:
-            data = rasterize(self.table)
-            result = ud_grade(
-                data['PROB'], data['DISTMU'], data['DISTSIGMA'],
-                self.nside, order_in='NESTED', order_out='NESTED')
+            order = hp.nside2order(Localization.nside)
+            t = rasterize(self.table, order)
+            result = t['PROB'], t['DISTMU'], t['DISTSIGMA'], t['DISTNORM']
             return hp.reorder(result, 'NESTED', 'RING')
         else:
             return self.flat_2d,
@@ -728,6 +725,13 @@ class Plan(db.Model):
     def area(self):
         nside = Localization.nside
         return hp.nside2pixarea(nside, degrees=True) * len(self.ipix)
+
+    def get_probability(self, localization):
+        ipix = np.asarray(list(self.ipix))
+        if len(ipix) > 0:
+            return localization.flat_2d[ipix].sum()
+        else:
+            return 0.0
 
 
 class PlannedObservation(db.Model):
