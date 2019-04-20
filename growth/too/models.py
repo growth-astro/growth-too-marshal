@@ -295,7 +295,7 @@ class Event(db.Model):
 
     localizations = db.relationship(lambda: Localization)
 
-    plans = db.relationship(lambda: Plan)
+    plans = db.relationship(lambda: Plan, backref='event')
 
     @hybrid_property
     def retracted(self):
