@@ -319,7 +319,7 @@ def plan(dateobs):
         'plan.html', event=models.Event.query.get_or_404(dateobs))
 
 
-@app.route('/event/<datetime:dateobs>/localization/<localization_name>/plan/telescope/<telescope>/<plan_name>/gcn')
+@app.route('/event/<datetime:dateobs>/localization/<localization_name>/plan/telescope/<telescope>/<plan_name>/gcn')  # noqa: E501
 def create_gcn_template(dateobs, telescope, localization_name, plan_name):
 
     authors = ["Fred Zwicky", "Albert Einstein"]
@@ -328,10 +328,10 @@ def create_gcn_template(dateobs, telescope, localization_name, plan_name):
                                                   telescope=telescope,
                                                   plan_name=plan_name))
     tdiff = human_time((time.Time(plan.validity_window_start, scale='utc')
-                        -time.Time(dateobs, scale='utc')).value)
+                        - time.Time(dateobs, scale='utc')).value)
 
     return render_template('gcn.jinja2', plan=plan, tdiff=tdiff,
-                           authors=authors)    
+                           authors=authors) 
 
 
 @app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501

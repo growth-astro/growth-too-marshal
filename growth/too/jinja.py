@@ -6,8 +6,6 @@ import base64
 import datetime
 import urllib.parse
 
-import jinja2
-
 from .flask import app
 
 
@@ -21,6 +19,7 @@ def btoa(a):
 def atob(b):
     """Jinja filter to mimic JavaScript's ``atob`` function."""
     return base64.b64decode(b.encode()).decode()
+
 
 _rewrap_regex = re.compile(
     r'^[ \t]+.+\n|([^ \t\n]+[^\n]*\n)+|.*',
@@ -37,6 +36,7 @@ def rewrap(text):
 
 
 app.jinja_env.filters['rewrap'] = rewrap
+
 
 @app.template_filter()
 def quote_plus(s):
