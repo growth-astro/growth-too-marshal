@@ -720,6 +720,10 @@ class Plan(db.Model):
         nside = Localization.nside
         return hp.nside2pixarea(nside, degrees=True) * len(self.ipix)
 
+    def probability(self, localization_name=None):
+        # FIX ME
+        return 0.0
+
 
 class PlannedObservation(db.Model):
     """Tile information, including the event time, localization ID, field IDs,

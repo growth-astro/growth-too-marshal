@@ -1,0 +1,10 @@
+Macro to join a list of terms with Oxford commas, as in "one, two, and three."
+
+{% macro oxford_commas(seq, conjunction='and') %}
+{% for item in seq %}
+{% if caller %}{{caller(item)}}{% else %}{{item}}{% endif -%}
+{% if loop.length > 2 and not loop.last %},{% endif %}
+{% if loop.length > 1 and not loop.last %} {% endif %}
+{% if loop.length > 1 and loop.revindex == 2 %}{{conjunction}} {% endif %}
+{% endfor %}
+{%- endmacro %}
