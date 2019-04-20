@@ -331,7 +331,7 @@ def create_gcn_template(dateobs, telescope, localization_name, plan_name):
                         - time.Time(dateobs, scale='utc')).value)
 
     return render_template('gcn.jinja2', plan=plan, tdiff=tdiff,
-                           authors=authors) 
+                           authors=authors)
 
 
 @app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
