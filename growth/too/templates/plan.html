@@ -54,10 +54,10 @@
                         </td>
                         <td>{{plan.status.name}}</td>
                         <td>{% if plan.start_observation is not none %}{{plan.start_observation.isoformat(sep=' ', timespec='minutes').replace('-', '‑')}}{% endif %}</td>
-                        <td>{{plan.num_observations}} </td>
-                        <td>{{ "%.1f"|format(plan.total_time / 60)}} </td>
-                        <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }} </td>
-                        <td>{{ "%.1f"|format(plan.area) }} </td>
+                        <td>{{plan.num_observations}}</td>
+                        <td>{{ "%.1f"|format(plan.total_time / 60)}}</td>
+                        <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }}</td>
+                        <td>{{ "%.1f"|format(plan.area) }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
