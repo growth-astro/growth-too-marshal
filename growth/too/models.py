@@ -218,8 +218,9 @@ def create_all():
                     quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
 
                 for field_id, xyz in zip(fields['field_id'], quadrant_xyz):
-                    for subfield_id, xyz in enumerate(xyz):
+                    for ii, xyz in enumerate(xyz):
                         ipix = hp.query_polygon(Localization.nside, xyz)
+                        subfield_id = ii+1
                         db.session.merge(SubField(telescope=tele,
                                                   field_id=int(field_id),
                                                   subfield_id=int(subfield_id),
