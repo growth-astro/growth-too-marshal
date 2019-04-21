@@ -1,5 +1,4 @@
 import numpy as np
-from astropy import table
 from pyvo.dal import TAPService
 from celery.task import PeriodicTask
 from celery.utils.log import get_task_logger
