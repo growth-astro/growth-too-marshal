@@ -1,3 +1,4 @@
+import numpy as np
 from astropy import table
 from pyvo.dal import TAPService
 from celery.task import PeriodicTask
@@ -20,30 +21,20 @@ def get_tap_client():
 def ztf_references():
 
     refstable = get_tap_client().search("""
-    field, ccdid, qid, fid, maglimit FROM ztf.ztf_current_meta_ref
+    SELECT field, ccdid, qid, fid, maglimit FROM ztf.ztf_current_meta_ref
     WHERE nframes >= 15 AND startobsdate >= '2018-02-05T00:00:00Z'
     """).to_table()
 
-    refs = table.unique(refstable, keys=['field', 'fid'])
+    refs = refstable.group_by(['field', 'fid']).groups.aggregate(np.mean)
+    refs = refs.filled()
 
-    reference_images = \
-        {group[0]['field']: group['fid'].astype(int).tolist()
-         for group in refs.group_by('field').groups}
-    reference_mags = \
-        {group[0]['field']: group['maglimit'].tolist()
-         for group in refs.group_by('field').groups}
-
-    fields = models.Field.query.filter_by(telescope='ZTF').all()
-    for field in fields:
-        field_id = field.field_id
-
-        ref_filter_ids = reference_images.get(field_id, [])
-        ref_filter_mags = []
-        for val in reference_mags.get(field_id, []):
-            ref_filter_mags.append(val)
-
-        field.reference_filter_ids = ref_filter_ids
-        field.reference_filter_mags = ref_filter_mags
-        models.db.session.merge(field)
-
+    refs_grouped_by_field = refs.group_by('field').groups
+    for field_id, rows in zip(refs_grouped_by_field.keys,
+                              refs_grouped_by_field):
+        # We don't use the secondary grid
+        if int(field_id[0]) > 879: continue
+        models.db.session.merge(
+            models.Field(telescope='ZTF', field_id=int(field_id[0]),
+                         reference_filter_ids=rows['fid'].tolist(),
+                         reference_filter_mags=rows['maglimit'].tolist()))
     models.db.session.commit()
