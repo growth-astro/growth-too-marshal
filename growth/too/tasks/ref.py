@@ -32,7 +32,8 @@ def ztf_references():
     for field_id, rows in zip(refs_grouped_by_field.keys,
                               refs_grouped_by_field):
         # We don't use the secondary grid
-        if int(field_id[0]) > 879: continue
+        if int(field_id[0]) > 879:
+            continue
         models.db.session.merge(
             models.Field(telescope='ZTF', field_id=int(field_id[0]),
                          reference_filter_ids=rows['fid'].tolist(),
