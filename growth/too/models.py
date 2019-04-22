@@ -831,11 +831,9 @@ class Observation(db.Model):
         primary_key=True,
         comment='Observation ID')
 
-    dateobs = db.Column(
+    expobs = db.Column(
         db.DateTime,
-        db.ForeignKey(Event.dateobs),
-        primary_key=True,
-        comment='UTC event timestamp')
+        comment='Exposure timestamp')
 
     field = db.relationship(Field)
 
