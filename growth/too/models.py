@@ -831,7 +831,7 @@ class Observation(db.Model):
         primary_key=True,
         comment='Observation ID')
 
-    expobs = db.Column(
+    obstime = db.Column(
         db.DateTime,
         comment='Exposure timestamp')
 
