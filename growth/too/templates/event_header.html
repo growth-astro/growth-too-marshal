@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-between">
-    <h5 {% for tag in event.tags %}class="event-tag-{{tag}}"{% endfor %}
-        {% if event.retracted %}class="retracted"{% endif %}>
+    <h5 {% if event.retracted %}class="retracted"{% endif %}
+        {% if 'MDC' in event.tags %}class="MDC"{% endif %}>
         {{event.dateobs.strftime('%y%m%d')}}
         <small>
             {{event.dateobs.strftime('%H:%M:%S')}}
@@ -9,7 +9,7 @@
     </h5>
     <div>
         {% for tag in event.tags %}
-            <span class="badge badge-primary badge-pill cls-tag-{{tag}}">{{tag}}</span>
+            <span class="{% for tag in event.tags %}{{tag}} {% endfor %} badge badge-primary badge-pill">{{tag}}</span>
         {% endfor %}
     </div>
 </div>

@@ -1,25 +1,30 @@
-.event-tag-retracted {
+.retracted {
     color: red;
     text-decoration: line-through;
 }
-.event-tag-mdc {
-	color: gray;
+.MDC { 
+    color: gray;
 }
-.cls-tag-BNS {
+.badge, .badge-primary, .badge-pill {
+    color: white !important;
+}
+.BNS {
     background-color: #468847;
 }
-.cls-tag-NSBH {
-    background-color: #f89406;
+.NSBH {
+    background-color: #b94a48;
 }
-.cls-tag-BBH {
+.BBH {
     background-color: #333333;
 }
-.cls-tag-GRB {
+.GRB {
     background-color: #f89406;
 }
-.cls-tag-AMON {
+.AMON {
     background-color: #3a87ad;
 }
-.field-tooltip td, .field-tooltip th {
+.Terrestrial {
+    background-color: #999999;
+}.field-tooltip td, .field-tooltip th {
     vertical-align: top;
 }
