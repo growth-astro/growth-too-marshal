@@ -335,6 +335,19 @@ class Event(db.Model):
     def ned_gwf(self):
         return "https://ned.ipac.caltech.edu/gwf/events"
 
+    @property
+    def graceid(self):
+        try: 
+            notice = self.gcn_notices[0]
+        except IndexError:
+            return None
+        root = lxml.etree.fromstring(notice.content)
+        elem = root.find(".//Param[@name='GraceID']")
+        if elem is None:
+            return None
+        else:
+            return elem.attrib.get('value', '')
+
 
 class Tag(db.Model):
     """Store qualitative tags for events."""
