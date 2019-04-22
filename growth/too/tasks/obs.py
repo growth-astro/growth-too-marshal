@@ -27,17 +27,14 @@ def ztf_obs(start_time=None, end_time=None):
         end_time = time.Time.now()
 
     obstable = get_tap_client().search("""
-    SELECT field,ccdid,qid,fid,expid,obsjd,exptime,seeing,airmass,maglimit
-    FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN %s AND %s)
-    """ % (start_time.jd, end_time.jd)).to_table()
+    SELECT field,ccdid,qid,fid,expid,obsjd,exptime,seeing,airmass,maglimit,rcid
+    FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN {0} AND {1})
+    AND (field < 880)
+    """.format(start_time.jd, end_time.jd)).to_table()
     obstable = obstable.filled()
-    obstable['subfield_id'] = (obstable['ccdid']-1)*4 + obstable['qid']
 
     obs_grouped_by_exp = obstable.group_by('expid').groups
     for expid, rows in zip(obs_grouped_by_exp.keys, obs_grouped_by_exp):
-        # We don't use the secondary grid
-        if int(rows['field'][0]) > 879:
-            continue
         for row in rows:
             expobs = time.Time(row['obsjd'], format='jd').datetime,
             models.db.session.merge(
@@ -49,10 +46,10 @@ def ztf_obs(start_time=None, end_time=None):
                                    airmass=float(row['airmass']),
                                    seeing=float(row['seeing']),
                                    limmag=float(row['maglimit']),
-                                   subfield_id=int(row['subfield_id']),
+                                   subfield_id=int(row['rcid']),
                                    successful=1))
-        subfield_ids = rows['subfield_id'].tolist()
-        quadrantIDs = np.arange(1, 65)
+        subfield_ids = rows['rcid'].tolist()
+        quadrantIDs = np.arange(64)
         missing_quadrants = np.setdiff1d(quadrantIDs, subfield_ids)
         for missing_quadrant in missing_quadrants:
             expobs = time.Time(rows['obsjd'][0], format='jd').datetime,
