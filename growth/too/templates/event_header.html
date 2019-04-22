@@ -9,7 +9,7 @@
     </h5>
     <div>
         {% for tag in event.tags %}
-            <span class="{% for tag in event.tags %}{{tag}} {% endfor %} badge badge-primary badge-pill">{{tag}}</span>
+            <span class="badge badge-primary badge-pill {% for tag in event.tags %}cls-{{tag}} {% endfor %}">{{tag}}</span>
         {% endfor %}
     </div>
 </div>

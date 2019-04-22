@@ -5,25 +5,26 @@
 .MDC { 
     color: gray;
 }
-.badge, .badge-primary, .badge-pill {
-    color: white !important;
-}
-.BNS {
+/*.badge, .badge-primary, .badge-pill {
+    color: #ffffff !important;
+    text-decoration: none;
+}*/
+.cls-BNS {
     background-color: #468847;
 }
-.NSBH {
+.cls-NSBH {
     background-color: #b94a48;
 }
-.BBH {
+.cls-BBH {
     background-color: #333333;
 }
-.GRB {
+.cls-GRB {
     background-color: #f89406;
 }
-.AMON {
+.cls-AMON {
     background-color: #3a87ad;
 }
-.Terrestrial {
+.cls-Terrestrial {
     background-color: #999999;
 }.field-tooltip td, .field-tooltip th {
     vertical-align: top;
