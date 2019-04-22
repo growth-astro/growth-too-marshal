@@ -19,7 +19,6 @@ import gwemopt.plotting
 import gwemopt.tiles
 import gwemopt.segments
 import gwemopt.catalog
-import healpy as hp
 from ligo import segments
 import numpy as np
 
@@ -116,7 +115,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
             params["doChipGaps"] = False
     params["scheduleType"] = schedule_type
     params["timeallocationType"] = "powerlaw"
-    params["nside"] = 256
+    params["nside"] = 512
     params["powerlaw_cl"] = probability
     params["powerlaw_n"] = 1.0
     params["powerlaw_dist_exp"] = 0.0
@@ -396,10 +395,6 @@ def tile(localization_name, dateobs, telescope,
 
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))
-
-    # gwemopt expects sky maps in RING ordering.
-    for key, value in params['map_struct'].items():
-        params['map_struct'][key] = hp.reorder(value, 'NESTED', 'RING')
 
     params['is3D'] = localization.is_3d
     params['localization_name'] = localization_name

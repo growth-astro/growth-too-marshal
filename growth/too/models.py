@@ -218,9 +218,9 @@ def create_all():
                     quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
 
                 for field_id, xyz in zip(fields['field_id'], quadrant_xyz):
-                    for subfield_id, xyz in enumerate(xyz):
-                        ipix = hp.query_polygon(
-                            Localization.nside, xyz, nest=True)
+                    for ii, xyz in enumerate(xyz):
+                        ipix = hp.query_polygon(Localization.nside, xyz)
+                        subfield_id = ii+1
                         db.session.merge(SubField(telescope=tele,
                                                   field_id=int(field_id),
                                                   subfield_id=int(subfield_id),
@@ -614,9 +614,10 @@ class Localization(db.Model):
     @property
     def flat_2d(self):
         """Get flat resolution HEALPix dataset, probability density only."""
-        return hp.ud_grade(
+        result = hp.ud_grade(
             rasterize(self.table_2d)['PROB'],
             self.nside, power=-2, order_in='NESTED', order_out='NESTED')
+        return hp.reorder(result, 'NESTED', 'RING')
 
     @property
     def flat(self):
@@ -624,9 +625,10 @@ class Localization(db.Model):
         distance."""
         if self.is_3d:
             data = rasterize(self.table)
-            return ud_grade(
+            result = ud_grade(
                 data['PROB'], data['DISTMU'], data['DISTSIGMA'],
                 self.nside, order_in='NESTED', order_out='NESTED')
+            return hp.reorder(result, 'NESTED', 'RING')
         else:
             return self.flat_2d,
 
