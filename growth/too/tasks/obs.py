@@ -36,11 +36,11 @@ def ztf_obs(start_time=None, end_time=None):
     obs_grouped_by_exp = obstable.group_by('expid').groups
     for expid, rows in zip(obs_grouped_by_exp.keys, obs_grouped_by_exp):
         for row in rows:
-            expobs = time.Time(row['obsjd'], format='jd').datetime,
+            obstime = time.Time(row['obsjd'], format='jd').datetime,
             models.db.session.merge(
                 models.Observation(telescope='ZTF', field_id=int(row['field']),
                                    observation_id=int(row['expid']),
-                                   expobs=expobs,
+                                   obstime=obstime,
                                    exposure_time=int(row['exptime']),
                                    filter_id=int(row['fid']),
                                    airmass=float(row['airmass']),
