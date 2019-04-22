@@ -17,13 +17,14 @@ def get_tap_client():
 
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
-def ztf_references():
+def ztf_references(refstable=None):
 
-    refstable = get_tap_client().search("""
-    SELECT field, ccdid, qid, fid, maglimit FROM ztf.ztf_current_meta_ref
-    WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
-    AND (field < 880)
-    """).to_table()
+    if refstable is None:
+        refstable = get_tap_client().search("""
+        SELECT field, ccdid, qid, fid, maglimit FROM ztf.ztf_current_meta_ref
+        WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
+        AND (field < 880)
+        """).to_table()
 
     refs = refstable.group_by(['field', 'fid']).groups.aggregate(np.mean)
     refs = refs.filled()
