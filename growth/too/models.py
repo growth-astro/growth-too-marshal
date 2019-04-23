@@ -129,6 +129,7 @@ def create_all():
 
         else:
             reference_images = {}
+            reference_mags = {}
 
         tessfile = pkg_resources.resource_stream(__name__,
                                                  'input/%s.tess' % tele)
@@ -198,6 +199,7 @@ def create_all():
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
                                        reference_filter_ids=ref_filter_ids,
+                                       reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
 
             if tele == "ZTF":
@@ -455,7 +457,12 @@ class Field(db.Model):
     reference_filter_ids = db.Column(
         db.ARRAY(db.Integer),
         nullable=False,
-        comment='GeoJSON contours')
+        comment='Reference filter IDs')
+
+    reference_filter_mags = db.Column(
+        db.ARRAY(db.Float),
+        nullable=False,
+        comment='Reference filter magss')
 
     ipix = db.Column(
         db.ARRAY(db.Integer),

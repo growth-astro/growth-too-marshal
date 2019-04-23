@@ -310,7 +310,9 @@ def get_planned_observations(
                                          field_id=int(field_id),
                                          ra=ra, dec=dec,
                                          contour=contour,
-                                         reference_filter_ids=ref_filter_ids)
+                                         reference_filter_ids=ref_filter_ids,
+                                         reference_filter_mags=ref_filter_mags,
+                                         ipix=ipix.tolist())
                     models.db.session.merge(field)
 
         filter_ids = {"g": 1, "r": 2, "i": 3, "z": 4, "J": 5}
