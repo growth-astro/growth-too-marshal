@@ -817,15 +817,6 @@ class Observation(db.Model):
     """Observation information, including the field ID, exposure time, and
     filter."""
 
-    __table_args__ = (
-        db.ForeignKeyConstraint(
-            ['telescope',
-             'field_id'],
-            ['field.telescope',
-             'field.field_id']
-        ),
-    )
-
     telescope = db.Column(
         db.String,
         db.ForeignKey(Telescope.telescope),
@@ -845,8 +836,6 @@ class Observation(db.Model):
     obstime = db.Column(
         db.DateTime,
         comment='Exposure timestamp')
-
-    field = db.relationship(Field)
 
     filter_id = db.Column(
         db.Integer,
@@ -873,6 +862,7 @@ class Observation(db.Model):
     subfield_id = db.Column(
         db.Integer,
         default=0,
+        primary_key=True,
         nullable=False,
         comment='subfield (e.g. quadrant/chip as relevant for instrument')
 

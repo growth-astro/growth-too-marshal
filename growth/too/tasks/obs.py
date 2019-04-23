@@ -1,6 +1,7 @@
 import numpy as np
 from astropy import time
 import astropy.units as u
+from astropy.io import ascii
 from pyvo.dal import TAPService
 from celery.task import PeriodicTask
 from celery.utils.log import get_task_logger
@@ -19,18 +20,20 @@ def get_tap_client():
 
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
-def ztf_obs(start_time=None, end_time=None):
+def ztf_obs(start_time=None, end_time=None, obstable=None):
 
     if start_time is None:
         start_time = time.Time.now() - time.TimeDelta(1.0*u.day)
     if end_time is None:
         end_time = time.Time.now()
 
-    obstable = get_tap_client().search("""
-    SELECT field,ccdid,qid,fid,expid,obsjd,exptime,seeing,airmass,maglimit,rcid
-    FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN {0} AND {1})
-    AND (field < 880)
-    """.format(start_time.jd, end_time.jd)).to_table()
+    if obstable is None:
+        obstable = get_tap_client().search("""
+        SELECT field,rcid,fid,expid,obsjd,exptime,seeing,airmass,maglimit
+        FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN {0} AND {1})
+        AND (field < 880)
+        """.format(start_time.jd, end_time.jd)).to_table()
+
     obstable = obstable.filled()
 
     obs_grouped_by_exp = obstable.group_by('expid').groups
@@ -52,12 +55,12 @@ def ztf_obs(start_time=None, end_time=None):
         quadrantIDs = np.arange(64)
         missing_quadrants = np.setdiff1d(quadrantIDs, subfield_ids)
         for missing_quadrant in missing_quadrants:
-            expobs = time.Time(rows['obsjd'][0], format='jd').datetime,
+            obstime = time.Time(rows['obsjd'][0], format='jd').datetime,
             models.db.session.merge(
                 models.Observation(telescope='ZTF',
                                    field_id=int(rows['field'][0]),
                                    observation_id=int(rows['expid'][0]),
-                                   expobs=expobs,
+                                   obstime=obstime,
                                    exposure_time=int(rows['exptime'][0]),
                                    filter_id=int(rows['fid'][0]),
                                    airmass=float(rows['airmass'][0]),
