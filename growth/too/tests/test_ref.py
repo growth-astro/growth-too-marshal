@@ -8,7 +8,7 @@ from ..tasks import ref
 def test_refs():
 
     payload = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'data/ztf_ref_table.dat')
+                           'data/ztf_ref_table.dat')
 
     refstable = ascii.read(payload)
     ref.ztf_references(refstable=refstable)
