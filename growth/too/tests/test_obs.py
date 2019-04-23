@@ -8,7 +8,7 @@ from ..tasks import obs
 def test_refs():
 
     payload = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'data/ztf_obs_table.dat')
+                           'data/ztf_obs_table.dat')
 
     obstable = ascii.read(payload)
     obs.ztf_obs(obstable=obstable)
