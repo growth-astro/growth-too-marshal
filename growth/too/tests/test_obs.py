@@ -14,6 +14,6 @@ def test_refs():
     obs.ztf_obs(obstable=obstable)
     observation = models.Observation.query.filter_by(telescope='ZTF',
                                                      observation_id=84218480,
-                                                     rcid=54).one()
-    assert observation.fid == 1
-    assert observation.maglimit == [20.895300]
+                                                     subfield_id=54).one()
+    assert observation.field_id == 789
+    assert observation.limmag == 20.895300
