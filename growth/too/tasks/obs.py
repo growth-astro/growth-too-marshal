@@ -1,7 +1,6 @@
 import numpy as np
 from astropy import time
 import astropy.units as u
-from astropy.io import ascii
 from pyvo.dal import TAPService
 from celery.task import PeriodicTask
 from celery.utils.log import get_task_logger
