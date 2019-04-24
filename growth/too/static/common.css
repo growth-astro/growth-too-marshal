@@ -1,26 +1,26 @@
-.tag-retracted {
+h5.tag-retracted {
     color: red;
     text-decoration: line-through;
 }
-.tag-MDC { 
+h5.tag-MDC { 
     color: gray;
 }
-.cls-BNS {
+.badge.tag-BNS {
     background-color: #468847;
 }
-.cls-NSBH {
+.badge.tag-NSBH {
     background-color: #b94a48;
 }
-.cls-BBH {
+.badge.tag-BBH {
     background-color: #333333;
 }
-.cls-GRB {
+.badge.tag-GRB {
     background-color: #f89406;
 }
-.cls-AMON {
+.badge.tag-AMON {
     background-color: #3a87ad;
 }
-.cls-Terrestrial {
+.badge.tag-Terrestrial {
     background-color: #999999;
 }
 .field-tooltip td, .field-tooltip th {
