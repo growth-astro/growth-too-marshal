@@ -120,6 +120,7 @@
             let [telescope, plan_name] = id.split('_').map(atob);
             let url = url_pattern.replace('TELESCOPE', telescope).replace('PLAN_NAME', plan_name).replace('LOCALIZATION_NAME', localization_name);
             let td = $(this).find('.td-prob');
+            td.html('<div class="spinner-border spinner-border-sm text-dark" role="status"><span class="sr-only">Loading...</span></div>');
             $.getJSON(url, function(data) {
                 td.text(Math.round(data * 100));
             });
