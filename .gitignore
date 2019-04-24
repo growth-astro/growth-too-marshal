@@ -9,4 +9,6 @@ build
 dist
 htmlcov
 htpasswd
+node_modules
 twilio.cfg
+yarn-error.log
