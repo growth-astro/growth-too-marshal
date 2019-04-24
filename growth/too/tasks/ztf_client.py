@@ -26,7 +26,7 @@ def ztf_obs(start_time=None, end_time=None):
     if end_time is None:
         end_time = time.Time.now()
 
-    obstable = client().search("""
+    obstable = client.search("""
     SELECT field,rcid,fid,expid,obsjd,exptime,seeing,airmass,maglimit
     FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN {0} AND {1})
     AND (field < 880)
