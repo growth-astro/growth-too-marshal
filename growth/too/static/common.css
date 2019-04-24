@@ -22,6 +22,7 @@
 }
 .cls-Terrestrial {
     background-color: #999999;
-}.field-tooltip td, .field-tooltip th {
+}
+.field-tooltip td, .field-tooltip th {
     vertical-align: top;
 }
