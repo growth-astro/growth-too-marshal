@@ -30,13 +30,14 @@
             <table id=plans class="table">
                 <thead>
                     <tr>
-                        <th rowspan=2>Telescope</th>
+                        <th rowspan=2 colspan=2></th>
                         <th rowspan=2>Name</th>
                         <th rowspan=2>Status</th>
                         <th rowspan=2>Start</th>
                         <th rowspan=2>Number of exposures</th>
                         <th colspan=2>Time (min)</th>
                         <th rowspan=2>Area (deg<sup>2</sup>)</th>
+                        <th rowspan=2>Prob (%)</th>
                         <th rowspan=2>GCN</th>
                     </tr>
                     <tr>
@@ -46,19 +47,20 @@
                 </thead>
                 <tbody>
                     {% for plan in event.plans %}
-                    <tr>
+                    <tr class=tr-plan>
                         <td>{{plan.telescope}}</td>
-                        <td class=text-nowrap>
+                        <td>
                             <a download href="{{url_for('download_json', dateobs=plan.dateobs, telescope=plan.telescope, plan_name=plan.plan_name)}}"><i class="fa fa-download mr-1"></i></a>
-                            {{plan.plan_name}}
                             <input type=checkbox name="{{plan.telescope|btoa}}_{{plan.plan_name|btoa}}" class=invisible>
                         </td>
+                        <td>{{plan.plan_name}}</td>
                         <td>{{plan.status.name}}</td>
                         <td>{% if plan.start_observation is not none %}{{plan.start_observation.isoformat(sep=' ', timespec='minutes').replace('-', '‑')}}{% endif %}</td>
                         <td>{{plan.num_observations}}</td>
                         <td>{{ "%.1f"|format(plan.total_time / 60)}}</td>
                         <td>{{ "%.1f"|format(plan.tot_time_with_overheads / 60) }}</td>
                         <td>{{ "%.1f"|format(plan.area) }}</td>
+                        <td class=td-prob></td>
                         <td><a href="{{url_for('create_gcn_template', dateobs=plan.dateobs, telescope=plan.telescope, localization_name=event.localizations[-1].localization_name,plan_name=plan.plan_name)}}">link</a></td>
                     </tr>
                     {% endfor %}
@@ -93,6 +95,10 @@
             {
                 'targets': [0],
                 'visible': false
+            },
+            {
+                'targets': [1],
+                'orderable': false
             }
         ],
         rowGroup: {
@@ -108,6 +114,18 @@
                 throw error;
 
             skymap.localization(contours);
+        });
+
+        let url_pattern = '{{url_for('prob_json', dateobs=event.dateobs, telescope='TELESCOPE', plan_name='PLAN_NAME', localization_name='LOCALIZATION_NAME')}}';
+        $('.tr-plan').each(function() {
+            let id = $(this).find('input').prop('name');
+            let [telescope, plan_name] = id.split('_').map(atob);
+            let url = url_pattern.replace('TELESCOPE', telescope).replace('PLAN_NAME', plan_name).replace('LOCALIZATION_NAME', localization_name);
+            let td = $(this).find('.td-prob');
+            td.html('<div class="spinner-border spinner-border-sm text-dark" role="status"><span class="sr-only">Loading...</span></div>');
+            $.getJSON(url, function(data) {
+                td.text(Math.round(data * 100));
+            });
         });
     }).trigger('input');
 

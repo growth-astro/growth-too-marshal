@@ -17,7 +17,6 @@ from flask_sqlalchemy import SQLAlchemy
 import gcn
 import healpy as hp
 from ligo.skymap.bayestar import rasterize
-from ligo.skymap.distance import ud_grade
 import lxml.etree
 import pkg_resources
 import numpy as np
@@ -129,6 +128,7 @@ def create_all():
 
         else:
             reference_images = {}
+            reference_mags = {}
 
         tessfile = pkg_resources.resource_stream(__name__,
                                                  'input/%s.tess' % tele)
@@ -198,6 +198,7 @@ def create_all():
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
                                        reference_filter_ids=ref_filter_ids,
+                                       reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
 
             if tele == "ZTF":
@@ -455,7 +456,12 @@ class Field(db.Model):
     reference_filter_ids = db.Column(
         db.ARRAY(db.Integer),
         nullable=False,
-        comment='GeoJSON contours')
+        comment='Reference filter IDs')
+
+    reference_filter_mags = db.Column(
+        db.ARRAY(db.Float),
+        nullable=False,
+        comment='Reference filter magss')
 
     ipix = db.Column(
         db.ARRAY(db.Integer),
@@ -614,9 +620,8 @@ class Localization(db.Model):
     @property
     def flat_2d(self):
         """Get flat resolution HEALPix dataset, probability density only."""
-        result = hp.ud_grade(
-            rasterize(self.table_2d)['PROB'],
-            self.nside, power=-2, order_in='NESTED', order_out='NESTED')
+        order = hp.nside2order(Localization.nside)
+        result = rasterize(self.table_2d, order)['PROB']
         return hp.reorder(result, 'NESTED', 'RING')
 
     @property
@@ -624,10 +629,9 @@ class Localization(db.Model):
         """Get flat resolution HEALPix dataset, probability density and
         distance."""
         if self.is_3d:
-            data = rasterize(self.table)
-            result = ud_grade(
-                data['PROB'], data['DISTMU'], data['DISTSIGMA'],
-                self.nside, order_in='NESTED', order_out='NESTED')
+            order = hp.nside2order(Localization.nside)
+            t = rasterize(self.table, order)
+            result = t['PROB'], t['DISTMU'], t['DISTSIGMA'], t['DISTNORM']
             return hp.reorder(result, 'NESTED', 'RING')
         else:
             return self.flat_2d,
@@ -722,9 +726,12 @@ class Plan(db.Model):
         nside = Localization.nside
         return hp.nside2pixarea(nside, degrees=True) * len(self.ipix)
 
-    def probability(self, localization_name=None):
-        # FIX ME
-        return 0.0
+    def get_probability(self, localization):
+        ipix = np.asarray(list(self.ipix))
+        if len(ipix) > 0:
+            return localization.flat_2d[ipix].sum()
+        else:
+            return 0.0
 
 
 class PlannedObservation(db.Model):
@@ -835,11 +842,9 @@ class Observation(db.Model):
         primary_key=True,
         comment='Observation ID')
 
-    dateobs = db.Column(
+    obstime = db.Column(
         db.DateTime,
-        db.ForeignKey(Event.dateobs),
-        primary_key=True,
-        comment='UTC event timestamp')
+        comment='Exposure timestamp')
 
     field = db.relationship(Field)
 

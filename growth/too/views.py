@@ -355,6 +355,17 @@ def plan_json(dateobs, telescope, plan_name):
     ])
 
 
+@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/prob')  # noqa: E501
+def prob_json(dateobs, telescope, plan_name):
+    localization_name = request.args.get('localization_name')
+    plan = one_or_404(models.Plan.query.filter_by(
+        dateobs=dateobs, telescope=telescope, plan_name=plan_name))
+    localization = one_or_404(models.Localization.query.filter_by(
+        dateobs=dateobs, localization_name=localization_name))
+    prob = plan.get_probability(localization)
+    return jsonify(prob)
+
+
 class PlanForm(ModelForm):
 
     class Meta:

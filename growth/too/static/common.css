@@ -1,8 +1,28 @@
-.retracted {
+h5.tag-retracted {
     color: red;
     text-decoration: line-through;
 }
-
+h5.tag-MDC { 
+    color: gray;
+}
+.badge.tag-BNS {
+    background-color: #468847;
+}
+.badge.tag-NSBH {
+    background-color: #b94a48;
+}
+.badge.tag-BBH {
+    background-color: #333333;
+}
+.badge.tag-GRB {
+    background-color: #f89406;
+}
+.badge.tag-AMON {
+    background-color: #3a87ad;
+}
+.badge.tag-Terrestrial {
+    background-color: #999999;
+}
 .field-tooltip td, .field-tooltip th {
     vertical-align: top;
 }

@@ -15,7 +15,7 @@ healpy
 h5py
 ligo-gracedb
 ligo-segments
-ligo.skymap >= 0.1.6
+ligo.skymap >= 0.1.7
 lxml
 networkx
 pandas
