@@ -11,7 +11,7 @@ trigger {{plan.dateobs}} UTC with {{plan.telescope}}. We obtained a series of
 {{oxford_commas(plan.plan_args.filt)}} band images covering 
 {{ "%.1f"|format(plan.area) }} square degrees beginning at 
 {{plan.validity_window_start}} ({{tdiff}} after the burst trigger time), 
-corresponding to ~{{ "%.1f"|format(plan.get_probability(localization)) }}% 
+corresponding to ~{{ "%.1f"|format(100*plan.get_probability(localization)) }}% 
 of the probability enclosed in the localization region. 
 ZTF (http://ztf.caltech.edu) acknowledges the generous support of the NSF 
 under AST MSIP Grant No 1440341. All alerts were filtered, vetted and 

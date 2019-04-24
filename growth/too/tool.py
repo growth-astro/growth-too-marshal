@@ -82,7 +82,7 @@ def create(sample):
                 __name__, filename)
             handle(payload, lxml.etree.fromstring(payload))
 
-        tasks.obs.ztf_obs()
+        tasks.ztf_client.ztf_obs()
 
 
 @db.command()
