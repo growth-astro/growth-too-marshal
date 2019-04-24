@@ -1,6 +1,5 @@
 <div class="d-flex justify-content-between">
-    <h5 {% if event.retracted %}class="retracted"{% endif %}
-        {% if 'MDC' in event.tags %}class="MDC"{% endif %}>
+    <h5 class="{% for tag in event.tags %}{{tag}} {% endfor %}">
         {{event.dateobs.strftime('%y%m%d')}}
         <small>
             {{event.dateobs.strftime('%H:%M:%S')}}
