@@ -82,6 +82,8 @@ def create(sample):
                 __name__, filename)
             handle(payload, lxml.etree.fromstring(payload))
 
+        tasks.obs.ztf_obs()
+
 
 @db.command()
 @click.option('--preserve', help='Preserve the named table.', multiple=True)
