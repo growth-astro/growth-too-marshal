@@ -1,8 +1,8 @@
-.retracted {
+.tag-retracted {
     color: red;
     text-decoration: line-through;
 }
-.MDC { 
+.tag-MDC { 
     color: gray;
 }
 .cls-BNS {
