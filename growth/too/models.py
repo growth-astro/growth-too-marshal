@@ -339,7 +339,7 @@ class Event(db.Model):
 
     @property
     def graceid(self):
-        try: 
+        try:
             notice = self.gcn_notices[0]
         except IndexError:
             return None
