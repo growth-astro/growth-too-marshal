@@ -8,7 +8,7 @@
     </h5>
     <div>
         {% for tag in event.tags %}
-            <span class="badge badge-primary badge-pill {% for tag in event.tags %}tag-{{tag}} {% endfor %}">{{tag}}</span>
+            <span class="badge badge-primary badge-pill tag-{{tag}}">{{tag}}</span>
         {% endfor %}
     </div>
 </div>
