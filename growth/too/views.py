@@ -348,17 +348,19 @@ def download_json(dateobs, telescope, plan_name):
 
     # FIXME: reformat for DECam.
     # Should update Gattini, KPED, and GROWTH-India parsers instead.
-    scalar_jsondata = []
-    for d in json_data:
-        scalar_d = {}
-        for key in d:
-            if isinstance(d[key], tuple):
-                scalar_d[key] = d[key][0]
-            else:
-                scalar_d[key] = d[key]
-        scalar_jsondata.append(scalar_d)
+    if telescope == 'DECam':
+        scalar_jsondata = []
+        for d in json_data:
+            scalar_d = {}
+            for key in d:
+                if isinstance(d[key], tuple):
+                    scalar_d[key] = d[key][0]
+                else:
+                    scalar_d[key] = d[key]
+            scalar_jsondata.append(scalar_d)
+        json_data = scalar_jsondata
 
-    return jsonify(scalar_jsondata)
+    return jsonify(json_data)
 
 
 @app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
