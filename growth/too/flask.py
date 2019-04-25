@@ -22,6 +22,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # across different Python processes.
 app.config['SECRET_KEY'] = os.urandom(24)
 
+# Set 16 MB file size upload limit for posting FITS files.
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 # Celery configuration.
 # Use pickle serializer, because it supports byte values.
 # Use redis broker, because it supports locks (and thus singleton tasks).
