@@ -70,7 +70,7 @@ def ztf_obs(start_time=None, end_time=None):
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
 def ztf_references():
     refstable = client.search("""
-    SELECT field, ccdid, qid, fid, maglimit FROM ztf.ztf_current_meta_ref
+    SELECT field, fid, maglimit FROM ztf.ztf_current_meta_ref
     WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
     AND (field < 880)
     """).to_table()
