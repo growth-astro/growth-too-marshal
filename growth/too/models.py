@@ -872,6 +872,7 @@ class Observation(db.Model):
     subfield_id = db.Column(
         db.Integer,
         default=0,
+        primary_key=True,
         nullable=False,
         comment='subfield (e.g. quadrant/chip as relevant for instrument')
 
