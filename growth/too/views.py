@@ -23,6 +23,8 @@ import pandas as pd
 import h5py
 from ligo.skymap import io
 from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
+from ligo.skymap.tool.ligo_skymap_plot_observability import main \
+    as plot_observability
 import matplotlib.style
 
 from flask import (
@@ -605,6 +607,39 @@ def localization(dateobs, localization_name):
         .filter_by(dateobs=dateobs, localization_name=localization_name))
     return render_template('localization.html', dateobs=dateobs,
                            localization=localization, fields=fields)
+
+
+@app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/-/observability.png')  # noqa: E501
+@login_required
+def localization_observability(dateobs, localization_name):
+    return redirect(url_for(
+        'localization_observability_for_date', dateobs=dateobs,
+        localization_name=localization_name, date=datetime.date.today()))
+
+
+@app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/<date:date>/observability.png')  # noqa: E501
+@cached_as_if_static
+@login_required
+def localization_observability_for_date(dateobs, localization_name, date):
+    localization = one_or_404(
+        models.Localization.query
+        .filter_by(dateobs=dateobs, localization_name=localization_name))
+    names, lons, lats, heights = zip(*(
+        (t.telescope, str(t.lon), str(t.lat), str(t.elevation))
+        for t in models.Telescope.query))
+    with \
+            tempfile.NamedTemporaryFile(suffix='.fits') as fitsfile, \
+            tempfile.NamedTemporaryFile(suffix='.png') as imgfile, \
+            matplotlib.style.context('default'):
+        io.write_sky_map(fitsfile.name, localization.table_2d, moc=True)
+        plot_observability(['--site-name', *names,
+                            '--site-longitude', *lons,
+                            '--site-latitude', *lats,
+                            '--site-height', *heights,
+                            '--time', date.isoformat(),
+                            fitsfile.name, '-o', imgfile.name])
+        contents = imgfile.read()
+    return Response(contents, mimetype='image/png')
 
 
 @app.route('/event/<datetime:dateobs>/observability/<telescope>/<localization_name>/-/airmass.png')  # noqa: E501

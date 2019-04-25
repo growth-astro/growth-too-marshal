@@ -45,6 +45,14 @@
                     </a>
                 </li>
             {% endif %}
+            {% if event.localizations|length > 0 %}
+            <li class=list-group-item>
+                <h6>Observability</h6>
+                <div class="card-img">
+                    <img class=img-fluid alt="Observability" src="{{url_for('localization_observability', dateobs=event.dateobs, localization_name=event.localizations[-1].localization_name)}}">
+                </div>
+            </li>
+            {% endif %}
             <li class=list-group-item>
                 <h6>Marshal Links</h6>
                 <ul>
