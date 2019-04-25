@@ -8,6 +8,7 @@ import math
 from io import StringIO
 import re
 import requests
+import shutil
 import tempfile
 import pkg_resources
 
@@ -608,6 +609,47 @@ def gcn_notice(ivorn):
     ivorn = urllib.parse.unquote_plus(ivorn)
     gcn_notice = models.GcnNotice.query.get_or_404(ivorn)
     return Response(gcn_notice.content, mimetype='text/xml')
+
+
+@app.route(
+    '/event/<datetime:dateobs>/localization/<localization_name>',
+    methods=['POST'])
+@login_required
+def localization_post(dateobs, localization_name):
+    """
+    Manual FITS file upload::
+
+        $ curl -c cookie.txt -d "user=XXXX" -d "password=XXXX" http://example.edu/login
+        $ curl -b cookie.txt --data-binary @/path/to/skymap.fits http://example.edu/event/YYYY-MM-DDTHH:MM:SS/localization/bayestar.fits
+        $ rm cookie.txt
+
+    FIXME: figure out how to use HTTP Basic auth or session auth transparently.
+    """  # noqa: E501
+    with tempfile.NamedTemporaryFile(suffix=localization_name) as localfile:
+        shutil.copyfileobj(request.stream, localfile)
+        localfile.flush()
+        skymap = io.read_sky_map(localfile.name, moc=True)
+
+    def get_col(m, name):
+        try:
+            col = m[name]
+        except KeyError:
+            return None
+        else:
+            return col.tolist()
+
+    models.db.session.add(
+        models.Localization(
+            localization_name=localization_name,
+            dateobs=dateobs,
+            uniq=get_col(skymap, 'UNIQ'),
+            probdensity=get_col(skymap, 'PROBDENSITY'),
+            distmu=get_col(skymap, 'DISTMU'),
+            distsigma=get_col(skymap, 'DISTSIGMA'),
+            distnorm=get_col(skymap, 'DISTNORM')))
+
+    models.db.session.commit()
+    return '', 201
 
 
 @app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/-/observability.png')  # noqa: E501
