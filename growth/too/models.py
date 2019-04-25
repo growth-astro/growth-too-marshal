@@ -718,7 +718,10 @@ class Plan(db.Model):
 
     @property
     def ipix(self):
-        return {i for _ in self.planned_observations for i in _.field.ipix}
+        return {
+            i for planned_observation in self.planned_observations
+            if planned_observation.field.ipix is not None
+            for i in planned_observation.field.ipix}
 
     @property
     def area(self):
