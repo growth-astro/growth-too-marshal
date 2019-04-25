@@ -2,7 +2,6 @@ import sys
 import functools
 import warnings
 import datetime
-from datetime import timedelta
 import os
 import urllib.parse
 import math
@@ -22,10 +21,10 @@ from astropy.table import Table
 from astropy_healpix import HEALPix
 import pandas as pd
 import h5py
-import healpy as hp
 from ligo.skymap import io
 from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
-import matplotlib.pyplot as plt
+from ligo.skymap.tool.ligo_skymap_plot_observability import main \
+    as plot_observability
 import matplotlib.style
 
 from flask import (
@@ -33,15 +32,13 @@ from flask import (
     Response, url_for)
 from flask_login import (
     current_user, login_required, login_user, logout_user, LoginManager)
-from wtforms import (
-    BooleanField, FloatField, Form, RadioField, SubmitField, TextField)
+from wtforms import BooleanField, FloatField, RadioField, TextField
 from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from pyvo.dal import TAPService
 
 from .flask import app
 from .jinja import atob
@@ -110,10 +107,10 @@ def get_marshallink(dateobs):
     except OperationalError:
         warnings.warn('growth-db does not appear to be accessible.')
         return 'None'
-
+    else:
         event = models.Event.query.filter_by(dateobs=dateobs).all()
         if len(event) == 0 or event is None:
-            marshallink = 'None'
+            return 'None'
         else:
             event = event[0]
             scienceprogram = None
@@ -124,7 +121,7 @@ def get_marshallink(dateobs):
                     'Electromagnetic Counterparts to Gravitational Waves'
             elif 'AMON' in event.tags:
                 scienceprogram = 'IceCube'
-        return growthdb.get_marshallink(current_user.name, scienceprogram)
+            return growthdb.get_marshallink(current_user.name, scienceprogram)
 
 
 def human_time(*args, **kwargs):
@@ -324,23 +321,67 @@ def plan(dateobs):
         'plan.html', event=models.Event.query.get_or_404(dateobs))
 
 
-@app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')
+@app.route('/event/<datetime:dateobs>/localization/<localization_name>/plan/telescope/<telescope>/<plan_name>/gcn')  # noqa: E501
+def create_gcn_template(dateobs, telescope, localization_name, plan_name):
+
+    authors = ["Fred Zwicky", "Albert Einstein"]
+
+    localization = one_or_404(models.Localization.query.filter_by(
+        dateobs=dateobs, localization_name=localization_name))
+    plan = one_or_404(models.Plan.query.filter_by(dateobs=dateobs,
+                                                  telescope=telescope,
+                                                  plan_name=plan_name))
+    tdiff = human_time((time.Time(plan.validity_window_start, scale='utc')
+                        - time.Time(dateobs, scale='utc')).value)
+
+    return render_template('gcn.jinja2', plan=plan, tdiff=tdiff,
+                           authors=authors, localization=localization)
+
+
+@app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
 def download_json(dateobs, telescope, plan_name):
 
     plan = models.Plan.query.filter_by(
         dateobs=dateobs, telescope=telescope, plan_name=plan_name).one()
     json_data, queue_name = get_json_data(plan)
 
-    return jsonify(json_data)
+    # FIXME: reformat for DECam.
+    # Should update Gattini, KPED, and GROWTH-India parsers instead.
+    if telescope == 'DECam':
+        scalar_jsondata = []
+        for d in json_data:
+            scalar_d = {}
+            for key in d:
+                if isinstance(d[key], tuple):
+                    scalar_d[key] = d[key][0]
+                else:
+                    scalar_d[key] = d[key]
+            scalar_jsondata.append(scalar_d)
+        return jsonify(scalar_jsondata)    
+    else:
+        return jsonify(json_data)
 
 
-@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')
+@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
 def plan_json(dateobs, telescope, plan_name):
     return jsonify([
         planned_observation.field_id
         for planned_observation in
-        one_or_404(models.Plan.query.filter_by(dateobs=dateobs, telescope=telescope, plan_name=plan_name)).planned_observations
+        one_or_404(models.Plan.query.filter_by(
+            dateobs=dateobs, telescope=telescope, plan_name=plan_name)
+        ).planned_observations
     ])
+
+
+@app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/prob')  # noqa: E501
+def prob_json(dateobs, telescope, plan_name):
+    localization_name = request.args.get('localization_name')
+    plan = one_or_404(models.Plan.query.filter_by(
+        dateobs=dateobs, telescope=telescope, plan_name=plan_name))
+    localization = one_or_404(models.Localization.query.filter_by(
+        dateobs=dateobs, localization_name=localization_name))
+    prob = plan.get_probability(localization)
+    return jsonify(prob)
 
 
 class PlanForm(ModelForm):
@@ -557,7 +598,7 @@ def plan_manual():
                     telescope, queue_name)
             ).delay()
 
-            flash('Submitted observing plan','success')
+            flash('Submitted observing plan', 'success')
 
     return render_template(
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
@@ -571,15 +612,37 @@ def gcn_notice(ivorn):
     return Response(gcn_notice.content, mimetype='text/xml')
 
 
-@app.route('/event/<datetime:dateobs>/localization/<localization_name>/')
+@app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/-/observability.png')  # noqa: E501
 @login_required
-def localization(dateobs, localization_name):
-    fields = models.Field.query.all()
+def localization_observability(dateobs, localization_name):
+    return redirect(url_for(
+        'localization_observability_for_date', dateobs=dateobs,
+        localization_name=localization_name, date=datetime.date.today()))
+
+
+@app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/<date:date>/observability.png')  # noqa: E501
+@cached_as_if_static
+@login_required
+def localization_observability_for_date(dateobs, localization_name, date):
     localization = one_or_404(
         models.Localization.query
         .filter_by(dateobs=dateobs, localization_name=localization_name))
-    return render_template('localization.html', dateobs=dateobs,
-                           localization=localization, fields=fields)
+    names, lons, lats, heights = zip(*(
+        (t.telescope, str(t.lon), str(t.lat), str(t.elevation))
+        for t in models.Telescope.query))
+    with \
+            tempfile.NamedTemporaryFile(suffix='.fits') as fitsfile, \
+            tempfile.NamedTemporaryFile(suffix='.png') as imgfile, \
+            matplotlib.style.context('default'):
+        io.write_sky_map(fitsfile.name, localization.table_2d, moc=True)
+        plot_observability(['--site-name', *names,
+                            '--site-longitude', *lons,
+                            '--site-latitude', *lats,
+                            '--site-height', *heights,
+                            '--time', date.isoformat(),
+                            fitsfile.name, '-o', imgfile.name])
+        contents = imgfile.read()
+    return Response(contents, mimetype='image/png')
 
 
 @app.route('/event/<datetime:dateobs>/observability/<telescope>/<localization_name>/-/airmass.png')  # noqa: E501
@@ -780,13 +843,14 @@ def get_queue_transient_name(plan):
     gcn_notice = event.gcn_notices[-1]
     stream = gcn_notice.stream
 
-    queue_name = "{0}_{1}_{2}_{3}".format(str(plan.dateobs).replace(" ","-"),
-                                          plan.plan_name,
-                                          str(plan.validity_window_start).replace(" ","-"),
-                                          str(plan.validity_window_end).replace(" ","-"))
+    queue_name = "{0}_{1}_{2}_{3}".format(
+        str(plan.dateobs).replace(" ", "-"),
+        plan.plan_name,
+        str(plan.validity_window_start).replace(" ", "-"),
+        str(plan.validity_window_end).replace(" ", "-"))
 
-    transient_name = "{0}_{1}".format(stream,
-                                      str(plan.dateobs).replace(" ", "-"))
+    transient_name = "{0}_{1}".format(
+        stream, str(plan.dateobs).replace(" ", "-"))
 
     return queue_name, transient_name
 
@@ -810,11 +874,11 @@ def get_json_data_manual(form):
 
     program_id = 2
     bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
-    json_data = {'queue_name': "ToO_"+queue_name,
+    json_data = {'queue_name': "ToO_" + queue_name,
                  'validity_window_mjd': [start_mjd, end_mjd]}
     targets = []
     cnt = 1
-    for filt in filters:            
+    for filt in filters:
         filter_id = bands[filt]
         for field_id in field_ids:
             field = one_or_404(models.Field.query.filter_by(
@@ -854,17 +918,14 @@ def get_json_data_manual(form):
                         ra_diff, dec_diff = 0.0, 0.0
                     elif jj == 1:
                         ra_diff, dec_diff = 60.0/3600.0, 60.0/3600.0
-                    decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                                queue_name,
-                                                                cnt, nrows,
-                                                                ra_diff=ra_diff,
-                                                                dec_diff=dec_diff)
+                    decam_dict = tasks.scheduler.get_decam_dict(
+                        data_row, queue_name, cnt, nrows,
+                        ra_diff=ra_diff, dec_diff=dec_diff)
                     decam_dicts.append(decam_dict)
                     cnt = cnt + 1
             else:
-                decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                            queue_name,
-                                                            cnt, nrows)
+                decam_dict = tasks.scheduler.get_decam_dict(
+                    data_row, queue_name, cnt, nrows)
                 decam_dicts.append(decam_dict)
                 cnt = cnt + 1
         json_data = decam_dicts
@@ -950,17 +1011,14 @@ def get_json_data(plan):
                         ra_diff, dec_diff = 0.0, 0.0
                     elif jj == 1:
                         ra_diff, dec_diff = 60.0/3600.0, 60.0/3600.0
-                    decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                                queue_name,
-                                                                cnt, nrows,
-                                                                ra_diff=ra_diff,
-                                                                dec_diff=dec_diff)
+                    decam_dict = tasks.scheduler.get_decam_dict(
+                        data_row, queue_name, cnt, nrows,
+                        ra_diff=ra_diff, dec_diff=dec_diff)
                     decam_dicts.append(decam_dict)
                     cnt = cnt + 1
             else:
-                decam_dict = tasks.scheduler.get_decam_dict(data_row,
-                                                            queue_name,
-                                                            cnt, nrows)
+                decam_dict = tasks.scheduler.get_decam_dict(
+                    data_row, queue_name, cnt, nrows)
                 decam_dicts.append(decam_dict)
                 cnt = cnt + 1
         json_data = decam_dicts
@@ -1074,7 +1132,7 @@ def health_growth_marshal():
     Returns an HTTP 204 No Content response on success,
     or an HTTP 500 Internal Server Error response on failure.
     """
-    from . import growthdb
+    from . import growthdb  # noqa: F401
     return '', 204  # No Content
 
 
