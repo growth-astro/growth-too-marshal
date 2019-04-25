@@ -8,6 +8,7 @@ import numpy as np
 import pkg_resources
 
 from .. import models
+from ..jinja import btoa
 from ..flask import app
 from ..gcn import handle, listen
 from . import mock_download_file
@@ -91,6 +92,15 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
         assert np.all(np.array(exposure.weight) <= 1)
 
     assert np.isclose(plan.area, 790.3129926351713)
+
+    # Try submitting some of the observing plans.
+    flask.post(
+        '/event/{}/plan'.format(dateobs),
+        data={
+            'go': True,
+            '{}_{}'.format(btoa(telescope), btoa(plan_name)): True
+        }
+    )
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
