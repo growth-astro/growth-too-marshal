@@ -343,7 +343,19 @@ def download_json(dateobs, telescope, plan_name):
         dateobs=dateobs, telescope=telescope, plan_name=plan_name).one()
     json_data, queue_name = get_json_data(plan)
 
-    return jsonify(json_data)
+    # FIXME: reformat for DECam.
+    # Should update Gattini, KPED, and GROWTH-India parsers instead.
+    scalar_jsondata = []
+    for d in json_data:
+        scalar_d = {}
+        for key in d:
+            if isinstance(d[key], tuple):
+                scalar_d[key] = d[key][0]
+            else:
+                scalar_d[key] = d[key]
+        scalar_jsondata.append(scalar_d)
+
+    return jsonify(scalar_jsondata)
 
 
 @app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
