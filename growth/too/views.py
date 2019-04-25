@@ -651,6 +651,7 @@ def localization_post(dateobs, localization_name):
             distnorm=get_col(skymap, 'DISTNORM')))
 
     models.db.session.commit()
+    tasks.skymaps.contour.delay(localization_name, dateobs)
     return '', 201
 
 
