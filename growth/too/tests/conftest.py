@@ -1,4 +1,5 @@
 import pytest
+from pytest_socket import socket_allow_hosts
 
 from .. import tasks
 from ..flask import app
@@ -36,3 +37,7 @@ def celery(monkeypatch):
 def mail(monkeypatch):
     """Set the Flask-Mail MAIL_SUPPRESS_SEND flag."""
     monkeypatch.setattr(tasks.email.mail.state, 'suppress', True)
+
+
+def pytest_runtest_setup():
+    socket_allow_hosts(['127.0.0.1'])
