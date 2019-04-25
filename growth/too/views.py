@@ -610,17 +610,6 @@ def gcn_notice(ivorn):
     return Response(gcn_notice.content, mimetype='text/xml')
 
 
-@app.route('/event/<datetime:dateobs>/localization/<localization_name>/')
-@login_required
-def localization(dateobs, localization_name):
-    fields = models.Field.query.all()
-    localization = one_or_404(
-        models.Localization.query
-        .filter_by(dateobs=dateobs, localization_name=localization_name))
-    return render_template('localization.html', dateobs=dateobs,
-                           localization=localization, fields=fields)
-
-
 @app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/-/observability.png')  # noqa: E501
 @login_required
 def localization_observability(dateobs, localization_name):
