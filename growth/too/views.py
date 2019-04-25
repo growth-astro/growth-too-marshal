@@ -13,6 +13,7 @@ import pkg_resources
 
 from celery import group
 import numpy as np
+import healpy as hp
 from scipy.stats import norm
 from astropy import time
 import astropy.units as u
@@ -479,6 +480,54 @@ class PlanForm(ModelForm):
             schedule_strategy=self.schedule_strategy.data
         )
 
+
+@app.route('/event/<datetime:dateobs>/observations')
+@login_required
+def observations(dateobs):
+
+    localization = models.Localization.query.filter_by(dateobs=dateobs).one()
+    prob = localization.flat_2d
+
+    nside = models.Localization.nside
+    bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
+    data = {}
+    for telescope in models.Telescope.query.all():
+        data[telescope.telescope] = {}
+        for filt in telescope.filters:
+            data[telescope.telescope][filt] = {}
+            filter_id = bands[filt]
+            observations = models.Observation.query.filter(
+                (models.Observation.telescope==telescope.telescope) &
+                (models.Observation.obstime >= dateobs) &
+                (models.Observation.filter_id == filter_id)).all()
+            tt = 'N/A'
+            ipixs = []
+            observation_ids = []
+            tot = 0.0
+
+            for ii, observation in enumerate(observations):
+                if ii == 0:
+                   tt = observation.obstime
+                else:
+                   tt = min(observation.obstime,tt)
+                subfield = models.SubField.query.filter_by(telescope=observation.telescope, field_id=observation.field_id, subfield_id=observation.subfield_id).one()
+                ipix = subfield.ipix
+                ipixs.append(ipix)
+                if not observation.observation_id in observation_ids:
+                    tot = tot + observation.exposure_time/60.0
+                    observation_ids.append(observation.observation_id)
+
+            ipix = list({y for x in ipixs for y in x})
+            nside = models.Localization.nside
+            data[telescope.telescope][filt]["nexp"] = len(observation_ids)
+            data[telescope.telescope][filt]["start"] = tt
+            data[telescope.telescope][filt]["tot"] = tot
+            data[telescope.telescope][filt]["area"] = hp.nside2pixarea(nside, degrees=True) * len(ipix)
+            data[telescope.telescope][filt]["prob"] = np.sum(prob[ipix])
+
+    return render_template('observations.html',
+                           event=models.Event.query.get_or_404(dateobs),
+                           data=data)
 
 @app.route('/event/<datetime:dateobs>/plan_new', methods=['GET', 'POST'])
 @login_required
