@@ -211,7 +211,7 @@ def gen_structs(params):
 
     if params["tilesType"] == "moc":
         log.info('Generating MOC struct')
-        moc_structs = gwemopt.moc.create_moc(params)
+        moc_structs = gwemopt.moc.create_moc(params, map_struct=map_struct)
         tile_structs = gwemopt.tiles.moc(params, map_struct, moc_structs)
     elif params["tilesType"] == "ranked":
         log.info('Generating ranked struct')
