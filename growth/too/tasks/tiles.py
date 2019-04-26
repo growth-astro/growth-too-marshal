@@ -144,7 +144,10 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["doParallel"] = False
     params["doUseCatalog"] = False
 
-    params["doMinimalTiling"] = False
+    if tele in ["KPED", "GROWTH-India"]:
+        params["doMinimalTiling"] = True
+    else:
+        params["doMinimalTiling"] = False
     params["doIterativeTiling"] = False
     params["galaxies_FoV_sep"] = 1.0
 
@@ -208,7 +211,7 @@ def gen_structs(params):
 
     if params["tilesType"] == "moc":
         log.info('Generating MOC struct')
-        moc_structs = gwemopt.moc.create_moc(params)
+        moc_structs = gwemopt.moc.create_moc(params, map_struct=map_struct)
         tile_structs = gwemopt.tiles.moc(params, map_struct, moc_structs)
     elif params["tilesType"] == "ranked":
         log.info('Generating ranked struct')
