@@ -1,5 +1,5 @@
 GROWTH Target of Opportunity Marshal
-==============================================
+====================================
 
 This is the manual for the GROWTH Target of Opportunity Marshal, or ToO Marshal
 for short. It is a platform that has been developed by the Global Relay of
