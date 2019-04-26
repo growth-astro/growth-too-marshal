@@ -24,6 +24,7 @@
                     {% endfor %}
                 </select>
                 <a class="ml-2 btn btn-secondary" href="{{url_for('plan_new', dateobs=event.dateobs)}}" title="Create new plan..."><i class="fa fa-plus-square"></i> New...</a>
+                <a class="ml-2 btn btn-secondary" href="{{url_for('observation_new', dateobs=event.dateobs)}}" title="Upload new observation..."><i class="fa fa-plus-square"></i>Observation...</a>
                 <button disabled type=submit name=delete class="ml-2 btn btn-secondary" title="Delete selected plans"><i class="fa fa-trash"></i> Delete</button>
                 <button disabled type=submit name=go class='ml-2 btn btn-danger' title="Submit selected plans to queue"><i class="fa fa-rocket"></i> Go!</button>
             </div>

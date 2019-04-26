@@ -605,6 +605,67 @@ def plan_manual():
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
 
 
+@app.route('/event/<datetime:dateobs>/observation_new', methods=['GET', 'POST'])  # noqa: E501
+@login_required
+def observation_new(dateobs):
+
+    form = ObservationForm(dateobs=dateobs)
+    form.telescope.choices = [
+        (row.telescope,) * 2 for row in models.Telescope.query]
+
+    if request.method == 'POST':
+        telescope, filename = form.telescope.data, form.obs_file.data
+        if telescope == "ZTF":
+            names = ('day', 'time', 'expid', 'junk1', 'junk2',
+                     'field_id', 'ra', 'dec', 'epoch', 'junk3', 'junk4',
+                     'exptime', 'filter_name', 'complete', 'junk5', 'junk6')
+            data = Table.read(filename, format='ascii', names=names)
+        elif telescope == "Gattini":
+            names = ('field_id', 'day', 'time')
+            data = Table.read(filename, format='ascii', names=names)
+
+        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
+        quadrantIDs = np.arange(64)
+        for ii, row in enumerate(data):
+            if telescope == "ZTF":
+                expid = int(row["expid"].split("_")[1][8:])
+                filt = row["filter_name"].split("_")[-1].lower()
+                fid = bands[filt]
+                for quadrantID in quadrantIDs:
+                    obstime = time.Time('{0} {1}'.format(row['day'],
+                                                         row['time'])).datetime
+                    models.db.session.merge(
+                        models.Observation(telescope='ZTF',
+                                           field_id=int(row['field_id']),
+                                           observation_id=expid,
+                                           obstime=obstime,
+                                           exposure_time=int(row['exptime']),
+                                           filter_id=int(fid),
+                                           subfield_id=int(quadrantID),
+                                           successful=1))
+            elif telescope == "Gattini":
+                fid = bands['J']
+                obstime = time.Time('{0} {1}'.format(row['day'],
+                                                     row['time'])).datetime
+                models.db.session.merge(
+                    models.Observation(telescope='Gattini',
+                                       field_id=int(row['field_id']),
+                                       observation_id=int(ii),
+                                       obstime=obstime,
+                                       exposure_time=30.0,
+                                       filter_id=int(fid),
+                                       subfield_id=0,
+                                       successful=1))
+        if form.validate():
+            flash(
+                'Ingested observing plan "{}".'.format(form.obs_file.data),
+                'success')
+            return redirect(url_for('plan', dateobs=dateobs))
+
+    return render_template(
+        'observation_new.html', form=form, telescopes=models.Telescope.query)
+
+
 @app.route('/gcn_notice/<ivorn>')
 @login_required
 def gcn_notice(ivorn):

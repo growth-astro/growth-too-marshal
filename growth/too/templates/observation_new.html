@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>GROWTH ToO Marshal: Upload observing plan</title>
+{% endblock %}
+
+{% block body %}
+<div class=container>
+    <div class="card mb-3">
+        <div class=card-header>
+            Ingest Observation Plan
+        </div>
+        <form class=card-body method=post>
+            {{form.hidden_tag()}}
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for=telescope class=form-label>Telescope</label>
+                    {{ render_field(form.telescope, class='custom-select') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-12">
+                    <label for=plan_name>Observation File</label>
+                    {{ render_field(form.obs_file, placeholder='Observation file') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-3">
+                    <button type=submit id=create class="btn btn-primary" name="btnform">Upload</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$('#telescope').on('input', function() {
+    var telescope = $(this).val();
+    var available_filters = {
+        {% for telescope in telescopes %}
+            '{{telescope.telescope}}': '{{telescope.filters|join(', ')}}',
+        {% endfor %}
+    };
+    $('#dither').prop('disabled', telescope != 'DECam');
+    $('#references').prop('checked', telescope == 'ZTF');
+    $('#references').prop('disabled', telescope == 'Gattini');
+    $('#available-filters').text(available_filters[telescope]); 
+});
+$('#telescope').trigger('input');
+</script>
+{% endblock %}
