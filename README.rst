@@ -37,6 +37,9 @@ ToO Marshal's responsibilities include:
 
 6. Automatically compose GCN Circular astronomical bulletins.
 
+.. image:: https://github.com/growth-astro/growth-too-marshal/raw/master/screenshots.png
+   :alt: Screen shots
+
 At its core, the ToO Marshal is powered by two open-source Python packages:
 `ligo.skymap`_ for processing and manipulating gravitational-wave
 localizations, and `gwemopt`_ for multi-facility optimal tiling and observation
