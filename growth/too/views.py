@@ -605,6 +605,21 @@ def plan_manual():
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
 
 
+class ObservationForm(ModelForm):
+
+    class Meta:
+        model = models.Plan
+        exclude = ['plan_args']
+
+    dateobs = DateTimeField()
+
+    telescope = SelectField(default='ZTF')
+
+    obs_file = TextField(
+        validators=[validators.DataRequired()],
+        default='REPLACE ME')
+
+
 @app.route('/event/<datetime:dateobs>/observation_new', methods=['GET', 'POST'])  # noqa: E501
 @login_required
 def observation_new(dateobs):
