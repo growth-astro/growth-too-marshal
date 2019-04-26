@@ -64,7 +64,7 @@ the first two steps.
 
 6.  Next, we'll check out the source code with ``git``::
 
-        $ git clone https://github.com/ZwickyTransientFacility/growth-too-marshal.git ~/growth-too-marshal/src
+        $ git clone https://github.com/growth-astro/growth-too-marshal.git ~/growth-too-marshal/src
 
 7.  Install the marshal itself, and its remaining dependencies, using ``pip``::
 
@@ -141,7 +141,7 @@ development and testing.
 
         $ growth-too passwd fritz
 
-.. _`requirements.txt`: https://github.com/ZwickyTransientFacility/ztf-too-marshal/blob/master/requirements.txt
+.. _`requirements.txt`: https://github.com/growth-astro/growth-too-marshal/blob/master/requirements.txt
 .. _`pip`: https://pip.pypa.io/en/stable/
 .. _`Miniconda`: https://docs.conda.io/en/latest/miniconda.html
 .. _`PostgreSQL`: https://www.postgresql.org
