@@ -42,5 +42,12 @@ At its core, the ToO Marshal is powered by two open-source Python packages:
 localizations, and `gwemopt`_ for multi-facility optimal tiling and observation
 scheduling.
 
+Architecturally, the ToO Marshal is a `Flask`_ web application backed by a
+`PostgreSQL`_ database and using a `Celery`_ asynchronous task queue for
+supervising long-running background operations.
+
 .. _`ligo.skymap`: https://git.ligo.org/lscsoft/ligo.skymap
 .. _`gwemopt`: https://github.com/mcoughlin/gwemopt
+.. _`Flask`: http://flask.pocoo.org
+.. _`PostgreSQL`: https://www.postgresql.org
+.. _`Celery`: http://www.celeryproject.org
