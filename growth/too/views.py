@@ -30,6 +30,7 @@ import matplotlib.style
 from flask import (
     abort, flash, jsonify, make_response, redirect, render_template, request,
     Response, url_for)
+from flask_caching import Cache
 from flask_login import (
     current_user, login_required, login_user, logout_user, LoginManager)
 from wtforms import BooleanField, FloatField, RadioField, TextField
@@ -71,6 +72,12 @@ except FileNotFoundError:
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Server-side cache for rendered view functions.
+cache = Cache(app, config={
+    'CACHE_DEFAULT_TIMEOUT': 86400,
+    'CACHE_REDIS_HOST': tasks.celery.backend.client,
+    'CACHE_TYPE': 'redis'})
 
 
 def one_or_404(query):
@@ -312,6 +319,7 @@ def plan(dateobs):
 
 
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/plan/telescope/<telescope>/<plan_name>/gcn')  # noqa: E501
+@cache.cached()
 def create_gcn_template(dateobs, telescope, localization_name, plan_name):
 
     authors = ["Fred Zwicky", "Albert Einstein"]
@@ -331,6 +339,7 @@ def create_gcn_template(dateobs, telescope, localization_name, plan_name):
 
 
 @app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
+@cache.cached()
 def download_json(dateobs, telescope, plan_name):
 
     plan = one_or_404(models.Plan.query.filter_by(
@@ -357,6 +366,7 @@ def download_json(dateobs, telescope, plan_name):
 
 
 @app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
+@cache.cached()
 def plan_json(dateobs, telescope, plan_name):
     plan = one_or_404(models.Plan.query.filter_by(
         dateobs=dateobs, telescope=telescope, plan_name=plan_name))
@@ -369,6 +379,7 @@ def plan_json(dateobs, telescope, plan_name):
 
 
 @app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/prob')  # noqa: E501
+@cache.cached()
 def prob_json(dateobs, telescope, plan_name):
     localization_name = request.args.get('localization_name')
     plan = one_or_404(models.Plan.query.filter_by(
@@ -603,6 +614,7 @@ def plan_manual():
 
 @app.route('/gcn_notice/<ivorn>')
 @login_required
+@cache.cached()
 def gcn_notice(ivorn):
     ivorn = urllib.parse.unquote_plus(ivorn)
     gcn_notice = models.GcnNotice.query.get_or_404(ivorn)
@@ -661,6 +673,7 @@ def localization_observability(dateobs, localization_name):
 
 @app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/<date:date>/observability.png')  # noqa: E501
 @login_required
+@cache.cached()
 def localization_observability_for_date(dateobs, localization_name, date):
     localization = one_or_404(
         models.Localization.query
@@ -693,6 +706,7 @@ def localization_airmass(dateobs, telescope, localization_name):
 
 @app.route('/event/<datetime:dateobs>/observability/<telescope>/<localization_name>/<date:date>/airmass.png')  # noqa: E501
 @login_required
+@cache.cached()
 def localization_airmass_for_date(dateobs, telescope, localization_name, date):
     localization = one_or_404(
         models.Localization.query
@@ -863,6 +877,7 @@ def localization_galaxy(dateobs, localization_name):
 
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/json')
 @login_required
+@cache.cached()
 def localization_json(dateobs, localization_name):
     localization = one_or_404(
         models.Localization.query

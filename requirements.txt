@@ -3,6 +3,7 @@ astropy-healpix>=0.3
 celery[redis] >= 4.3.0rc1  # https://github.com/celery/celery/pull/4852
 ephem
 flask
+flask_caching
 flask_celeryext
 flask_humanize
 flask_login
