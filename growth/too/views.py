@@ -1,5 +1,4 @@
 import sys
-import functools
 import warnings
 import datetime
 import os
@@ -72,16 +71,6 @@ except FileNotFoundError:
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-
-
-def cached_as_if_static(func):
-    """Specify that a view should be cached as if it was a static file."""
-    @functools.wraps(func)
-    def decorated_function(*args, **kwargs):
-        response = make_response(func(*args, **kwargs))
-        response.cache_control.max_age = app.get_send_file_max_age(None)
-        return response
-    return decorated_function
 
 
 def one_or_404(query):
@@ -664,7 +653,6 @@ def localization_observability(dateobs, localization_name):
 
 
 @app.route('/event/<datetime:dateobs>/observability/-/<localization_name>/<date:date>/observability.png')  # noqa: E501
-@cached_as_if_static
 @login_required
 def localization_observability_for_date(dateobs, localization_name, date):
     localization = one_or_404(
@@ -697,7 +685,6 @@ def localization_airmass(dateobs, telescope, localization_name):
 
 
 @app.route('/event/<datetime:dateobs>/observability/<telescope>/<localization_name>/<date:date>/airmass.png')  # noqa: E501
-@cached_as_if_static
 @login_required
 def localization_airmass_for_date(dateobs, telescope, localization_name, date):
     localization = one_or_404(
@@ -780,7 +767,6 @@ def get_ztf_cand(url_report_page, username, password):
 
 
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/galaxy')
-@cached_as_if_static
 @login_required
 def localization_galaxy(dateobs, localization_name):
     localization = one_or_404(
@@ -869,7 +855,6 @@ def localization_galaxy(dateobs, localization_name):
 
 
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/json')
-@cached_as_if_static
 @login_required
 def localization_json(dateobs, localization_name):
     localization = one_or_404(
@@ -1111,7 +1096,6 @@ def get_filters_string(telescopes):
 
 
 @app.route('/telescope/<telescope>/field/<int:field_id>/json')
-@cached_as_if_static
 def field_json(telescope, field_id):
     field = one_or_404(models.Field.query.filter_by(
         telescope=telescope, field_id=field_id))
