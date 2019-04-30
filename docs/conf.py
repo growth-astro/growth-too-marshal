@@ -107,7 +107,8 @@ html_theme_options = {
     'github_banner': True,
     'github_button': True,
     'github_user': 'growth-astro',
-    'github_repo': 'growth-too-marshal'
+    'github_repo': 'growth-too-marshal',
+    'show_relbars': True
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
