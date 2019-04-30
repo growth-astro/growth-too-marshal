@@ -321,6 +321,8 @@ def create_gcn_template(dateobs, telescope, localization_name, plan_name):
     plan = one_or_404(models.Plan.query.filter_by(dateobs=dateobs,
                                                   telescope=telescope,
                                                   plan_name=plan_name))
+    if plan.status < plan.Status.READY:
+        abort(404)
     tdiff = human_time((time.Time(plan.validity_window_start, scale='utc')
                         - time.Time(dateobs, scale='utc')).value)
 
@@ -331,8 +333,10 @@ def create_gcn_template(dateobs, telescope, localization_name, plan_name):
 @app.route('/event/<datetime:dateobs>/plan/download/telescope/<telescope>/<plan_name>.json')  # noqa: E501
 def download_json(dateobs, telescope, plan_name):
 
-    plan = models.Plan.query.filter_by(
-        dateobs=dateobs, telescope=telescope, plan_name=plan_name).one()
+    plan = one_or_404(models.Plan.query.filter_by(
+        dateobs=dateobs, telescope=telescope, plan_name=plan_name))
+    if plan.status < plan.Status.READY:
+        abort(404)
     json_data, queue_name = get_json_data(plan)
 
     # FIXME: reformat for DECam.
@@ -354,12 +358,13 @@ def download_json(dateobs, telescope, plan_name):
 
 @app.route('/event/<datetime:dateobs>/plan/telescope/<telescope>/<plan_name>/json')  # noqa: E501
 def plan_json(dateobs, telescope, plan_name):
+    plan = one_or_404(models.Plan.query.filter_by(
+        dateobs=dateobs, telescope=telescope, plan_name=plan_name))
+    if plan.status < plan.Status.READY:
+        abort(404)
     return jsonify([
         planned_observation.field_id
-        for planned_observation in
-        one_or_404(models.Plan.query.filter_by(
-            dateobs=dateobs, telescope=telescope, plan_name=plan_name)
-        ).planned_observations
+        for planned_observation in plan.planned_observations
     ])
 
 
@@ -368,6 +373,8 @@ def prob_json(dateobs, telescope, plan_name):
     localization_name = request.args.get('localization_name')
     plan = one_or_404(models.Plan.query.filter_by(
         dateobs=dateobs, telescope=telescope, plan_name=plan_name))
+    if plan.status < plan.Status.READY:
+        abort(404)
     localization = one_or_404(models.Localization.query.filter_by(
         dateobs=dateobs, localization_name=localization_name))
     prob = plan.get_probability(localization)

@@ -677,7 +677,7 @@ class Plan(db.Model):
     # FIXME: Hard-code program_id, filter_id, subprogram_name
     program_id = 2
 
-    class Status(enum.Enum):
+    class Status(enum.IntEnum):
         WORKING = 0
         READY = 1
         SUBMITTED = 2
