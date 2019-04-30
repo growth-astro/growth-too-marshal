@@ -37,6 +37,7 @@ Marshal's responsibilities include:
 
    install
    configuration
+   running
    contributing
    deployment
 
