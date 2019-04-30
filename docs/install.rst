@@ -37,8 +37,8 @@ the first two steps.
     just fine.
 
     When the installer asks, ``Do you wish the installer to initialize
-    Miniconda3 in your /Users/lpsinger/.bash_profile ? [yes|no]``, I suggest
-    answering `no`.
+    Miniconda3 in your ~/.bash_profile ? [yes|no]``, I suggest answering
+    `no`.
 
     ..  note::
 
@@ -97,7 +97,7 @@ these instructions to initialize, start, and populate the PostgreSQL database.
 
 2.  Start the PostgreSQL server::
 
-    $ pg_ctl -D /Users/lpsinger/growth-too-marshal/var/lib/postgresql start
+    $ pg_ctl -D ~/growth-too-marshal/var/lib/postgresql start
 
 3.  Create an empty database for the ToO Marshal::
 
