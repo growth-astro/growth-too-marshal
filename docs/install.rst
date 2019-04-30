@@ -56,7 +56,7 @@ the first two steps.
         $ source ~/miniconda3/bin/activate ~/growth-too-marshal
 
 5.  Next, we will install several pre-built Python packages using ``conda``
-    itself:
+    itself::
 
         $ conda config --add channels anaconda
         $ conda config --add channels conda-forge
