@@ -421,7 +421,8 @@ class PlanForm(ModelForm):
 
     schedule = RadioField(
         choices=[('greedy', 'greedy'), ('sear', 'sear'),
-                 ('airmass_weighted', 'airmass_weighted')],
+                 ('airmass_weighted', 'airmass_weighted'),
+                 ('greedy_slew', 'greedy_slew')],
         default='greedy')
 
     dither = BooleanField(default=False)
