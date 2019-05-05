@@ -504,6 +504,7 @@ def observations(dateobs):
             ipixs = []
             observation_ids = []
             tot = 0.0
+            limmag = -1.0
 
             for ii, observation in enumerate(observations):
                 if ii == 0:
@@ -516,6 +517,8 @@ def observations(dateobs):
                 if not observation.observation_id in observation_ids:
                     tot = tot + observation.exposure_time/60.0
                     observation_ids.append(observation.observation_id)
+                if not observation.limmag is None:
+                    limmag = np.max([limmag, observation.limmag])
 
             ipix = list({y for x in ipixs for y in x})
             nside = models.Localization.nside
@@ -524,6 +527,7 @@ def observations(dateobs):
             data[telescope.telescope][filt]["tot"] = tot
             data[telescope.telescope][filt]["area"] = hp.nside2pixarea(nside, degrees=True) * len(ipix)
             data[telescope.telescope][filt]["prob"] = np.sum(prob[ipix])
+            data[telescope.telescope][filt]["limmag"] = limmag
 
     return render_template('observations.html',
                            event=models.Event.query.get_or_404(dateobs),
