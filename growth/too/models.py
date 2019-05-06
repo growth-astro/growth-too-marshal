@@ -336,34 +336,17 @@ class Event(db.Model):
         return "https://ned.ipac.caltech.edu/gwf/events"
 
     @property
-    def HasNS(self):
-        notice = self.gcn_notices[0]
+    def graceid(self):
+        try:
+            notice = self.gcn_notices[0]
+        except IndexError:
+            return None
         root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='HasNS']")
+        elem = root.find(".//Param[@name='GraceID']")
         if elem is None:
             return None
         else:
-            return 'HasNS: '+elem.attrib.get('value', '')
-
-    @property
-    def HasRemnant(self):
-        notice = self.gcn_notices[0]
-        root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='HasRemnant']")
-        if elem is None:
-            return None
-        else:
-            return 'HasRemnant: '+elem.attrib.get('value', '')
-
-    @property
-    def FAR(self):
-        notice = self.gcn_notices[0]
-        root = lxml.etree.fromstring(notice.content)
-        elem = root.find(".//Param[@name='FAR']")
-        if elem is None:
-            return None
-        else:
-            return 'FAR: '+elem.attrib.get('value', '')
+            return elem.attrib.get('value', '')
 
 
 class Tag(db.Model):
@@ -535,6 +518,45 @@ class GcnNotice(db.Model):
         db.LargeBinary,
         nullable=False,
         comment='Raw VOEvent content'))
+
+    def _get_property(self, property_name, value=None):
+        root = lxml.etree.fromstring(self.content)
+        path = ".//Param[@name='{}']".format(property_name)
+        elem = root.find(path)
+        value = float(elem.attrib.get('value', '')) * 100
+        return value
+
+    @property
+    def has_ns(self):
+        return self._get_property(property_name="HasNS")
+
+    @property
+    def has_remnant(self):
+        return self._get_property(property_name="HasRemnant")
+
+    @property
+    def far(self):
+        return self._get_property(property_name="FAR")
+
+    @property
+    def bns(self):
+        return self._get_property(property_name="BNS")
+
+    @property
+    def nsbh(self):
+        return self._get_property(property_name="NSBH")
+
+    @property
+    def bbh(self):
+        return self._get_property(property_name="BBH")
+
+    @property
+    def mass_gap(self):
+        return self._get_property(property_name="MassGap")
+
+    @property
+    def noise(self):
+        return self._get_property(property_name="Terrestrial")
 
 
 class Localization(db.Model):
