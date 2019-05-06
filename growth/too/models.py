@@ -1007,3 +1007,8 @@ class Candidates(db.model):
     lastmodified = db.Column(
         db.DateTime,
         comment='Date of last modification')
+
+    autoannotations = db.Column(
+        db.String,
+        nummable=True,
+        comment='Autoannotations from the GROWTH marshal')
