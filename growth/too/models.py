@@ -70,7 +70,7 @@ def create_all():
             'exposuretimes': [25.0, 25.0],
             'doReferences': True,
             'doDither': True,
-            'schedule_type': 'greedy',
+            'schedule_type': 'greedy_slew',
             'filterScheduleType': 'integrated',
             'airmass': 2.5,
             'schedule_strategy': 'tiling'
