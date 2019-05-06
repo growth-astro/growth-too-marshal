@@ -1,6 +1,7 @@
 import requests
 import json
 import pdb
+import numpy as np
 import astropy.units as u
 import datetime
 from celery.task import PeriodicTask
@@ -34,6 +35,20 @@ def get_programidx(program_name, username, password):
         return None
 
 
+def get_source_autoannotations(sourceid, username, password):
+    ''' Fetch a specific source's autoannotations from the GROWTH marshal and 
+    create a string with the autoannotations available. '''
+    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/source_summary.cgi', auth=(username, password), data={'sourceid':str(sourceid)
+}) 
+    summary=json.loads(r.text)
+    autoannotations=summary['autoannotations']
+    autoannotations_string = ""
+    for auto in autoannotations:
+        autoannotations_string = f"{autoannotations_string}; \n {auto['username']}, {auto['type']}, {auto['comment']}" 
+
+    return autoannotations_string
+
+
 def get_candidates_growth_marshal(program_name, username, password):
     ''' Query the GROWTH db for the science programs '''
 
@@ -42,18 +57,21 @@ def get_candidates_growth_marshal(program_name, username, password):
         return None
     r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_program_sources.cgi', auth=(username, password), data={'programidx':str(programidx)})
     sources=json.loads(r.text)
-    '''Note: the cgi returns a list of sources with unique ZTF names '''
-    set_sources={s['name'] for s in sources}
-    pdb.set_trace()
+    ''' Add autoannotations '''
+    for s, i in zip(sources, np.arange(len(sources))):
+        autoannotations=get_source_autoannotations(s["id"], username, password)
+        sources[i]['autoannotations'] = autoannotations
+
     return sources
 
-  
+
 def update_local_db_growthmarshal(sources, program_name):
     ''' Takes the candidates fetched from the GROWTH marshal and 
     updates the local database using SQLAlchemy. '''
     for s in sources:
         creationdate_list_int=[int(d) for d in s['creationdate'].split('-')]
         lastmodified_list_int=[int(d) for d in s['lastmodified'].split('-')]
+        autoannotations_string=
         models.db.session.merge( 
             models.Candidates(
                 name = s['name'],
@@ -68,11 +86,12 @@ def update_local_db_growthmarshal(sources, program_name):
                 ra = float(s['ra']),
                 dec = float(s['dec']),
                 lastmodified = datetime.datetime(lastmodified_list_int[0],\
-                lastmodified_list_int[1],lastmodified_list_int[2])
+                lastmodified_list_int[1],lastmodified_list_int[2],\
+                autoannotations = s['autoannotations'])
                 ) 
         )
-
     models.db.session.commit()
+
     return
 
 
@@ -84,4 +103,5 @@ def fetch_candidates_growthmarshal():
     for program_name in program_names:
         sources=get_candidates_growth_marshal(program_name, username, password)
         update_local_db_growthmarshal(sources, program_name)
+
     return
