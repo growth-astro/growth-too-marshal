@@ -728,6 +728,21 @@ class Plan(db.Model):
         return len(self.planned_observations)
 
     @property
+    def num_observations_per_filter(self):
+        """Number of planned observation per filter."""
+        filters = list(Telescope.query.get(self.telescope).filters)
+        nepochs = np.zeros(len(filters),)
+        bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
+        for planned_observation in self.planned_observations:
+            filt = bands[planned_observation.filter_id]
+            idx = filters.index(filt)
+            nepochs[idx] = nepochs[idx] + 1
+        nobs_per_filter = []
+        for ii, filt in enumerate(filters):
+            nobs_per_filter.append("%s: %d" % (filt, nepochs[ii]))
+        return " ".join(nobs_per_filter)
+
+    @property
     def total_time(self):
         """Total observation time (seconds)."""
         return sum(_.exposure_time for _ in self.planned_observations)
