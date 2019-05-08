@@ -1,6 +1,8 @@
 <div class="d-flex justify-content-between">
     <h5 class="{% for tag in event.tags %}tag-{{tag}} {% endfor %}">
-        {{event.dateobs.strftime('%y%m%d')}}
+        {% if event.graceid %} {{event.graceid}} 
+        {% else %} {{event.dateobs.strftime('%y%m%d')}}
+        {% endif %}
         <small>
             {{event.dateobs.strftime('%H:%M:%S')}}
             ({{ (now() - event.dateobs)|humanize() }})
