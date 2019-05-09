@@ -80,6 +80,15 @@
                 </div>
             </div>
             <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for="name">Min. Difference [minutes]</label>
+                    <div class="d-flex mt-2">
+                        {{ render_field(form.mindiff, min=0, max=180, step=5, class='custom-range') }}
+                        <output for=mindiff class=ml-2>{{form.mindiff.data}}</output>
+                    </div>
+                </div>
+            </div>
+            <div class=form-row>
                 <div class="form-group col-sm-9">
                     <label class=d-block>Algorithm</label>
                     <div class="btn-group btn-group-toggle" data-toggle=buttons>
@@ -138,6 +147,9 @@ $('#probability').on('input', function() {
 });
 $('#airmass_limit').on('input', function() {
     $("output[for='airmass_limit']").text(parseFloat($(this).val()).toFixed(2));
+});
+$('#mindiff').on('input', function() {
+    $("output[for='mindiff']").text(parseFloat($(this).val()));
 });
 $('#telescope').on('input', function() {
     var telescope = $(this).val();
