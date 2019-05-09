@@ -449,6 +449,10 @@ class PlanForm(ModelForm):
         [validators.NumberRange(min=1.0, max=5.0)],
         default=2.5)
 
+    mindiff = DecimalSliderField(
+        [validators.NumberRange(min=0, max=180)],
+        default=30)
+
     plan_name = TextField(
         validators=[validators.DataRequired()],
         default='REPLACE ME')
@@ -497,6 +501,7 @@ class PlanForm(ModelForm):
             exposuretimes=[self.exposure_time.data] * len(filters),
             probability=0.01 * float(self.probability.data),
             airmass=float(self.airmass_limit.data),
+            mindiff=float(self.mindiff.data),
             schedule_type=self.schedule.data,
             doDither=self.dither.data,
             doReferences=self.references.data,

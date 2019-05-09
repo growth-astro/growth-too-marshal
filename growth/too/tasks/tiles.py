@@ -396,7 +396,8 @@ def tile(localization_name, dateobs, telescope,
                            schedule_type=plan_args['schedule_type'],
                            doReferences=plan_args['doReferences'],
                            filterScheduleType=plan_args['filterScheduleType'],
-                           schedule_strategy=plan_args['schedule_strategy'])
+                           schedule_strategy=plan_args['schedule_strategy'],
+                           mindiff=plan_args['mindiff'])
 
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))
