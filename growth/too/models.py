@@ -64,6 +64,7 @@ def create_all():
             'filterScheduleType': 'block',
             'airmass': 2.5,
             'schedule_strategy': 'tiling'
+	    'mindiff': 30.*60.
         },
         'DECam': {
             'filt': ['g', 'z'],
@@ -74,6 +75,7 @@ def create_all():
             'filterScheduleType': 'integrated',
             'airmass': 2.5,
             'schedule_strategy': 'tiling'
+	    'mindiff': 30.*60.
         },
         'Gattini': {
             'filt': ['J'],
@@ -84,6 +86,7 @@ def create_all():
             'filterScheduleType': 'block',
             'airmass': 2.5,
             'schedule_strategy': 'tiling'
+	    'mindiff': 30.*60.
         },
         'KPED': {
             'filt': ['r'],
@@ -94,6 +97,7 @@ def create_all():
             'filterScheduleType': 'integrated',
             'airmass': 2.5,
             'schedule_strategy': 'catalog'
+	    'mindiff': 30.*60.
         },
         'GROWTH-India': {
             'filt': ['r'],
@@ -104,6 +108,7 @@ def create_all():
             'filterScheduleType': 'integrated',
             'airmass': 2.5,
             'schedule_strategy': 'catalog'
+	    'mindiff': 30.*60.
         }
     }
 
