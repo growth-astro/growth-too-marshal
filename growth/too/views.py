@@ -162,8 +162,11 @@ def logout():
 @app.route('/')
 @login_required
 def index():
+    tags = sorted(
+        tag for tag, in models.db.session.query(models.Tag.text).distinct())
     return render_template(
         'index.html',
+        tags=tags,
         events=models.Event.query.order_by(
             models.db.desc(models.Event.dateobs)))
 

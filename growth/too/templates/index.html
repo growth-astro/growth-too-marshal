@@ -2,13 +2,26 @@
 
 {% block head %}
     <title>ToO Marshal</title>
+    <style>
+        #toggle-tags .custom-control {
+            display: inline-block;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
     <h2>Events</h2>
+    <form id=toggle-tags>
+        {% for tag in tags %}
+        <div class="custom-control custom-switch">
+            <input type=checkbox class=custom-control-input id=tag-{{tag}} checked>
+            <label class=custom-control-label for=tag-{{tag}}>{{tag}}</label>
+        </div>
+        {% endfor %}
+    </form>
     <div class=list-group>
         {% for event in events %}
-        <a href="{{url_for('event', dateobs=event.dateobs)}}" class="list-group-item">
+        <a href="{{url_for('event', dateobs=event.dateobs)}}" class="event-header list-group-item">
             {% include 'event_header.html' %}
         </a>
         {% endfor %}
@@ -16,4 +29,20 @@
     <h2>Queue</h2>
     <a href="{{url_for('queue')}}">Queue Information</a>
     <a href="{{url_for('plan_manual')}}">Manual Observation</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#toggle-tags input').on('input', function () {
+        $('.event-header').show();
+        $('#toggle-tags input').each(function() {
+            if (!$(this).prop('checked'))
+            {
+                $('.event-header:has(h5.' + $(this).attr('id') + ')').hide();
+            }
+        });
+    });
+    $('#toggle-tags #tag-retracted').click();
+    $('#toggle-tags #tag-MDC').click();
+</script>
 {% endblock %}
