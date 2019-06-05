@@ -36,6 +36,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
                   airmass=2.5,
                   schedule_type='greedy',
                   doReferences=True,
+                  doUsePrimary=False,
                   filterScheduleType='block',
                   schedule_strategy='tiling'):
 
@@ -140,6 +141,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["doFootprint"] = False
     params["doDatabase"] = True
     params["doReferences"] = doReferences
+    params["doUsePrimary"] = doUsePrimary
     params["doSplit"] = False
     params["doParallel"] = False
     params["doUseCatalog"] = False
@@ -205,7 +207,7 @@ def gen_structs(params):
                                            map_struct=params['map_struct'])
 
     if params["tilesType"] == "galaxy":
-        print("Generating catalog...")
+        log.info("Generating catalog...")
         map_struct, catalog_struct =\
             gwemopt.catalog.get_catalog(params, map_struct)
 
@@ -395,6 +397,7 @@ def tile(localization_name, dateobs, telescope,
                            tele=telescope,
                            schedule_type=plan_args['schedule_type'],
                            doReferences=plan_args['doReferences'],
+                           doUsePrimary=plan_args['doUsePrimary'],
                            filterScheduleType=plan_args['filterScheduleType'],
                            schedule_strategy=plan_args['schedule_strategy'],
                            mindiff=plan_args['mindiff'])

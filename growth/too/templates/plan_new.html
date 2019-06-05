@@ -61,6 +61,10 @@
                         {{ render_field(form.references, class='custom-control-input') }}
                         <label for=references class=custom-control-label>Require references</label>
                     </div>
+                    <div class="custom-control custom-switch">
+                        {{ render_field(form.primary, class='custom-control-input') }}
+                        <label for=primary class=custom-control-label>Use primary only</label>
+                    </div>
                 </div>
             </div>
             <div class=form-row>
