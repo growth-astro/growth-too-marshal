@@ -49,7 +49,7 @@ app.config.from_pyfile('application.cfg', silent=True)
 dropin_dir = os.path.join(app.instance_path, 'application.cfg.d')
 try:
     dropin_files = os.listdir(dropin_dir)
-except FileNotFoundError:
+except (FileNotFoundError, NotADirectoryError):
     pass
 else:
     for dropin_file in dropin_files:
