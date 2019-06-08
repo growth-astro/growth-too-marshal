@@ -125,6 +125,19 @@
                 </div>
             </div>
             <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for="previous_plan" class=form-label>Previous Plan</label>
+                    {{ render_field(form.previous_plan, class='custom-select') }}
+                </div>
+                <div class="form-group col-sm-4">
+                    <label>Options</label>
+                    <div class="custom-control custom-switch">
+                        {{ render_field(form.previous, class='custom-control-input') }}
+                        <label for=previous class=custom-control-label>Use Previous</label>
+                    </div>
+                </div>
+            </div>
+            <div class=form-row>
                 <div class="form-group col-sm-12">
                     <label for=plan_name>Plan name</label>
                     {{ render_field(form.plan_name, placeholder='Plan name') }}

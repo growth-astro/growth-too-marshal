@@ -460,6 +460,13 @@ class PlanForm(ModelForm):
         validators=[validators.DataRequired()],
         default='REPLACE ME')
 
+    previous = BooleanField(default=False)
+
+    previous_plan = SelectField()
+
+    def _previous_plan_query(self):
+        return models.Plan.query.filter_by(dateobs=self.dateobs.data)
+
     def validate_validity_window_end(self, field):
         other = self.validity_window_start
         if field.validate(self) and other.validate(self):
@@ -509,7 +516,9 @@ class PlanForm(ModelForm):
             doDither=self.dither.data,
             doReferences=self.references.data,
             filterScheduleType=self.filterschedule.data,
-            schedule_strategy=self.schedule_strategy.data
+            schedule_strategy=self.schedule_strategy.data,
+            usePrevious=self.previous.data,
+            previous_plan=self.previous_plan.data
         )
 
 
@@ -523,6 +532,9 @@ def plan_new(dateobs):
     form.localization.choices = [
         (row.localization_name,) * 2 for row in
         models.Localization.query.filter_by(dateobs=dateobs)]
+    form.previous_plan.choices = [
+        ("%s-%s" % (row.telescope, row.plan_name),) * 2 for row in
+        models.Plan.query.filter_by(dateobs=dateobs)]
 
     if request.method == 'POST':
         if form.validate():

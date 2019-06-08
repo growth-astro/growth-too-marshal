@@ -402,6 +402,18 @@ def tile(localization_name, dateobs, telescope,
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))
 
+    if plan_args['usePrevious']:
+        previous_telescope, previous_name =\
+            plan_args['previous_plan'].split("-")
+        plan_previous = models.Plan.query.filter_by(
+            dateobs=dateobs, telescope=previous_telescope,
+            plan_name=previous_name).one()
+        ipix_previous = list({i for planned_observation
+                              in plan_previous.planned_observations
+                              if planned_observation.field.ipix is not None
+                              for i in planned_observation.field.ipix})
+        params['map_struct']['prob'][ipix_previous] = 0.0
+
     params['is3D'] = localization.is_3d
     params['localization_name'] = localization_name
     map_struct, tile_structs, coverage_struct = gen_structs(params)
