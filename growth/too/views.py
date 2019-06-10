@@ -432,6 +432,8 @@ class PlanForm(ModelForm):
 
     references = BooleanField(default=False)
 
+    primary = BooleanField(default=False)
+
     filterschedule = RadioField(
         choices=[('block', 'block'), ('integrated', 'integrated')],
         default='block')
@@ -515,6 +517,7 @@ class PlanForm(ModelForm):
             schedule_type=self.schedule.data,
             doDither=self.dither.data,
             doReferences=self.references.data,
+            doUsePrimary=self.primary.data,
             filterScheduleType=self.filterschedule.data,
             schedule_strategy=self.schedule_strategy.data,
             usePrevious=self.previous.data,

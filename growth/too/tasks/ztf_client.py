@@ -29,7 +29,7 @@ def ztf_obs(start_time=None, end_time=None):
     obstable = client.search("""
     SELECT field,rcid,fid,expid,obsjd,exptime,seeing,airmass,maglimit
     FROM ztf.ztf_current_meta_sci WHERE (obsjd BETWEEN {0} AND {1})
-    AND (field < 880)
+    AND (field < 2000)
     """.format(start_time.jd, end_time.jd)).to_table()
 
     obstable = obstable.filled()
@@ -72,7 +72,7 @@ def ztf_references():
     refstable = client.search("""
     SELECT field, fid, maglimit FROM ztf.ztf_current_meta_ref
     WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
-    AND (field < 880)
+    AND (field < 2000)
     """).to_table()
 
     refs = refstable.group_by(['field', 'fid']).groups.aggregate(np.mean)
