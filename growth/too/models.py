@@ -47,7 +47,8 @@ def get_ztf_quadrants():
 def create_all():
     db.create_all(bind=None)
 
-    telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
+    #telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
+    telescopes = ["ZTF"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
@@ -413,6 +414,8 @@ class Telescope(db.Model):
     fields = db.relationship(lambda: Field)
 
     plans = db.relationship(lambda: Plan)
+
+    observations = db.relationship(lambda: Observations)
 
     default_plan_args = db.Column(
         db.JSON,
@@ -935,6 +938,129 @@ class Observation(db.Model):
          db.Boolean,
          nullable=False,
          comment='processed successfully?')
+
+
+class Observations(db.Model):
+    """Observation information, including the field ID, exposure time, and
+    filter."""
+
+    telescope = db.Column(
+        db.String,
+        db.ForeignKey(Telescope.telescope),
+        primary_key=True,
+        comment='Telescope')
+
+    dateobs = db.Column(
+        db.DateTime,
+        db.ForeignKey(Event.dateobs),
+        primary_key=True,
+        comment='UTC event timestamp')
+
+    def ipix(self, filt):
+        observations = self.get_observations(filt)
+        return {
+            i for observation in observations
+            if observation.field.ipix is not None
+            for i in observation.field.ipix}
+
+    def area(self, filt):
+        nside = Localization.nside
+        observations = self.get_observations(filt)
+        return hp.nside2pixarea(nside, degrees=True) * len(self.ipix(filt))
+
+    def nexp(self, filt):
+        observations = self.get_observations(filt)
+        observation_ids = []
+        for ii, observation in enumerate(observations):
+            if not observation.observation_id in observation_ids:
+                observation_ids.append(observation.observation_id)
+        return len(observation_ids)
+
+    def starttime(self, filt):
+        observations = self.get_observations(filt)
+        if len(observations) == 0:
+            return -1
+        cnt = 0
+        for ii, observation in enumerate(observations):
+            if cnt == 0:
+                tt = observation.obstime
+            else:
+                tt = min(observation.obstime,tt) 
+            cnt = cnt + 1
+        return tt
+
+    def totaltime(self, filt):
+        observations = self.get_observations(filt)
+        tot = 0
+        observation_ids = []
+        for ii, observation in enumerate(observations):
+            if not observation.observation_id in observation_ids:
+                tot = tot + observation.exposure_time/60.0
+                observation_ids.append(observation.observation_id)
+        return tot
+
+    def limmag(self, filt):
+        observations = self.get_observations(filt)
+        limmags = []
+        for ii, observation in enumerate(observations):
+            if observation.limmag is not None:
+                limmags.append(observation.limmag)
+        return np.median(limmags)
+
+    def get_probability(self, filt):
+        localization = Localization.query.filter_by(dateobs=self.dateobs).one()
+
+        ipix = np.asarray(list(self.ipix(filt)))
+        if len(ipix) > 0:
+            return localization.flat_2d[ipix].sum()
+        else:
+            return 0.0
+
+    def get_observations(self, filt):
+
+        localization = Localization.query.filter_by(dateobs=self.dateobs).one()
+        prob = localization.flat_2d
+
+        fields = Field.query.filter_by(telescope=self.telescope).all()
+        field_prob, field_ids = [], []
+        for field in fields:
+            field_ids.append(field.field_id)
+            field_prob.append(np.sum(prob[field.ipix]))
+        field_ids = np.array(field_ids)
+        field_prob = np.array(field_prob)
+
+        field_ids = field_ids[np.argsort(field_prob)[::-1]]
+        field_prob = np.sort(field_prob)[::-1]
+
+        cumsum = np.cumsum(field_prob)
+        idx2 = np.argmin(np.abs(cumsum-0.99))
+        field_ids = field_ids[:idx2]
+        field_prob = field_prob[:idx2]
+
+        telescope = Telescope.query.filter_by(telescope=self.telescope).one()
+        filts = list(telescope.filters)
+        filts.append('a')
+
+        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6, 'a': 7}
+        filter_id = bands[filt]
+        if filt == "a":
+            observations = Observation.query.filter(
+                (Observation.telescope==telescope.telescope) &
+                (Observation.obstime >= self.dateobs+datetime.timedelta(0)) &
+                (Observation.obstime <= self.dateobs+datetime.timedelta(3))).all()
+        else:
+            observations = Observation.query.filter(
+                (Observation.telescope==telescope.telescope) &
+                (Observation.obstime >= self.dateobs+datetime.timedelta(0)) &
+                (Observation.obstime <= self.dateobs+datetime.timedelta(3)) &
+                (Observation.filter_id == filter_id)).all()
+
+        observations_list = []
+        for ii, observation in enumerate(observations):
+            if not observation.field_id in field_ids: continue
+            observations_list.append(observation)
+
+        return observations_list
 
 
 class LocalizationObservability(db.Model):
