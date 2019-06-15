@@ -1231,3 +1231,26 @@ def about():
         'about.html',
         packages=pkg_resources.working_set,
         versions=get_versions())
+
+@app.route('/event/<datetime:dateobs>/observations')
+@login_required
+def observations(dateobs):
+
+    #start_time = time.Time('2019-04-25T08:18:05.017147', format='isot', scale='utc')
+    #end_time = time.Time('2019-04-25T09:18:05.017147', format='isot', scale='utc')
+
+    observations_list = []
+    for telescope in models.Telescope.query.all():
+        observations = models.Observations.query.filter_by(telescope=telescope.telescope, dateobs=dateobs).all()
+        if len(observations) == 0:
+            observations = models.Observations(dateobs=dateobs,
+                                               telescope=telescope.telescope)
+            models.db.session.merge(observations)
+            models.db.session.commit()
+            observations_list.append([telescope, observations])
+        else:
+            observations_list.append([telescope, observations[0]])
+            
+    return render_template('observations.html',
+                           event=models.Event.query.get_or_404(dateobs),
+                           observations_list=observations_list)

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>ToO Marshal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/css/dataTables.bootstrap4.min.css" integrity="sha256-F+DaKAClQut87heMIC6oThARMuWne8+WzxIDT7jXuPA=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" integrity="sha256-mfb+mieZDwLASMlQTUNXrZQr8OXvQyEDfV3Xz3E7DSU=" crossorigin="anonymous">
+{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            {% include 'event_header.html' %}
+            {% include 'nav_bar.html' %}
+        </div>
+        <table id=observations class="table">
+            <thead>
+                <tr>
+                    <th rowspan=2>Telescope</th>
+                    <th rowspan=2>Filter</th>
+                    <th rowspan=2>Start</th>
+                    <th rowspan=2>Number of exposures</th>
+                    <th rowspan=2>Time (min)</th>
+                    <th rowspan=2>Area (deg<sup>2</sup>)</th>
+                    <th rowspan=2>Probability</th>
+                    <th rowspan=2>Limiting Magnitude [best]</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for telescope, observations in observations_list %}
+                    {% for filt in telescope.filters %} 
+                    <tr>
+                        <td>{{telescope.telescope}}</td>
+                        <td>{{filt}}</td>
+                        <td>{{ observations.starttime(filt)  }}</td>
+                        <td>{{ observations.nexp(filt) }}</td>
+                        <td>{{ observations.totaltime(filt) }}</td>
+                        <td>{{ "%.1f"|format(observations.area(filt)) }}</td>
+                        <td>{{ "%.1f"|format(100*observations.get_probability(filt)) }}</td>
+                        <td>{{ "%.1f"|format(observations.limmag(filt)) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td>{{telescope.telescope}}</td>
+                        <td>All</td>
+                        <td>{{ observations.starttime("a")  }}</td>
+                        <td>{{ observations.nexp("a") }}</td>
+                        <td>{{ observations.totaltime("a") }}</td>
+                        <td>{{ "%.1f"|format(observations.area("a")) }}</td>
+                        <td>{{ "%.1f"|format(100*observations.get_probability("a")) }}</td>
+                        <td>{{ "%.1f"|format(observations.limmag("a")) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/js/jquery.dataTables.min.js" integrity="sha256-t5ZQTZsbQi8NxszC10CseKjJ5QeMw5NINtOXQrESGSU=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js" integrity="sha256-hYXbQJK4qdJiAeDVjjQ9G0D6A0xLnDQ4eJI9dkm7Fpk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo/1.9.1/d3-geo.min.js" integrity="sha256-ujoopDSgXv5+tOiVuGRi+I6JoUNBTqAmNAeyhOtbgYw=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-drag/1.2.1/d3-drag.min.js" integrity="sha256-z4hJglIzarwrV3VkxfLntjyQ8CXStVQr/ICkosUWHrs=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/d3-geo-zoom" integrity="sha256-aB3PfIrVSVDY1ZQb/ELYPUOxejsP8rY5FSwv2KTgsbY=" crossorigin="anonymous"></script>
+{% endblock %}
