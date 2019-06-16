@@ -47,8 +47,7 @@ def get_ztf_quadrants():
 def create_all():
     db.create_all(bind=None)
 
-    #telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
-    telescopes = ["ZTF"]
+    telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
@@ -956,28 +955,36 @@ class Observations(db.Model):
         primary_key=True,
         comment='UTC event timestamp')
 
-    def ipix(self, filt):
-        observations = self.get_observations(filt)
+    localization_name = db.Column(
+        db.String,
+        primary_key=True,
+        comment='Localization name')
+
+    def ipix(self, filt, start_time, end_time):
+        observations = self.get_observations(filt,
+                                             start_time, end_time)
         return {
             i for observation in observations
             if observation.field.ipix is not None
             for i in observation.field.ipix}
 
-    def area(self, filt):
+    def area(self, filt, start_time, end_time):
         nside = Localization.nside
-        observations = self.get_observations(filt)
-        return hp.nside2pixarea(nside, degrees=True) * len(self.ipix(filt))
+        ipix = self.ipix(filt, start_time, end_time)
+        return hp.nside2pixarea(nside, degrees=True) * len(ipix)
 
-    def nexp(self, filt):
-        observations = self.get_observations(filt)
+    def nexp(self, filt, start_time, end_time):
+        observations = self.get_observations(filt,
+                                             start_time, end_time)
         observation_ids = []
         for ii, observation in enumerate(observations):
-            if not observation.observation_id in observation_ids:
+            if observation.observation_id not in observation_ids:
                 observation_ids.append(observation.observation_id)
         return len(observation_ids)
 
-    def starttime(self, filt):
-        observations = self.get_observations(filt)
+    def starttime(self, filt, start_time, end_time):
+        observations = self.get_observations(filt,
+                                             start_time, end_time)
         if len(observations) == 0:
             return -1
         cnt = 0
@@ -985,40 +992,46 @@ class Observations(db.Model):
             if cnt == 0:
                 tt = observation.obstime
             else:
-                tt = min(observation.obstime,tt) 
+                tt = min(observation.obstime, tt)
             cnt = cnt + 1
         return tt
 
-    def totaltime(self, filt):
-        observations = self.get_observations(filt)
+    def totaltime(self, filt, start_time, end_time):
+        observations = self.get_observations(filt,
+                                             start_time, end_time)
         tot = 0
         observation_ids = []
         for ii, observation in enumerate(observations):
-            if not observation.observation_id in observation_ids:
+            if observation.observation_id not in observation_ids:
                 tot = tot + observation.exposure_time/60.0
                 observation_ids.append(observation.observation_id)
         return tot
 
-    def limmag(self, filt):
-        observations = self.get_observations(filt)
+    def limmag(self, filt, start_time, end_time):
+        observations = self.get_observations(filt,
+                                             start_time, end_time)
         limmags = []
         for ii, observation in enumerate(observations):
             if observation.limmag is not None:
                 limmags.append(observation.limmag)
         return np.median(limmags)
 
-    def get_probability(self, filt):
-        localization = Localization.query.filter_by(dateobs=self.dateobs).one()
+    def get_probability(self, filt, start_time, end_time):
+        localization = Localization.query.filter_by(
+            dateobs=self.dateobs,
+            localization_name=self.localization_name).one()
 
-        ipix = np.asarray(list(self.ipix(filt)))
+        ipix = np.asarray(list(self.ipix(filt, start_time, end_time)))
         if len(ipix) > 0:
             return localization.flat_2d[ipix].sum()
         else:
             return 0.0
 
-    def get_observations(self, filt):
+    def get_observations(self, filt, start_time, end_time):
 
-        localization = Localization.query.filter_by(dateobs=self.dateobs).one()
+        localization = Localization.query.filter_by(
+            dateobs=self.dateobs,
+            localization_name=self.localization_name).one()
         prob = localization.flat_2d
 
         fields = Field.query.filter_by(telescope=self.telescope).all()
@@ -1045,19 +1058,24 @@ class Observations(db.Model):
         filter_id = bands[filt]
         if filt == "a":
             observations = Observation.query.filter(
-                (Observation.telescope==telescope.telescope) &
-                (Observation.obstime >= self.dateobs+datetime.timedelta(0)) &
-                (Observation.obstime <= self.dateobs+datetime.timedelta(3))).all()
+                (Observation.telescope == telescope.telescope) &
+                (Observation.obstime >=
+                 self.dateobs+datetime.timedelta(start_time)) &
+                (Observation.obstime <=
+                 self.dateobs+datetime.timedelta(end_time))).all()
         else:
             observations = Observation.query.filter(
-                (Observation.telescope==telescope.telescope) &
-                (Observation.obstime >= self.dateobs+datetime.timedelta(0)) &
-                (Observation.obstime <= self.dateobs+datetime.timedelta(3)) &
+                (Observation.telescope == telescope.telescope) &
+                (Observation.obstime >=
+                 self.dateobs+datetime.timedelta(start_time)) &
+                (Observation.obstime <=
+                 self.dateobs+datetime.timedelta(end_time)) &
                 (Observation.filter_id == filter_id)).all()
 
         observations_list = []
         for ii, observation in enumerate(observations):
-            if not observation.field_id in field_ids: continue
+            if observation.field_id not in field_ids:
+                continue
             observations_list.append(observation)
 
         return observations_list

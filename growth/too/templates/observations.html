@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
 
 {% block head %}
     <title>ToO Marshal</title>
@@ -12,46 +13,69 @@
             {% include 'event_header.html' %}
             {% include 'nav_bar.html' %}
         </div>
+        <form class=card-body method=post>
+            {{form.hidden_tag()}}
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for=telescope class=form-label>Telescope</label>
+                    {{ render_field(form.telescope, class='custom-select') }}
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for="localization" class=form-label>Localization</label>
+                    {{ render_field(form.localization, class='custom-select') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-4">
+                    <label for=start_time>Start time [days]</label>
+                    {{ render_field(form.start_time) }}
+                </div>
+                <div class="form-group col-sm-4">
+                    <label for=end_time>End time [days]</label>
+                    {{ render_field(form.end_time) }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-3">
+                    <button type=submit id=create class="btn btn-primary" name="btnform">Generate Table</button>
+                </div>
+            </div>
         <table id=observations class="table">
             <thead>
                 <tr>
-                    <th rowspan=2>Telescope</th>
                     <th rowspan=2>Filter</th>
                     <th rowspan=2>Start</th>
                     <th rowspan=2>Number of exposures</th>
                     <th rowspan=2>Time (min)</th>
                     <th rowspan=2>Area (deg<sup>2</sup>)</th>
                     <th rowspan=2>Probability</th>
-                    <th rowspan=2>Limiting Magnitude [best]</th>
+                    <th rowspan=2>Limiting Magnitude [median]</th>
                 </tr>
-            </thead>
-            <tbody>
-                {% for telescope, observations in observations_list %}
+              </thead>
+              <tbody>
                     {% for filt in telescope.filters %} 
                     <tr>
-                        <td>{{telescope.telescope}}</td>
                         <td>{{filt}}</td>
-                        <td>{{ observations.starttime(filt)  }}</td>
-                        <td>{{ observations.nexp(filt) }}</td>
-                        <td>{{ observations.totaltime(filt) }}</td>
-                        <td>{{ "%.1f"|format(observations.area(filt)) }}</td>
-                        <td>{{ "%.1f"|format(100*observations.get_probability(filt)) }}</td>
-                        <td>{{ "%.1f"|format(observations.limmag(filt)) }}</td>
+                        <td>{{ observations.starttime(filt,start_time,end_time)  }}</td>
+                        <td>{{ observations.nexp(filt,start_time,end_time) }}</td>
+                        <td>{{ observations.totaltime(filt,start_time,end_time) }}</td>
+                        <td>{{ "%.1f"|format(observations.area(filt,start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(100*observations.get_probability(filt,start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(observations.limmag(filt,start_time,end_time)) }}</td>
                     </tr>
                     {% endfor %}
                     <tr>
-                        <td>{{telescope.telescope}}</td>
                         <td>All</td>
-                        <td>{{ observations.starttime("a")  }}</td>
-                        <td>{{ observations.nexp("a") }}</td>
-                        <td>{{ observations.totaltime("a") }}</td>
-                        <td>{{ "%.1f"|format(observations.area("a")) }}</td>
-                        <td>{{ "%.1f"|format(100*observations.get_probability("a")) }}</td>
-                        <td>{{ "%.1f"|format(observations.limmag("a")) }}</td>
+                        <td>{{ observations.starttime("a",start_time,end_time)  }}</td>
+                        <td>{{ observations.nexp("a",start_time,end_time) }}</td>
+                        <td>{{ observations.totaltime("a",start_time,end_time) }}</td>
+                        <td>{{ "%.1f"|format(observations.area("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(100*observations.get_probability("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(observations.limmag("a",start_time,end_time)) }}</td>
                     </tr>
-                {% endfor %}
             </tbody>
         </table>
+        </form>
     </div>
 {% endblock %}
 
