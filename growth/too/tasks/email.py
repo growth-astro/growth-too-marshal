@@ -87,7 +87,7 @@ def compose_too(telescope, queue_name):
     message = Message(
         subject='Re: {0}-{1}'.format(telescope, queue_name),
         recipients=[app.config['EMAIL_TOO']],
-        cc=app.config.get('REPLY_TO') or app.config['MAIL_DEFAULT_SENDER'],
+        cc=[app.config.get('REPLY_TO') or app.config['MAIL_DEFAULT_SENDER']],
         body=body,
         sender=app.config['EMAIL_TOO']
     )
