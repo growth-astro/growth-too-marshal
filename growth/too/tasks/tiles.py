@@ -329,7 +329,6 @@ def get_planned_observations(
                                               ref_filter_mags))
                         }
                     }
-                    
 
                     field = models.Field(telescope=telescope,
                                          field_id=int(field_id),
