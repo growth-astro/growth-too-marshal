@@ -142,6 +142,8 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
 
     params["doCommitDatabase"] = True
     params["doRequestScheduler"] = False
+    params["doOverlappingScheduling"] = False
+    params["doIterativeTiling"] = False
     params["dateobs"] = dateobs
     params["doEvent"] = False
     params["doSkymap"] = False
@@ -264,7 +266,16 @@ def get_planned_observations(
         field_ids, ras, decs, probs, nexposures = [], [], [], [], []
         segmentlist = segments.segmentlist()
         totprob = 0.0
-        for field_id in tile_structs[telescope].keys():
+
+        if params["tilesType"] == "galaxy":
+            fields = models.Field.query.filter_by(telescope=telescope).all()
+            field_id_max = -1
+            for field in fields:
+                if field.field_id > field_id_max:
+                    field_id_max = field.field_id
+            field_id_max = field_id_max + 1
+
+        for ii, field_id in enumerate(tile_structs[telescope].keys()):
             tile_struct = tile_structs[telescope][field_id]
             ra, dec = tile_struct["ra"], tile_struct["dec"]
 
@@ -301,6 +312,8 @@ def get_planned_observations(
                         corners[2] = corners_copy[3]
                         corners[3] = corners_copy[2]
 
+                    field_id = field_id_max + field_id
+
                     contour = {
                         'type': 'Feature',
                         'geometry': {
@@ -316,6 +329,8 @@ def get_planned_observations(
                                               ref_filter_mags))
                         }
                     }
+                    
+
                     field = models.Field(telescope=telescope,
                                          field_id=int(field_id),
                                          ra=ra, dec=dec,
@@ -339,6 +354,9 @@ def get_planned_observations(
                 overhead_per_exposure = 0.0
 
             exposure_time, field_id, prob = data[4], data[5], data[6]
+
+            if params["tilesType"] == "galaxy":
+                field_id = field_id_max + field_id
 
             yield models.PlannedObservation(
                 obstime=tt.datetime,
