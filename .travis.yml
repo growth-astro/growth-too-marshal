@@ -23,6 +23,8 @@ jobs:
         # FIXME: Fixes a Unicode warning that clutters up unit test logs.
         # See https://github.com/pallets/flask-sqlalchemy/issues/671
         - pip install git+https://github.com/pallets/flask-sqlalchemy@2.x
+        - pip install -r requirements.txt
+        - python -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation.get_site_names(); download_IERS_A()'
       script:
         - python setup.py test --addopts='-vv --durations=0 --cov'
       after_success:
