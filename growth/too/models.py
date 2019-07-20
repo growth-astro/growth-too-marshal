@@ -1043,20 +1043,36 @@ class Observations(db.Model):
         prob = localization.flat_2d
 
         fields = Field.query.filter_by(telescope=self.telescope).all()
-        field_prob, field_ids = [], []
+        field_prob_1, field_ids_1 = [], []
+        field_prob_2, field_ids_2 = [], []
         for field in fields:
-            field_ids.append(field.field_id)
-            field_prob.append(np.sum(prob[field.ipix]))
-        field_ids = np.array(field_ids)
-        field_prob = np.array(field_prob)
+            if field.field_id < 800:
+                field_ids_1.append(field.field_id)
+                field_prob_1.append(np.sum(prob[field.ipix]))
+            else:
+                field_ids_2.append(field.field_id)
+                field_prob_2.append(np.sum(prob[field.ipix]))
+        field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
+        field_prob_1 = np.array(field_prob_1)
+        field_prob_2 = np.array(field_prob_2)
 
-        field_ids = field_ids[np.argsort(field_prob)[::-1]]
-        field_prob = np.sort(field_prob)[::-1]
+        field_ids_1 = field_ids_1[np.argsort(field_prob_1)[::-1]]
+        field_prob_1 = np.sort(field_prob_1)[::-1]
 
-        cumsum = np.cumsum(field_prob)
+        field_ids_2 = field_ids_2[np.argsort(field_prob_2)[::-1]]
+        field_prob_2 = np.sort(field_prob_2)[::-1]
+
+        cumsum = np.cumsum(field_prob_1)
         idx2 = np.argmin(np.abs(cumsum-0.99))
-        field_ids = field_ids[:idx2]
-        field_prob = field_prob[:idx2]
+        field_ids_1 = field_ids_1[:idx2]
+        field_prob_1 = field_prob_1[:idx2]
+
+        cumsum = np.cumsum(field_prob_2)
+        idx2 = np.argmin(np.abs(cumsum-0.99))
+        field_ids_2 = field_ids_2[:idx2]
+        field_prob_2 = field_prob_2[:idx2]
+
+        field_ids = np.hstack((field_ids_1,field_ids_2))
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
         filts = list(telescope.filters)
