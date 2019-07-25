@@ -1253,7 +1253,11 @@ class ObservationForm(ModelForm):
 @login_required
 def observations(dateobs):
 
-    start_time, end_time = 0.0, 3.0
+    # start_time, end_time = 0.0, 3.0
+    start_time = time.Time('2019-04-25T08:18:00', format='isot')
+    end_time = time.Time('2019-04-27T08:18:00', format='isot')
+    ztf_client.ztf_obs(start_time = start_time, end_time = end_time)
+
     localization_name = models.Localization.query.filter_by(
         dateobs=dateobs).all()[-1].localization_name
 
