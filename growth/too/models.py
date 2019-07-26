@@ -49,7 +49,7 @@ def create_all():
     db.create_all(bind=None)
 
     # telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
-    telescopes = ["ZTF"]
+    telescopes = ["ZTF", "DECam"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
@@ -1175,8 +1175,6 @@ class PlanObservability(db.Model):
     airmass = db.deferred(db.Column(
         db.LargeBinary,
         comment='Airmass chart'))
-<<<<<<< Updated upstream
-=======
 
 class Candidates(db.Model):
 
@@ -1235,4 +1233,3 @@ class Candidates(db.Model):
         db.String,
         nummable=True,
         comment='Autoannotations from the GROWTH marshal')
->>>>>>> Stashed changes
