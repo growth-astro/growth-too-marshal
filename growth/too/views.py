@@ -1254,10 +1254,11 @@ class ObservationForm(ModelForm):
 def observations(dateobs):
 
     # start_time, end_time = 0.0, 3.0
+    telescope = 'DECam'
     start_time = time.Time('2019-04-26T15:46:58', format='isot')
     end_time = time.Time('2019-04-29T15:46:58', format='isot')
-    if telescope == 'ZTF': ztf_client.ztf_obs(start_time = start_time, end_time = end_time)
-    elif telescope == 'DECam': decam_client.decam_obs(start_time = start_time, end_time = end_time)
+    if telescope == 'ZTF': tasks.ztf_client.ztf_obs(start_time = start_time, end_time = end_time)
+    elif telescope == 'DECam': tasks.decam_client.decam_obs(start_time = start_time, end_time = end_time)
 
     localization_name = models.Localization.query.filter_by(
         dateobs=dateobs).all()[-1].localization_name
