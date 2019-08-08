@@ -49,6 +49,9 @@ ENV LANG C.UTF-8
 # http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#running-the-worker-with-superuser-privileges-root
 ENV C_FORCE_ROOT 1
 
+# Debian's pip is too old to install manylinux2010 wheels.
+RUN pip3 install --upgrade pip
+
 # Install requirements. Do this before installing our own package, because
 # presumably the requirements change less frequently than our own code.
 COPY requirements.txt /
