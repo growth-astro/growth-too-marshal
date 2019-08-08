@@ -45,11 +45,12 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     config_directory = os.path.join(growthpath, 'too', 'config')
     tiling_directory = os.path.join(growthpath, 'too', 'tiling')
 
-    catalog = os.path.join(app.instance_path, 'CLU.hdf5')
-    if os.path.isfile(catalog):
+    catalogpath = os.path.join('too', 'catalog')
+    try:         
+        catalogfile = app.open_instance_resource('%s/CLU.hdf5' % catalogpath)
         catalog_directory = app.instance_path
-    else:
-        catalog_directory = os.path.join(growthpath, 'too', 'catalog')
+    except IOError:
+        catalog_directory = os.path.join(growthpath, catalogpath)
 
     params = {}
     params["config"] = {}

@@ -145,11 +145,11 @@ def create_all():
             reference_images = {}
             reference_mags = {}
 
+        tesspath = 'input/%s.tess' % tele
         try:
-            tessfile = app.open_instance_resource('%s.tess' % tele)
-        except BaseException:
-            tessfile = pkg_resources.resource_stream(__name__,
-                                                     'input/%s.tess' % tele)
+            tessfile = app.open_instance_resource(tesspath)
+        except IOError:
+            tessfile = pkg_resources.resource_stream(__name__, tesspath)
         configfile = pkg_resources.resource_stream(__name__,
                                                    'config/%s.config' % tele)
         with tessfile as f, configfile as g:
