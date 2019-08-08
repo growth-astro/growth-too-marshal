@@ -1014,7 +1014,7 @@ class Candidates(db.model):
         primary_key=True,
         comment='Candidate name')
 
-    rcid = db.Column(
+    subfield_id = db.Column(
         db.Integer,
         nullable=True,
         comment='Readout channel ID')
@@ -1038,7 +1038,7 @@ class Candidates(db.model):
         nummable=True,
         comment='IAU name on TNS')
 	
-    field = b.Column(
+    field_id = b.Column(
         db.Integer,
         comment='Field ID')
 
@@ -1054,7 +1054,7 @@ class Candidates(db.model):
     dec = db.Column(
         db.Float,
         nullable=False,
-        comment='RA of the candidate')
+        comment='Dec of the candidate')
 
     lastmodified = db.Column(
         db.DateTime,
