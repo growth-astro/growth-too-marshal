@@ -66,7 +66,9 @@ RUN python3 -c 'from astropy.coordinates import EarthLocation; from astroplan im
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
     ln -s /run/secrets/application.cfg.d /usr/var/growth.too.flask-instance/application.cfg.d && \
     ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
-    ln -s /run/secrets/netrc /root/netrc
+    ln -s /run/secrets/netrc /root/netrc && \
+    ln -s /run/secrets/input/GROWTH-India.tess /usr/var/growth.too.flask-instance/input/GROWTH-India.tess && \
+    ln -s /run/secrets/too/catalog/CLU.hdf5 /usr/var/growth.too.flask-instance/too/catalog/CLU.hdf5
 COPY docker/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
 # FIXME: generate the Flask secret key here. This should probably be specified
