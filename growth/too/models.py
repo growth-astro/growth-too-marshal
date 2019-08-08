@@ -5,6 +5,7 @@ Database schema.
 import datetime
 import enum
 import os
+import sys
 import copy
 import gwemopt.utils
 import gwemopt.ztf_tiling
@@ -145,10 +146,9 @@ def create_all():
             reference_images = {}
             reference_mags = {}
 
-        tessfile = os.path.join(app.instance_path, '%s.tess' % tele)
-        if os.path.isfile(tessfile):
-            tessfile = open(tessfile, 'r')
-        else:
+        try:
+            tessfile = app.open_instance_resource('%s.tess' % tele)
+        except:
             tessfile = pkg_resources.resource_stream(__name__,
                                                      'input/%s.tess' % tele)
         configfile = pkg_resources.resource_stream(__name__,
