@@ -3,7 +3,6 @@ FROM tunnel
 
 RUN apt-get update && apt-get -y install \
     git \
-    python3-astroplan \
     python3-astropy \
     python3-astroquery \
     python3-celery \
