@@ -86,22 +86,6 @@
 
         that.redraw();
 
-        /*
-
-        d3.json(fields, function(error, feature) {
-            if (error) throw error;
-
-            var sel = svg.selectAll('path.field')
-                .data(feature.features)
-                .enter()
-                .append('path')
-                .classed('field', true)
-                .attr('id', function(d) { return 'f' + d.properties.field_key });
-
-            redraw();
-        });
-        */
-
         return this;
     };
 
