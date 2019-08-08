@@ -145,8 +145,12 @@ def create_all():
             reference_images = {}
             reference_mags = {}
 
-        tessfile = pkg_resources.resource_stream(__name__,
-                                                 'input/%s.tess' % tele)
+        tessfile = os.path.join(app.instance_path, '%s.tess' % tele)
+        if os.path.isfile(tessfile):
+            tessfile = open(tessfile, 'r')
+        else:
+            tessfile = pkg_resources.resource_stream(__name__,
+                                                     'input/%s.tess' % tele)
         configfile = pkg_resources.resource_stream(__name__,
                                                    'config/%s.config' % tele)
         with tessfile as f, configfile as g:
