@@ -35,8 +35,8 @@ jobs:
       script:
         - flake8 --show-source growth
 
-    - name: Check IERS connectivity
+    - name: IERS Connectivity
       env:
-        CACHE_NAME: check-iers-connectivity
+        CACHE_NAME: iers-connectivity
       script:
         - curl http://maia.usno.navy.mil/ser7/finals2000A.all
