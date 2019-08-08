@@ -47,7 +47,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
 
     catalogpath = os.path.join('too', 'catalog')
     try:         
-        catalogfile = app.open_instance_resource('%s/CLU.hdf5' % catalogpath)
+        app.open_instance_resource('%s/CLU.hdf5' % catalogpath)
         catalog_directory = app.instance_path
     except IOError:
         catalog_directory = os.path.join(growthpath, catalogpath)
