@@ -58,7 +58,7 @@ def from_cone(ra, dec, error, dateobs):
     ipix = hpx.cone_search_skycoord(center, 4 * radius)
 
     # Convert to multi-resolution pixel indices and sort.
-    uniq = moc.nest2uniq(nside_to_level(hpx.nside), ipix.astype(np.uint64))
+    uniq = moc.nest2uniq(nside_to_level(hpx.nside), ipix)
     i = np.argsort(uniq)
     ipix = ipix[i]
     uniq = uniq[i]

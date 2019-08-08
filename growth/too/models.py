@@ -635,8 +635,7 @@ class Localization(db.Model):
     def table_2d(self):
         """Get multiresolution HEALPix dataset, probability density only."""
         return table.Table(
-            [np.asarray(self.uniq, dtype=np.uint64), self.probdensity],
-            names=['UNIQ', 'PROBDENSITY'])
+            [self.uniq, self.probdensity], names=['UNIQ', 'PROBDENSITY'])
 
     @property
     def table(self):
@@ -645,7 +644,7 @@ class Localization(db.Model):
         if self.is_3d:
             return table.Table(
                 [
-                    np.asarray(self.uniq, dtype=np.uint64),
+                    self.uniq,
                     self.probdensity, self.distmu,
                     self.distsigma, self.distnorm],
                 names=[
