@@ -301,7 +301,6 @@ def get_planned_observations(
                             'coordinates': [corners.tolist()]
                         },
                         'properties': {
-                            'field_key': "%s_%d" % (telescope, int(field_id)),
                             'telescope': telescope,
                             'field_id': int(field_id),
                             'ra': ra,
