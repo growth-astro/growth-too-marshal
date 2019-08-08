@@ -57,7 +57,8 @@ RUN pip3 install --upgrade pip
 COPY requirements.txt /
 RUN pip3 install --no-cache-dir -r \
     /requirements.txt \
-    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286
+    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286 \
+    git+https://github.com/astropy/astropy@8ffa573a86d1783f110cdf9f3101a06a698e67bc  # https://github.com/astropy/astropy/pull/8993
 RUN rm /requirements.txt
 
 # Prime some cached Astropy data sources.

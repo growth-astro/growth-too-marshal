@@ -20,6 +20,10 @@ jobs:
         postgresql: "11"
       install:
         - pip install pytest-cov coveralls -r requirements.txt -r test-requirements.txt
+        # FIXME: IERS download URL has changed.
+        # Remove this when https://github.com/astropy/astropy/pull/8993
+        # makes it into an Astropy release.
+        - pip install git+https://github.com/astropy/astropy@8ffa573a86d1783f110cdf9f3101a06a698e67bc
         - pip install -r requirements.txt
         - python -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation.get_site_names(); download_IERS_A()'
       script:
