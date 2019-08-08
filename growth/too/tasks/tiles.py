@@ -305,9 +305,8 @@ def get_planned_observations(
                             'field_id': int(field_id),
                             'ra': ra,
                             'dec': dec,
-                            'reference_filter_ids': ref_filter_ids,
-                            'reference_filter_bands': ref_filter_bands,
-                            'reference_filter_mags': ref_filter_mags
+                            'depth': dict(zip(ref_filter_bands,
+                                              ref_filter_mags))
                         }
                     }
                     field = models.Field(telescope=telescope,
