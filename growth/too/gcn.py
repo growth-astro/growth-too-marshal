@@ -210,8 +210,11 @@ def handle(payload, root):
                 )
             ).delay()
 
-        if not (DESIRABLE_TAGS & old_tags) and (DESIRABLE_TAGS & new_tags) \
-           and not (UNDESIRABLE_TAGS & new_tags):
+        old_alertable = bool((DESIRABLE_TAGS & old_tags) and not
+                             (UNDESIRABLE_TAGS & old_tags))
+        new_alertable = bool((DESIRABLE_TAGS & new_tags) and not
+                             (UNDESIRABLE_TAGS & new_tags))
+        if old_alertable != new_alertable:
             tasks.twilio.call_everyone.delay(
                 'event_new_voice', dateobs=dateobs)
             tasks.twilio.text_everyone.delay(
