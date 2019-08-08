@@ -34,3 +34,9 @@ jobs:
         - pip install flake8
       script:
         - flake8 --show-source growth
+
+    - name: Check IERS connectivity
+      env:
+        CACHE_NAME: check-iers-connectivity
+      script:
+        - curl http://maia.usno.navy.mil/ser7/finals2000A.all
