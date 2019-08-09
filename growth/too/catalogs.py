@@ -20,6 +20,11 @@ def fixup(table):
     table.convert_bytestring_to_unicode()
     table['2D CL'] = np.repeat(np.nan, len(table))
     table['3D CL'] = np.repeat(np.nan, len(table))
+
+    # FIXME: sanitize some invalid values from CLU.
+    for col in table.columns.values():
+        col[col == 100000000000000000000] = np.nan
+
     first_columns = ['ra', 'dec', 'distmpc', '2D CL', '3D CL']
     return table[first_columns + list(set(table.colnames) - set(first_columns))]
 
