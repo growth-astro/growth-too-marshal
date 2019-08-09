@@ -161,6 +161,11 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["doMinimalTiling"] = False
     params["doIterativeTiling"] = False
     params["galaxies_FoV_sep"] = 1.0
+    params["iterativeOverlap"] = 0.0
+    params["doPerturbativeTiling"] = False
+    params["doSuperSched"] = False
+    params["doMaxTiles"] = False
+    params["doMovie_supersched"] = False
 
     if params["doEvent"]:
         params["skymap"], eventinfo = gwemopt.gracedb.get_event(params)
@@ -267,6 +272,8 @@ def get_planned_observations(
         segmentlist = segments.segmentlist()
         totprob = 0.0
 
+        field_maps = {}
+
         if params["tilesType"] == "galaxy":
             fields = models.Field.query.filter_by(telescope=telescope).all()
             field_id_max = -1
@@ -291,9 +298,6 @@ def get_planned_observations(
                 segmentlist = segmentlist.coalesce()
 
                 if params["tilesType"] == "galaxy":
-                    ref_filter_mags, ref_filter_bands = [], []
-                    ref_filter_ids = []
-
                     if config_struct["FOV_type"] == "square":
                         ipix, radecs, patch, area =\
                             gwemopt.utils.getSquarePixels(ra, dec,
@@ -312,7 +316,23 @@ def get_planned_observations(
                         corners[2] = corners_copy[3]
                         corners[3] = corners_copy[2]
 
-                    field_id = field_id_max + field_id
+                    fields = models.Field.query.filter_by(telescope=telescope,
+                                                          ra=ra, dec=dec).all()
+                    if len(fields) == 0:
+                        contour = {}
+                        field = models.Field(telescope=telescope,
+                                             ra=ra, dec=dec,
+                                             contour=contour,
+                                             reference_filter_ids=[],
+                                             reference_filter_mags=[],
+                                             ipix=ipix.tolist())
+                        models.db.session.merge(field)
+
+                        fields = models.Field.query.filter_by(
+                            telescope=telescope, ra=ra, dec=dec).all()
+
+                    field = fields[0]
+                    field_maps[field_id] = field.field_id
 
                     contour = {
                         'type': 'Feature',
@@ -322,21 +342,13 @@ def get_planned_observations(
                         },
                         'properties': {
                             'telescope': telescope,
-                            'field_id': int(field_id),
+                            'field_id': int(field.field_id),
                             'ra': ra,
                             'dec': dec,
-                            'depth': dict(zip(ref_filter_bands,
-                                              ref_filter_mags))
+                            'depth': dict(zip([], []))
                         }
                     }
-
-                    field = models.Field(telescope=telescope,
-                                         field_id=int(field_id),
-                                         ra=ra, dec=dec,
-                                         contour=contour,
-                                         reference_filter_ids=ref_filter_ids,
-                                         reference_filter_mags=ref_filter_mags,
-                                         ipix=ipix.tolist())
+                    field.contour = contour
                     models.db.session.merge(field)
 
         filter_ids = {"g": 1, "r": 2, "i": 3, "z": 4, "J": 5}
@@ -355,7 +367,7 @@ def get_planned_observations(
             exposure_time, field_id, prob = data[4], data[5], data[6]
 
             if params["tilesType"] == "galaxy":
-                field_id = field_id_max + field_id
+                field_id = field_maps[field_id]
 
             yield models.PlannedObservation(
                 obstime=tt.datetime,

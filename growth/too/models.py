@@ -20,6 +20,7 @@ from ligo.skymap.bayestar import rasterize
 import lxml.etree
 import pkg_resources
 import numpy as np
+from sqlalchemy import Sequence
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
@@ -212,13 +213,14 @@ def create_all():
                         'depth': dict(zip(ref_filter_bands, ref_filter_mags))
                     }
                 }
+
                 db.session.merge(Field(telescope=tele,
                                        field_id=int(field_id),
                                        ra=ra, dec=dec, contour=contour,
                                        reference_filter_ids=ref_filter_ids,
                                        reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
-
+ 
             if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
 
@@ -435,8 +437,11 @@ class Field(db.Model):
 
     field_id = db.Column(
         db.Integer,
+        Sequence('field_id_seq', start=10000001, increment=1),
         primary_key=True,
-        comment='Field ID')
+        comment='Field ID',
+        autoincrement=True,
+        unique=True, nullable=False)
 
     ra = db.Column(
         db.Float,
