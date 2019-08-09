@@ -220,7 +220,7 @@ def create_all():
                                        reference_filter_ids=ref_filter_ids,
                                        reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
- 
+
             if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
 
