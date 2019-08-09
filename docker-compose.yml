@@ -49,7 +49,7 @@ secrets:
   GROWTH-India.tess:
     file: secrets/input/GROWTH-India.tess
   CLU.hdf5:
-    file: secrets/too/catalog/CLU.hdf5
+    file: secrets/catalog/CLU.hdf5
 
 volumes:
   too-data:
