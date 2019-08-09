@@ -863,10 +863,8 @@ def galaxies_data(dateobs):
             value = json.loads(
                 request.args['columns[{}][search][value]'.format(i)] or '{}'
             )
-        except KeyError:
+        except (KeyError, ValueError):
             pass
-        except ValueError:
-            abort(400)
         else:
             try:
                 value2, = np.asarray([value['min']], dtype=table[table.colnames[i]].dtype)
@@ -879,31 +877,25 @@ def galaxies_data(dateobs):
 
             try:
                 value2, = np.asarray([value['max']], dtype=table[table.colnames[i]].dtype)
-            except KeyError:
+            except (KeyError, ValueError):
                 pass
-            except ValueError:
-                abort(400)
             else:
                 table = table[table[table.colnames[i]] <= value2]
 
         try:
             value = int(request.args['order[{}][column]'.format(i)])
-        except KeyError:
+        except (KeyError, ValueError):
             pass
-        except ValueError:
-            abort(400)
         else:
             table.sort(table.colnames[value])
 
         try:
             value = request.args['order[{}][dir]'.format(i)]
-        except KeyError:
+        except (KeyError, ValueError):
             pass
         else:
             if value == 'desc':
                 table.reverse()
-            elif value != 'asc':
-                abort(400)
 
     # Populate total number of filtered records.
     result['recordsFiltered'] = len(table)
