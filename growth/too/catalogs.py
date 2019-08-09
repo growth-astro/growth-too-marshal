@@ -13,19 +13,21 @@ from .flask import app
 vizier = VizierClass(row_limit=-1)
 
 
-def add_cl_columns(table):
+def fixup(table):
     # Add dummy 2D and 3D credible level columns.
     # These columns are filled with nans because they are
     # localization dependent.
+    table.convert_bytestring_to_unicode()
     table['2D CL'] = np.repeat(np.nan, len(table))
     table['3D CL'] = np.repeat(np.nan, len(table))
+    first_columns = ['ra', 'dec', 'distmpc', '2D CL', '3D CL']
+    return table[first_columns + list(set(table.colnames) - set(first_columns))]
 
 
 def get_from_vizier(*args, **kwargs):
     result, = vizier.query_constraints(*args, **kwargs, cache=True)
     result.convert_bytestring_to_unicode()
-    add_cl_columns(result)
-    return result
+    return fixup(result)
 
 
 def get_from_package(filename):
@@ -37,9 +39,7 @@ def get_from_package(filename):
     filepath = f.name
     f.close()
     result = Table(h5py.File(filepath, mode='r'))
-    result.convert_bytestring_to_unicode()
-    add_cl_columns(result)
-    return result
+    return fixup(result)
 
 
 twomass = PromiseProxy(get_from_vizier, ('J/ApJS/199/26/table3',))

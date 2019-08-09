@@ -49,6 +49,16 @@
         var table = $('#galaxies').DataTable({
             ajax: '{{url_for('galaxies_data', dateobs=event.dateobs)}}',
             dom: 'Brtip',
+            columnDefs: [
+                {
+                    targets: [0, 1],
+                    render: $.fn.dataTable.render.number('', '.', 6)
+                },
+                {
+                    targets: '_all',
+                    render: $.fn.dataTable.render.number('', '.', 2)
+                }
+            ],
             buttons: [
                 {
                     name: 'filter',
@@ -85,6 +95,8 @@
             searching: true,
             serverSide: true
         });
+
+        console.log(table.column(undefined, 'a:title'));
 
         var button = $(table.button(undefined, 'filter:name').nodes());
         var dropdown = $('<div class="dropdown-menu p-3" style="min-width: 30rem; overflow-y: auto; max-height: 20rem"></div>');
