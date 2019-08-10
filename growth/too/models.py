@@ -437,7 +437,7 @@ class Field(db.Model):
 
     field_id = db.Column(
         db.Integer,
-        Sequence('field_id_seq', start=10000001, increment=1),
+        Sequence('field_id_seq', start=-1, increment=-1),
         primary_key=True,
         comment='Field ID',
         autoincrement=True,

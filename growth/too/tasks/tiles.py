@@ -274,14 +274,6 @@ def get_planned_observations(
 
         field_maps = {}
 
-        if params["tilesType"] == "galaxy":
-            fields = models.Field.query.filter_by(telescope=telescope).all()
-            field_id_max = -1
-            for field in fields:
-                if field.field_id > field_id_max:
-                    field_id_max = field.field_id
-            field_id_max = field_id_max + 1
-
         for ii, field_id in enumerate(tile_structs[telescope].keys()):
             tile_struct = tile_structs[telescope][field_id]
             ra, dec = tile_struct["ra"], tile_struct["dec"]
