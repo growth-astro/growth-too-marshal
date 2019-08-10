@@ -220,6 +220,7 @@ def handle(payload, root):
             tasks.twilio.text_everyone.delay(
                 render_template('event_new_text.txt', event=event))
             tasks.email.email_everyone.delay(dateobs)
+            tasks.slack.slack_everyone.delay(dateobs)
 
 
 def listen():
