@@ -1007,7 +1007,7 @@ class PlanObservability(db.Model):
         db.LargeBinary,
         comment='Airmass chart'))
 
-class Candidates(db.model):
+class Candidates(db.Model):
 
     name = db.Column(
         db.String,
@@ -1025,7 +1025,7 @@ class Candidates(db.model):
 
     classification = db.Column(
         db.String,
-        nummable=True,
+        nullable=True,
         comment='Classification')
 
     redshift = db.Column(
@@ -1035,14 +1035,14 @@ class Candidates(db.model):
 
     iauname = db.Column(
         db.String,
-        nummable=True,
+        nullable=True,
         comment='IAU name on TNS')
 	
-    field_id = b.Column(
+    field_id = db.Column(
         db.Integer,
         comment='Field ID')
 
-    candid = b.Column(
+    candid = db.Column(
         db.BigInteger,
         comment='Candidate ID')
 
@@ -1062,5 +1062,6 @@ class Candidates(db.model):
 
     autoannotations = db.Column(
         db.String,
-        nummable=True,
+        nullable=True,
         comment='Autoannotations from the GROWTH marshal')
+

@@ -271,9 +271,12 @@ def event(dateobs):
 @app.route('/event/<datetime:dateobs>/objects')
 @login_required
 def objects(dateobs):
+    #tasks.growthdb_cgi.fetch_candidates_growthmarshal()
+    #query = models.Candidates.query.filter()
+
     return render_template(
         'objects.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        candidates=models.Candidates.query, marshallink=get_marshallink(dateobs))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
