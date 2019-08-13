@@ -268,7 +268,7 @@ def event(dateobs):
 def objects(dateobs):
     return render_template(
         'objects.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        candidates=models.Candidates.query)
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
