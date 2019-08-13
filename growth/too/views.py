@@ -1,27 +1,22 @@
-import sys
 import warnings
 import datetime
+import json
 import os
 import urllib.parse
 import math
-from io import StringIO
 import re
 import requests
 import shutil
 import tempfile
-import pkg_resources
 
 from celery import group
 import numpy as np
-from scipy.stats import norm
 from astropy import time
 import astropy.units as u
 from astropy.coordinates import SkyCoord
-from astropy.table import Table
-from astropy_healpix import HEALPix
 import pandas as pd
-import h5py
 from ligo.skymap import io
+from ligo.skymap.postprocess import find_injection_moc
 from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
 from ligo.skymap.tool.ligo_skymap_plot_observability import main \
     as plot_observability
@@ -43,7 +38,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .flask import app
 from .jinja import atob
-from . import models, tasks
+from . import catalogs, models, tasks
 
 #
 #
@@ -811,94 +806,6 @@ def get_ztf_cand(url_report_page, username, password):
     return name_, ra_transient, dec_transient
 
 
-@app.route('/event/<datetime:dateobs>/localization/<localization_name>/galaxy')
-@login_required
-def localization_galaxy(dateobs, localization_name):
-    localization = one_or_404(
-        models.Localization.query
-        .filter_by(dateobs=dateobs, localization_name=localization_name))
-
-    h5file = pkg_resources.resource_filename(__name__, 'catalog/CLU.hdf5')
-    with h5py.File(h5file, 'r') as f:
-        name = f['name'][:]
-        ra, dec = f['ra'][:], f['dec'][:]
-        sfr_fuv, mstar = f['sfr_fuv'][:], f['mstar'][:]
-        distmpc, magb = f['distmpc'][:], f['magb'][:]
-        a, b2a, pa = f['a'][:], f['b2a'][:], f['pa'][:]
-        btc = f['btc'][:]
-
-    idx = np.where(distmpc >= 0)[0]
-    ra, dec = ra[idx], dec[idx]
-    sfr_fuv, mstar = sfr_fuv[idx], mstar[idx]
-    distmpc, magb = distmpc[idx], magb[idx]
-    a, b2a, pa = a[idx], b2a[idx], pa[idx]
-    btc = btc[idx]
-
-    galaxy_coords = SkyCoord(ra * u.deg, dec * u.deg, distmpc * u.Mpc)
-    prob = np.array(localization.healpix)
-    nside = localization.nside
-    pixarea = 4 * np.pi / len(prob)
-
-    if localization.distmu is None:
-        is3d = False
-    else:
-        is3d = True
-
-    distmu = np.array(localization.distmu)
-    distsigma = np.array(localization.distsigma)
-    distnorm = np.array(localization.distnorm)
-
-    # Find the posterior probability density at the position of each galaxy.
-    hpx = HEALPix(nside=nside, frame='icrs')
-    idx = hpx.skycoord_to_healpix(galaxy_coords)
-
-    if is3d:
-        dp_dv = norm(distmu[idx], distsigma[idx]).pdf(
-                     galaxy_coords.distance.value) \
-                     * prob[idx] * distnorm[idx] / pixarea
-        dp_dv = np.array(dp_dv)
-    else:
-        dp_dv = prob[idx]
-
-    # FIXME: Need sensible priority
-    priority = dp_dv * 1.0
-    priority[np.where(np.isnan(priority))[0]] = -np.inf
-    idxsort = np.argsort(priority)[::-1]
-
-    data_rows = []
-    for ii in range(50):
-        idx = idxsort[ii]
-        c = SkyCoord(ra=ra[idx]*u.degree, dec=dec[idx]*u.degree,
-                     frame='icrs')
-
-        ra_hex = c.ra.to_string(unit=u.hour, sep=':')
-        dec_hex = c.dec.to_string(unit=u.degree, sep=':')
-
-        data_rows.append((ii+1, name[idx], ra_hex, dec_hex,
-                          sfr_fuv[idx], mstar[idx],
-                          distmpc[idx], magb[idx], prob[idx], priority[idx]))
-
-    names = ('ID', 'NAME', 'RA', 'DEC', 'SFR FUV', 'Mstar', 'DIST (Mpc)',
-             'MAG', 'PROB', 'PRIORITY')
-
-    if not data_rows:
-        galaxy_table = ""
-    else:
-        t = Table(rows=data_rows, names=names)
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = StringIO()
-        t.write(format='ascii.csv', delimiter=',', filename=sys.stdout,
-                formats={'SFR FUV': '%.3e', 'Mstar': '%.3e',
-                         'DIST (Mpc)': '%.1f', 'MAG': '%.1f',
-                         'PROB': '%.3e', 'PRIORITY': '%.3e'})
-        sys.stdout = old_stdout
-        galaxy_table = "\n".join(mystdout.getvalue().split("\n")[1:])
-
-    return render_template('galaxy.html', dateobs=dateobs,
-                           localization=localization,
-                           galaxy_table=galaxy_table)
-
-
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/json')
 @login_required
 @cache.cached()
@@ -909,6 +816,122 @@ def localization_json(dateobs, localization_name):
     if localization.contour is None:
         abort(404)
     return jsonify(localization.contour)
+
+
+def nan_to_none(o):
+    if o != o:
+        return None
+    else:
+        return o
+
+
+@app.route('/event/<datetime:dateobs>/galaxies/json')
+# @login_required
+def galaxies_data(dateobs):
+    event = models.Event.query.get_or_404(dateobs)
+    table = catalogs.galaxies.copy()
+
+    # Populate 2D and 3D credible levels.
+    localization_name = request.args.get('search[value]')
+    localization = models.Localization.query.filter_by(
+        dateobs=event.dateobs, localization_name=localization_name).one_or_none() or event.localizations[-1]
+    results = find_injection_moc(
+        localization.table,
+        np.deg2rad(table['ra']),
+        np.deg2rad(table['dec']),
+        table['distmpc'])
+    table['2D CL'] = results.searched_prob
+    table['3D CL'] = results.searched_prob_vol
+
+    result = {}
+
+    # Populate total number of records.
+    result['recordsTotal'] = len(table)
+
+    # Populate draw counter.
+    try:
+        value = int(request.args['draw'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        result['draw'] = value
+
+    for i in range(len(table.columns)):
+        try:
+            value = json.loads(
+                request.args['columns[{}][search][value]'.format(i)] or '{}'
+            )
+        except (KeyError, ValueError):
+            pass
+        else:
+            try:
+                value2, = np.asarray([value['min']], dtype=table[table.colnames[i]].dtype)
+            except KeyError:
+                pass
+            except ValueError:
+                abort(400)
+            else:
+                table = table[table[table.colnames[i]] >= value2]
+
+            try:
+                value2, = np.asarray([value['max']], dtype=table[table.colnames[i]].dtype)
+            except (KeyError, ValueError):
+                pass
+            else:
+                table = table[table[table.colnames[i]] <= value2]
+
+        try:
+            value = int(request.args['order[{}][column]'.format(i)])
+        except (KeyError, ValueError):
+            pass
+        else:
+            table.sort(table.colnames[value])
+
+        try:
+            value = request.args['order[{}][dir]'.format(i)]
+        except (KeyError, ValueError):
+            pass
+        else:
+            if value == 'desc':
+                table.reverse()
+
+    # Populate total number of filtered records.
+    result['recordsFiltered'] = len(table)
+
+    # Trim results by requested start index.
+    try:
+        value = int(request.args['start'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        table = table[value:]
+
+    # Trim results by requested length.
+    try:
+        value = int(request.args['length'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        table = table[:value]
+
+    result['data'] = [[nan_to_none(col) for col in row]
+                      for row in table.as_array().tolist()]
+
+    return jsonify(result)
+
+
+@app.route('/event/<datetime:dateobs>/galaxies')
+# @login_required
+def galaxies(dateobs):
+    event = models.Event.query.get_or_404(dateobs)
+    return render_template(
+        'galaxies.html', event=event, table=catalogs.galaxies)
 
 
 def get_queue_transient_name(plan):

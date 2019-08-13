@@ -16,7 +16,7 @@ healpy
 h5py
 ligo-gracedb
 ligo-segments
-ligo.skymap >= 0.1.7
+ligo.skymap >= 0.1.8
 lxml
 networkx
 pandas
@@ -25,7 +25,7 @@ psycopg2
 pygcn >= 0.1.15
 pytz
 pyvo
-redis >= 3.2.0
+redis >= 3.3.0
 sqlalchemy >= 1.2.0
 sqlalchemy_utils[phone]
 wtforms_alchemy

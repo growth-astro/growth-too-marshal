@@ -1,5 +1,5 @@
 <ul class="nav nav-tabs card-header-tabs">
-    {% for endpoint, title in [['event', 'Overview'], ['plan', 'Planning'], ['objects', 'Objects']] %}
+    {% for endpoint, title in [['event', 'Overview'], ['plan', 'Planning'], ['galaxies', 'Galaxies'], ['objects', 'Objects']] %}
         <li class="nav-item">
             <a class="nav-link {% if request.endpoint == endpoint %}active{% endif %}" href="{{url_for(endpoint, dateobs=event.dateobs)}}">{{title}}</a>
         </li>

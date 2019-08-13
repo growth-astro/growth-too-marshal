@@ -145,8 +145,11 @@ def create_all():
             reference_images = {}
             reference_mags = {}
 
-        tessfile = pkg_resources.resource_stream(__name__,
-                                                 'input/%s.tess' % tele)
+        tesspath = 'input/%s.tess' % tele
+        try:
+            tessfile = app.open_instance_resource(tesspath)
+        except IOError:
+            tessfile = pkg_resources.resource_stream(__name__, tesspath)
         configfile = pkg_resources.resource_stream(__name__,
                                                    'config/%s.config' % tele)
         with tessfile as f, configfile as g:
@@ -635,8 +638,7 @@ class Localization(db.Model):
     def table_2d(self):
         """Get multiresolution HEALPix dataset, probability density only."""
         return table.Table(
-            [np.asarray(self.uniq, dtype=np.uint64), self.probdensity],
-            names=['UNIQ', 'PROBDENSITY'])
+            [self.uniq, self.probdensity], names=['UNIQ', 'PROBDENSITY'])
 
     @property
     def table(self):
@@ -645,7 +647,7 @@ class Localization(db.Model):
         if self.is_3d:
             return table.Table(
                 [
-                    np.asarray(self.uniq, dtype=np.uint64),
+                    self.uniq,
                     self.probdensity, self.distmu,
                     self.distsigma, self.distnorm],
                 names=[

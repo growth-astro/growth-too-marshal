@@ -25,6 +25,7 @@ import numpy as np
 import growth
 from . import celery
 from .. import models
+from ..flask import app
 
 log = get_task_logger(__name__)
 
@@ -43,7 +44,13 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     growthpath = os.path.dirname(growth.__file__)
     config_directory = os.path.join(growthpath, 'too', 'config')
     tiling_directory = os.path.join(growthpath, 'too', 'tiling')
-    catalog_directory = os.path.join(growthpath, 'too', 'catalog')
+
+    catalogpath = os.path.join('too', 'catalog')
+    try:         
+        app.open_instance_resource('%s/CLU.hdf5' % catalogpath)
+        catalog_directory = app.instance_path
+    except IOError:
+        catalog_directory = os.path.join(growthpath, catalogpath)
 
     params = {}
     params["config"] = {}
