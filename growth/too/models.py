@@ -1007,6 +1007,7 @@ class PlanObservability(db.Model):
         db.LargeBinary,
         comment='Airmass chart'))
 
+
 class Candidates(db.Model):
 
     name = db.Column(

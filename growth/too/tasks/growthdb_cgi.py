@@ -11,7 +11,7 @@ import celery
 from .. import models
 
 """
-Reminder of relevant program names:
+Reminder for the relevant program names:
 
 decam_programidx=program_dict['DECAM GW Followup']
 em_gw_programidx=program_dict['Electromagnetic Counterparts to Gravitational Waves']
@@ -20,10 +20,10 @@ neutrino_programidx=program_dict['Electromagnetic Counterparts to Neutrinos']
 """
 
 
-def get_programidx(program_name, username, password):
+def get_programidx(program_name):
     """ Given a program name, it returns the programidx """
 
-    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi', auth=(username, password))
+    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
     programs=json.loads(r.text)
     program_dict={p['name']:p['programidx'] for i,p in enumerate(programs)}
 
@@ -34,10 +34,10 @@ def get_programidx(program_name, username, password):
         return None
 
 
-def get_source_autoannotations(sourceid, username, password):
-    ''' Fetch a specific source's autoannotations from the GROWTH marshal and 
-    create a string with the autoannotations available. '''
-    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/source_summary.cgi', auth=(username, password), data={'sourceid':str(sourceid)
+def get_source_autoannotations(sourceid):
+    """ Fetch a specific source's autoannotations from the GROWTH marshal and 
+    create a string with the autoannotations available. """
+    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/source_summary.cgi', data={'sourceid':str(sourceid)
 }) 
     r.raise_for_status()
     summary=json.loads(r.text)
@@ -49,18 +49,18 @@ def get_source_autoannotations(sourceid, username, password):
     return autoannotations_string
 
 
-def get_candidates_growth_marshal(program_name, username, password):
+def get_candidates_growth_marshal(program_name):
     """ Query the GROWTH db for the science programs """
 
-    programidx=get_programidx(program_name, username, password)
+    programidx=get_programidx(program_name)
     if programidx==None:
         return None
-    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_program_sources.cgi', auth=(username, password), data={'programidx':str(programidx)})
+    r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_program_sources.cgi', data={'programidx':str(programidx)})
     r.raise_for_status()
     sources=json.loads(r.text)
     """ Add autoannotations """
     for s, i in zip(sources, np.arange(len(sources))):
-        autoannotations=get_source_autoannotations(s["id"], username, password)
+        autoannotations=get_source_autoannotations(s["id"])
         sources[i]['autoannotations'] = autoannotations
 
     return sources
@@ -112,13 +112,14 @@ def update_local_db_growthmarshal(sources, program_name):
 
 @celery.task(base=PeriodicTask, shared=False, run_every=datetime.timedelta(seconds=180))
 def fetch_candidates_growthmarshal():
-    program_names=['DECAM GW Followup', 'Afterglows of Fermi Gamma Ray Bursts', \
+    """Fetch the candidates present in the GROWTH marshal
+    for the MMA science programs and store them in the local db. """ 
+
+    program_names = ['DECAM GW Followup', 'Afterglows of Fermi Gamma Ray Bursts', \
     'Electromagnetic Counterparts to Neutrinos', 'Electromagnetic Counterparts to Gravitational Waves']
-    """ EM Counterparts to GWs, being last in the list, overrides """
-    #REMOVE!!
 
     for program_name in program_names:
-        sources=get_candidates_growth_marshal(program_name, username, password)
+        sources=get_candidates_growth_marshal(program_name)
         update_local_db_growthmarshal(sources, program_name)
 
     return
