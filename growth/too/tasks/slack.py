@@ -16,9 +16,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 """
-Some tools for parsing and composing e-mails.
+Some tools for parsing and composing slack messages.
 """
-__author__ = "Leo Singer <leo.singer@ligo.org>"
+__author__ = "Michael Coughlin <michael.coughlin@ligo.org>"
 
 from flask import render_template
 from slack import WebClient
