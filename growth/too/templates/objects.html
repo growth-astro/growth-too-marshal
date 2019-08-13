@@ -34,26 +34,63 @@
                             <th>Telescope</th> 
                             <th>RA</th> 
                             <th>DEC</th>
+                            <th>Autoannotations</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for source in candidates %}
+                                {% set telescope_name='?' %}
+                                {% if source.name[0:3] == 'ZTF' %} {% set telescope_name = 'ZTF' %} {% endif %}
+                                {% if source.name[0:2] == 'DG' %} {% set telescope_name = 'DECam' %} {% endif %}
+                                {% if source.name[0:2] == 'KP' %} {% set telescope_name = 'KPED' %} {% endif %}
+                                {% if source.name[0:4] == 'PGIR' %} {% set telescope_name = 'Gattini' %} {% endif %}
+                                {% if source.name[0:2] == 'GI' %} {% set telescope_name = 'GROWTH-India ' %} {% endif %}
+                                <tr>
+                                    <td>
+                                    <a href="http://skipper.caltech.edu:8080/cgi-bin/growth/view_source.cgi?name={{source.name}}">
+                                    {{source.name}}
+                                    </a>
+                                </td>
+                                    <td>{{telescope_name}}</td>
+                                    <td>{{'%0.5f' % source.ra}}</td>
+                                    <td>{{'%0.5f' % source.dec}}</td>
+                                    <td>{{source.autoannotations}} </td>
+                                </tr>
+                            {% endfor %}
                         <tr>
-                            <td>ZTF19awesome</td>
-                            <td>ZTF</td>
-                            <td>7:08:03.2592</td>
-                            <td>56:02:02.892</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19ab</td>
+                            <td>DG19ab</td>
                             <td>DECam</td>
                             <td>23:18:03.2592</td>
                             <td>-36:00:00.8</td>
+                            <td> </td>
                         </tr>
                         <tr>
-                            <td>GROWTH19bt</td>
-                            <td>DECam</td>
+                            <td>PGIR19ae</td>
+                            <td>Gattini</td>
                             <td>18:10:33.231</td>
                             <td>-40:43:23.12</td>
+                            <td> </td>
+                        </tr>
+                        <tr>
+                            <td>KP19r</td>
+                            <td>KPED</td>
+                            <td>18:10:33.23</td>
+                            <td>-40:43:23.12</td>
+                            <td> </td>
+                        </tr>
+                        <tr>
+                            <td>GI19x</td>
+                            <td>GROWTH-India</td>
+                            <td>18:10:33.23</td>
+                            <td>-40:43:23.12</td>
+                            <td> </td>
+                        </tr>
+                        <tr>
+                            <td>GI19ab</td>
+                            <td>GROWTH-India</td>
+                            <td>19:14:21.34</td>
+                            <td>-40:43:23.12</td>
+                            <td> </td>
                         </tr>
                     </tbody>
                 </table>
@@ -104,6 +141,42 @@
                 </table>
             </li>
         </ul>
+        <ul>
+            <li class="list-group-item">
+                <form method=post>
+                    <h3>Processed Tiles</h3>
+                    <table id=tiles class="table">
+                         <thead>
+                            <tr>
+                                <th>Time (UT)</th>
+                                <th>Filter</th>
+                                <th>RA</th>
+                                <th>Dec</th>
+                                <th>Exp. time</th>
+                                <th>Telescope</th>
+                                <th>Name image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tiles | length > 0 %}
+                                {% for tile in tiles %}
+                                    <tr>
+                                        <td>{{tile["time_obs"]}}</td>
+                                        <td>{{tile["filter"]}}</td>
+                                        <td>{{tile["ra"]}}</td>
+                                        <td>{{tile["dec"]}}</td>
+                                        <td>{{tile["exptime"]}}</td>
+                                        <td>{{tile["name"]}}</td>
+                                        <td>DECam</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </form>
+            </li>
+        </ul>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -125,15 +198,25 @@
         $('#galaxies tbody').on('click', 'tr', function () {
             $(this).toggleClass('table-primary');
         });
-
         $('#candidates').DataTable({
 	    scrollX: true,
             searching: true,
+            lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
         rowGroup: {
                 dataSrc: 1
             }
         });
         $('#candidates tbody').on('click', 'tr', function () {
+            $(this).toggleClass('table-primary');
+        });
+        $('#tiles').DataTable({
+	    scrollX: true,
+            searching: true,
+        rowGroup: {
+                dataSrc: 5
+            }
+        });
+        $('#tiles tbody').on('click', 'tr', function () {
             $(this).toggleClass('table-primary');
         });
     })();
