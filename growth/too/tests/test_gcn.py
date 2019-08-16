@@ -87,11 +87,11 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
 
     for exposure in exposures:
         field_id = exposure.field_id
-        assert np.all(np.array(field_id) < 907)
+        assert np.all(np.array(field_id) < 2000)
         assert np.all(np.array(exposure.exposure_time) > 0)
         assert np.all(np.array(exposure.weight) <= 1)
 
-    assert np.isclose(plan.area, 790.3129926351713)
+    assert np.isclose(plan.area, 651.6459456904389)
 
     # Try submitting some of the observing plans.
     flask.post(
