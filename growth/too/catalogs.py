@@ -3,7 +3,6 @@ import os
 from astroquery.vizier import VizierClass
 from astropy.table import Table
 from celery.local import PromiseProxy
-import h5py
 import numpy as np
 import pkg_resources
 
@@ -23,10 +22,9 @@ def fixup(table):
 
     # FIXME: sanitize some invalid values from CLU.
     for col in table.columns.values():
-        col[col == 100000000000000000000] = np.nan
+        col[col == -999.0] = np.nan
 
-    first_columns = ['ra', 'dec', 'distmpc', '2D CL', '3D CL']
-    return table[first_columns + list(set(table.colnames) - set(first_columns))]
+    return table
 
 
 def get_from_vizier(*args, **kwargs):
@@ -43,7 +41,7 @@ def get_from_package(filename):
         f = pkg_resources.resource_stream(__name__, filepath)
     filepath = f.name
     f.close()
-    result = Table(h5py.File(filepath, mode='r'))
+    result = Table.read(filepath)
     return fixup(result)
 
 
