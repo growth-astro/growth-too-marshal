@@ -198,6 +198,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["mindiff"] = mindiff
 
     params = gwemopt.segments.get_telescope_segments(params)
+    params = gwemopt.utils.params_checker(params)
 
     if params["doPlots"]:
         if not os.path.isdir(params["outputDir"]):
@@ -240,9 +241,8 @@ def gen_structs(params):
         raise ValueError(
             'Need tilesType to be moc, greedy, hierarchical, galaxy or ranked')
 
-    coverage_struct = gwemopt.coverage.timeallocation(params,
-                                                      map_struct,
-                                                      tile_structs)
+    tile_structs, coverage_struct = gwemopt.coverage.timeallocation(
+        params, map_struct, tile_structs)
 
     if params["doPlots"]:
         gwemopt.plotting.skymap(params, map_struct)
