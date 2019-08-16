@@ -69,7 +69,7 @@ services:
     restart: always
   tunnel:
     build: .
-    image: growth-too-marshal
+    image: growthastro/growth-too-marshal
     networks:
       - internal
     restart: always
@@ -93,7 +93,7 @@ services:
       - too_team@hale.palomar.caltech.edu
   flower:
     build: .
-    image: growth-too-marshal
+    image: growthastro/growth-too-marshal
     command: celery flower --url-prefix=flower
     depends_on:
       - redis
@@ -121,7 +121,7 @@ services:
       - CLU.hdf5
   celery_beat:
     build: .
-    image: growth-too-marshal
+    image: growthastro/growth-too-marshal
     depends_on:
       - redis
     command: celery beat --loglevel info
@@ -134,7 +134,7 @@ services:
       - application.cfg.d
   gcn:
     build: .
-    image: growth-too-marshal
+    image: growthastro/growth-too-marshal
     command: gcn
     depends_on:
       - celery
@@ -152,7 +152,7 @@ services:
       - application.cfg.d
   flask:
     build: .
-    image: growth-too-marshal
+    image: growthastro/growth-too-marshal
     command: run --with-threads --host=0.0.0.0 --port 8081
     depends_on:
       - postgres
