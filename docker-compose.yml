@@ -102,6 +102,7 @@ services:
     restart: always
   celery:
     build: .
+    image: growthastro/growth-too-marshal
     depends_on:
       - postgres
       - redis
