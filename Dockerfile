@@ -113,7 +113,7 @@ RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config
 ENV C_FORCE_ROOT 1
 
 # Prime some cached Astropy data sources.
-RUN python3 -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation.get_site_names(); download_IERS_A()'
+RUN python3 -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation._get_site_registry(force_download=True); download_IERS_A()'
 
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
     mkdir -p /usr/var/growth.too.flask-instance/too/catalog && \
