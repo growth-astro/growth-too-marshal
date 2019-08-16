@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015  Leo Singer
+# Copyright (C) 2019 Michael Coughlin
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -38,8 +38,10 @@ def slack_too(telescope, queue_name):
     response = client.chat_postMessage(
         channel='#general',
         text=body)
-    assert response["ok"]
-
+    try:
+        assert response["ok"]
+    except AssertionError:
+        pass
 
 @celery.task(ignore_result=True, shared=False)
 def slack_everyone(dateobs):
@@ -50,4 +52,7 @@ def slack_everyone(dateobs):
     response = client.chat_postMessage(
         channel='#general',
         text=body)
-    assert response["ok"]
+    try:
+        assert response["ok"]
+    except AssertionError:
+        pass
