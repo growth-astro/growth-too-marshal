@@ -63,9 +63,6 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 # Debian's pip is too old to install manylinux2010 wheels.
 RUN pip3 install --upgrade pip
 
-# Prime some cached Astropy data.
-RUN python3 -c 'from astropy.coordinates import EarthLocation; EarthLocation._get_site_registry(force_download=True)'
-
 
 #
 # Stage 3: pipinstalldeps
@@ -100,10 +97,6 @@ RUN pip3 install --no-cache-dir --no-deps /src
 
 FROM aptinstall
 COPY --from=pipinstalldeps /usr/local /usr/local
-
-# Prime some cached Astropy data.
-RUN python3 -c 'from astroplan import download_IERS_A; download_IERS_A()'
-
 COPY --from=pipinstall /usr/local /usr/local
 
 # Set locale (needed for Flask CLI)
@@ -116,11 +109,6 @@ COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 # Provide SSH keys through Docker secrets.
 # Note that SSH correctly guesses the public key by appending ".pub".
 RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config
-
-# Tell Celery that we don't care about security and that yes,
-# please shut up and run as root.
-# http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#running-the-worker-with-superuser-privileges-root
-ENV C_FORCE_ROOT 1
 
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
     mkdir -p /usr/var/growth.too.flask-instance/too/catalog && \
@@ -137,5 +125,12 @@ COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.to
 # As it is here, it will be regenerated only rarely, if the above steps change.
 RUN python3 -c 'import os; print("SECRET_KEY =", os.urandom(24))' \
     >> /usr/var/growth.too.flask-instance/application.cfg
+
+RUN useradd -mr growth-too-marshal
+USER growth-too-marshal:growth-too-marshal
+WORKDIR /home/growth-too-marshal
+
+# Prime some cached Astropy data.
+RUN growth-too iers
 
 ENTRYPOINT ["growth-too"]
