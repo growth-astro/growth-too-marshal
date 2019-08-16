@@ -1,0 +1,10 @@
+# Docker Hub automated repository tests.
+# See https://docs.docker.com/docker-hub/builds/automated-testing/
+
+version: '3.3'
+
+services:
+  sut:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
