@@ -833,8 +833,11 @@ def galaxies_data(dateobs):
 
     # Populate 2D and 3D credible levels.
     localization_name = request.args.get('search[value]')
-    localization = models.Localization.query.filter_by(
-        dateobs=event.dateobs, localization_name=localization_name).one_or_none() or event.localizations[-1]
+    localization = (
+        models.Localization.query.filter_by(
+            dateobs=event.dateobs,
+            localization_name=localization_name
+        ).one_or_none() or event.localizations[-1])
     results = find_injection_moc(
         localization.table,
         np.deg2rad(table['ra']),
@@ -867,7 +870,8 @@ def galaxies_data(dateobs):
             pass
         else:
             try:
-                value2, = np.asarray([value['min']], dtype=table[table.colnames[i]].dtype)
+                value2, = np.asarray(
+                    [value['min']], dtype=table[table.colnames[i]].dtype)
             except KeyError:
                 pass
             except ValueError:
@@ -876,7 +880,8 @@ def galaxies_data(dateobs):
                 table = table[table[table.colnames[i]] >= value2]
 
             try:
-                value2, = np.asarray([value['max']], dtype=table[table.colnames[i]].dtype)
+                value2, = np.asarray(
+                    [value['max']], dtype=table[table.colnames[i]].dtype)
             except (KeyError, ValueError):
                 pass
             else:
