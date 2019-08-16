@@ -63,9 +63,6 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 # Debian's pip is too old to install manylinux2010 wheels.
 RUN pip3 install --upgrade pip
 
-# Prime some cached Astropy data.
-RUN python3 -c 'from astropy.coordinates import EarthLocation; EarthLocation._get_site_registry(force_download=True)'
-
 
 #
 # Stage 3: pipinstalldeps
