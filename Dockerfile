@@ -1,14 +1,31 @@
-FROM debian:testing-slim
+#
+# Stage 1: wheelbuilder
+# Build some Python packages that do not exist as binaries in apt or PyPI.
+#
+
+FROM quay.io/pypa/manylinux1_x86_64 AS wheelbuilder
+RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps \
+    lscsoft-glue \
+    ligo-segments \
+    python-ligo-lw \
+    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286
+RUN for wheel in *.whl; do auditwheel repair $wheel; done
+RUN cp *none-any.whl /wheelhouse
+
+
+#
+# Stage 2: aptinstall
+# Install as many of our dependencies as possible with apt.
+#
+
+FROM debian:testing-slim AS aptinstall
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
-    build-essential \
-    git \
     openssh-client \
     python3-astropy \
     python3-astroquery \
     python3-celery \
     python3-dateutil \
-    python3-dev \
     python3-ephem \
     python3-flask \
     python3-flask-login \
@@ -43,20 +60,39 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-pyvo && \
     rm -rf /var/lib/apt/lists/*
 
-# Set locale (needed for Flask CLI)
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
-
 # Debian's pip is too old to install manylinux2010 wheels.
 RUN pip3 install --upgrade pip
+
+
+#
+# Stage 3: pipinstall
+# Install remaining dependencies with apt.
+#
+
+FROM aptinstall AS pipinstall
 
 # Install requirements. Do this before installing our own package, because
 # presumably the requirements change less frequently than our own code.
 COPY requirements.txt /
-RUN pip3 install --no-cache-dir -r \
-    /requirements.txt \
-    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286
-RUN rm /requirements.txt
+COPY --from=wheelbuilder /wheelhouse /wheelhouse
+RUN pip3 install --no-cache-dir -f /wheelhouse -r /requirements.txt
+
+
+#
+# Stage 4: (final build)
+# Overlay pip dependencies, install our own source, and set configuration.
+#
+
+FROM aptinstall
+COPY --from=pipinstall /usr/local /usr/local
+
+# Install our own source code now
+COPY . /src
+RUN pip3 install --no-cache-dir /src
+
+# Set locale (needed for Flask CLI)
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
 
 # Add host fingerprints.
 COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
@@ -88,8 +124,5 @@ COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.to
 # As it is here, it will be regenerated only rarely, if the above steps change.
 RUN python3 -c 'import os; print("SECRET_KEY =", os.urandom(24))' \
     >> /usr/var/growth.too.flask-instance/application.cfg
-
-COPY . /src
-RUN pip3 install --no-cache-dir /src
 
 ENTRYPOINT ["growth-too"]
