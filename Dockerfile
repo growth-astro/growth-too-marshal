@@ -1,4 +1,3 @@
-# Inherit SSH configuration from Dockerfile.tunnel
 FROM debian:testing-slim
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
