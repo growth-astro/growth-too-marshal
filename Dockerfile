@@ -63,6 +63,9 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
 # Debian's pip is too old to install manylinux2010 wheels.
 RUN pip3 install --upgrade pip
 
+# Prime some cached Astropy data.
+RUN python3 -c 'from astropy.coordinates import EarthLocation; EarthLocation._get_site_registry(force_download=True)'
+
 
 #
 # Stage 3: pipinstalldeps
@@ -87,6 +90,7 @@ FROM aptinstall AS pipinstall
 COPY . /src
 RUN pip3 install --no-cache-dir --no-deps /src
 
+
 #
 # Stage 5: (final build)
 # Overlay pip dependencies, install our own source, and set configuration.
@@ -94,6 +98,10 @@ RUN pip3 install --no-cache-dir --no-deps /src
 
 FROM aptinstall
 COPY --from=pipinstalldeps /usr/local /usr/local
+
+# Prime some cached Astropy data.
+RUN python3 -c 'from astroplan import download_IERS_A; download_IERS_A()'
+
 COPY --from=pipinstall /usr/local /usr/local
 
 # Set locale (needed for Flask CLI)
@@ -111,9 +119,6 @@ RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config
 # please shut up and run as root.
 # http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#running-the-worker-with-superuser-privileges-root
 ENV C_FORCE_ROOT 1
-
-# Prime some cached Astropy data sources.
-RUN python3 -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation._get_site_registry(force_download=True); download_IERS_A()'
 
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
     mkdir -p /usr/var/growth.too.flask-instance/too/catalog && \
