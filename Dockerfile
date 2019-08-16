@@ -78,7 +78,9 @@ FROM aptinstall AS pipinstalldeps
 # presumably the requirements change less frequently than our own code.
 COPY requirements.txt /
 COPY --from=wheelbuilder /wheelhouse /wheelhouse
-RUN pip3 install --no-cache-dir -f /wheelhouse -r /requirements.txt
+RUN pip3 install --no-cache-dir -f /wheelhouse \
+    flower \
+    -r /requirements.txt
 
 
 #
