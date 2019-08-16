@@ -26,7 +26,8 @@ def fixup(table):
         col[col == 100000000000000000000] = np.nan
 
     first_columns = ['ra', 'dec', 'distmpc', '2D CL', '3D CL']
-    return table[first_columns + list(set(table.colnames) - set(first_columns))]
+    tab = table[first_columns + list(set(table.colnames) - set(first_columns))]
+    return tab
 
 
 def get_from_vizier(*args, **kwargs):
