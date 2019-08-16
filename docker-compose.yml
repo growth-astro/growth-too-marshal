@@ -83,9 +83,9 @@ services:
       - -N
       # Don't read from stdin.
       - -n
-      # Listen on local port 80, forward connections to remote port 9999.
+      # Listen on local port 9999, forward connections to remote port 9999.
       - -L
-      - 0.0.0.0:80:127.0.0.1:9999
+      - 0.0.0.0:9999:127.0.0.1:9999
       # Connect to ssh server on nonstandard port.
       - -p
       - '22220'

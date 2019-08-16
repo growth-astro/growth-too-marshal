@@ -9,7 +9,7 @@ from . import celery
 from .. import models
 from .. import views
 
-ZTF_URL = 'http://tunnel'
+ZTF_URL = 'http://tunnel:9999'
 """URL for the P48 scheduler."""
 
 
