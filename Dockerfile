@@ -65,11 +65,11 @@ RUN pip3 install --upgrade pip
 
 
 #
-# Stage 3: pipinstall
-# Install remaining dependencies with apt.
+# Stage 3: pipinstalldeps
+# Install remaining dependencies with pip.
 #
 
-FROM aptinstall AS pipinstall
+FROM aptinstall AS pipinstalldeps
 
 # Install requirements. Do this before installing our own package, because
 # presumably the requirements change less frequently than our own code.
@@ -79,16 +79,22 @@ RUN pip3 install --no-cache-dir -f /wheelhouse -r /requirements.txt
 
 
 #
-# Stage 4: (final build)
+# Stage 4: pipinstall
+# Install our own code with pip.
+#
+
+FROM aptinstall AS pipinstall
+COPY . /src
+RUN pip3 install --no-cache-dir --no-deps /src
+
+#
+# Stage 5: (final build)
 # Overlay pip dependencies, install our own source, and set configuration.
 #
 
 FROM aptinstall
+COPY --from=pipinstalldeps /usr/local /usr/local
 COPY --from=pipinstall /usr/local /usr/local
-
-# Install our own source code now
-COPY . /src
-RUN pip3 install --no-cache-dir /src
 
 # Set locale (needed for Flask CLI)
 ENV LC_ALL C.UTF-8
