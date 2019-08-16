@@ -33,6 +33,29 @@ def gcn():
 
 
 @app.cli.command()
+def iers():
+    """Update IERS data for precise positional astronomy.
+
+    The IERS Bulletin A data set is used for precise time conversions and
+    positional astronomy. To initialize Astroplan, you need to download it.
+    According to https://astroplan.readthedocs.io/en/latest/faq/iers.html, you
+    need to run this command::
+
+        python -c 'from astroplan import download_IERS_A; download_IERS_A()'
+
+    Unfortunately, the USNO server that provides the data file is extremely
+    flaky. This tool attempts to work around that by retrying the download
+    several times.
+    """
+    from retry.api import retry_call
+    from astroplan import download_IERS_A
+    from urllib.error import URLError
+
+    retry_call(
+        download_IERS_A, exceptions=(URLError,), tries=5, delay=1, backoff=2)
+
+
+@app.cli.command()
 @click.argument('username', required=False)
 def passwd(username):
     """Set the password for a user."""

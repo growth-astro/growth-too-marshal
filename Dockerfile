@@ -131,6 +131,6 @@ USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
 
 # Prime some cached Astropy data.
-RUN python3 -c 'from astroplan import download_IERS_A; download_IERS_A()'
+RUN growth-too iers
 
 ENTRYPOINT ["growth-too"]
