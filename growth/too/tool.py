@@ -52,7 +52,7 @@ def iers():
     from urllib.error import URLError
 
     retry_call(
-        download_IERS_A, exceptions=(IndexError, URLError,),
+        download_IERS_A, exceptions=(IndexError, URLError, ValueError),
         tries=5, delay=1, backoff=2)
 
 
