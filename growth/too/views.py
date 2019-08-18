@@ -828,7 +828,7 @@ def nan_to_none(o):
 
 
 @app.route('/event/<datetime:dateobs>/galaxies/json')
-# @login_required
+@login_required
 def galaxies_data(dateobs):
     event = models.Event.query.get_or_404(dateobs)
     table = catalogs.galaxies.copy()
@@ -946,7 +946,7 @@ def galaxies_data(dateobs):
 
 
 @app.route('/event/<datetime:dateobs>/galaxies')
-# @login_required
+@login_required
 def galaxies(dateobs):
     event = models.Event.query.get_or_404(dateobs)
     return render_template(
