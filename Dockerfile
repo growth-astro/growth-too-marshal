@@ -111,7 +111,7 @@ COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config
 
 RUN mkdir -p /usr/var/growth.too.flask-instance && \
-    mkdir -p /usr/var/growth.too.flask-instance/too/catalog && \
+    mkdir -p /usr/var/growth.too.flask-instance/catalog && \
     mkdir -p /usr/var/growth.too.flask-instance/input && \
     ln -s /run/secrets/application.cfg.d /usr/var/growth.too.flask-instance/application.cfg.d && \
     ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
