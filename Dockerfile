@@ -117,7 +117,7 @@ RUN mkdir -p /usr/var/growth.too.flask-instance && \
     ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
     ln -s /run/secrets/netrc /root/netrc && \
     ln -s /run/secrets/GROWTH-India.tess /usr/var/growth.too.flask-instance/input/GROWTH-India.tess && \
-    ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/too/catalog/CLU.hdf5
+    ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
 # FIXME: generate the Flask secret key here. This should probably be specified
