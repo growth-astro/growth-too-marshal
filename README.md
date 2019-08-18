@@ -1,5 +1,6 @@
 [![Documentation Status](https://readthedocs.org/projects/growth-too-marshal/badge/?version=latest)](https://growth-too-marshal.readthedocs.io/en/latest/?badge=latest)
 [![Test Status](https://travis-ci.org/growth-astro/growth-too-marshal.svg?branch=master)](https://travis-ci.org/growth-astro/growth-too-marshal)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/growthastro/growth-too-marshal)](https://hub.docker.com/r/growthastro/growth-too-marshal)
 [![Coverage Status](https://coveralls.io/repos/github/growth-astro/growth-too-marshal/badge.svg?branch=master)](https://coveralls.io/github/growth-astro/growth-too-marshal?branch=master)
 
 # GROWTH Target of Opportunity Marshal
