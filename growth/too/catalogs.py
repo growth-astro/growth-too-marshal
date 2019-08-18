@@ -1,7 +1,7 @@
 import os
 
 from astroquery.vizier import VizierClass
-from astropy.table import Table
+from astropy.table import Column, Table
 from celery.local import PromiseProxy
 import numpy as np
 import pkg_resources
@@ -16,9 +16,21 @@ def fixup(table):
     # Add dummy 2D and 3D credible level columns.
     # These columns are filled with nans because they are
     # localization dependent.
+    table.add_column(Column(np.repeat(np.nan, len(table))), 4, '3D CL')
+    table.add_column(Column(np.repeat(np.nan, len(table))), 4, '2D CL')
+
+    table = Table(table, masked=True)
     table.convert_bytestring_to_unicode()
-    table['2D CL'] = np.repeat(np.nan, len(table))
-    table['3D CL'] = np.repeat(np.nan, len(table))
+
+    for column in table.columns.values():
+        if np.issubsctype(column, np.floating):
+            column.format = '%.02f'
+            column.mask = np.isnan(column)
+        elif np.issubsctype(column, np.unicode):
+            column.mask = (column == '')
+
+    table['ra'].format = '%.04f'
+    table['dec'].format = '%+.4f'
     return table
 
 

@@ -843,8 +843,8 @@ def galaxies_data(dateobs):
         np.deg2rad(table['ra']),
         np.deg2rad(table['dec']),
         table['distmpc'])
-    table['2D CL'] = results.searched_prob
-    table['3D CL'] = results.searched_prob_vol
+    table['2D CL'][:] = np.ma.masked_invalid(results.searched_prob)
+    table['3D CL'][:] = np.ma.masked_invalid(results.searched_prob_vol)
 
     result = {}
 
@@ -925,8 +925,20 @@ def galaxies_data(dateobs):
     else:
         table = table[:value]
 
-    result['data'] = [[nan_to_none(col) for col in row]
-                      for row in table.as_array().tolist()]
+    result['data'] = list(
+        zip(
+            *(
+                (
+                    None if item == '--' else item
+                    for item in table.formatter._pformat_col_iter(
+                        column, max_lines=-1, show_name=False,
+                        show_unit=False, outs={}
+                    )
+                )
+                for column in table.columns.values()
+            )
+        )
+    )
 
     return jsonify(result)
 

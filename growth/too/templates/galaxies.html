@@ -51,12 +51,8 @@
             dom: 'Brtip',
             columnDefs: [
                 {
-                    targets: [1],
-                    render: $.fn.dataTable.render.number('', '.', 6)
-                },
-                {
                     targets: '_all',
-                    render: $.fn.dataTable.render.number('', '.', 2)
+                    className: 'text-right'
                 }
             ],
             buttons: [
