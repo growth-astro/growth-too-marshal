@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>GROWTH ToO Marshal: About</title>
+{% endblock %}
+
+{% block body %}
+    <div class=card>
+        <div class=card-header>
+            <h5><i class="fa fa-info-circle mr-2"></i> About</h5>
+        </div>
+        <div class=card-body>
+            <h6>Version</h6>
+            <p>{{ versions.version }}
+            (<a href="https://github.com/growth-astro/growth-too-marshal/commit/{{ versions['full-revisionid'] }}"><i class="fa fa-github"></i> {{ versions['full-revisionid'] }}</a>)</p>
+            <h6>Python Packages</h6>
+            <ul>
+                {% for package in packages %}
+                <li><a href="https://pypi.org/project/{{package.project_name}}/">{{package.project_name}}</a> {{package.version}}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+

@@ -21,6 +21,7 @@ from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
 from ligo.skymap.tool.ligo_skymap_plot_observability import main \
     as plot_observability
 import matplotlib.style
+import pkg_resources
 
 from flask import (
     abort, flash, jsonify, make_response, redirect, render_template, request,
@@ -39,6 +40,7 @@ from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from .flask import app
 from .jinja import atob
 from . import catalogs, models, tasks
+from ._version import get_versions
 
 #
 #
@@ -1253,3 +1255,12 @@ def health_growth_marshal():
 @login_required
 def health():
     return render_template('health.html', telescopes=models.Telescope.query)
+
+
+@app.route('/about')
+@login_required
+def about():
+    return render_template(
+        'about.html',
+        packages=pkg_resources.working_set,
+        versions=get_versions())
