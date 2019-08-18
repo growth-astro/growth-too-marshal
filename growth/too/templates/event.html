@@ -80,11 +80,9 @@
 {% block scripts %}
 <script>
     $('img.lightcurve').on('error', function() {
-        console.log(this);
         $(this).replaceWith('<small>(Not yet available)</small>');
     });
     $('img.airmass').on('error', function() {
-        console.log(this);
         $(this).replaceWith('<small>(Airmass chart not yet available)</small>');
     });
 </script>
