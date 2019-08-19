@@ -20,6 +20,7 @@ from ligo.skymap.bayestar import rasterize
 import lxml.etree
 import pkg_resources
 import numpy as np
+from sqlalchemy import Sequence
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
@@ -441,8 +442,10 @@ class Field(db.Model):
 
     field_id = db.Column(
         db.Integer,
+        Sequence('field_id_seq', start=-1, increment=-1),
         primary_key=True,
-        comment='Field ID')
+        comment='Field ID',
+        autoincrement=True)
 
     ra = db.Column(
         db.Float,
