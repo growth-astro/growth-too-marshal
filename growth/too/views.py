@@ -1,4 +1,3 @@
-import warnings
 import datetime
 import json
 import os
@@ -34,7 +33,6 @@ from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
 from passlib.apache import HtpasswdFile
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .flask import app
@@ -92,30 +90,6 @@ def load_user(user_id):
     # the database. Once the htpasswd file goes away, drop everything after
     # the `or`.
     return models.User.query.get(user_id) or models.User(name=user_id)
-
-
-def get_marshallink(dateobs):
-
-    try:
-        from . import growthdb
-    except OperationalError:
-        warnings.warn('growth-db does not appear to be accessible.')
-        return 'None'
-    else:
-        event = models.Event.query.filter_by(dateobs=dateobs).all()
-        if len(event) == 0 or event is None:
-            return 'None'
-        else:
-            event = event[0]
-            scienceprogram = None
-            if 'Fermi' in event.tags:
-                scienceprogram = 'GBM'
-            elif 'GW' in event.tags:
-                scienceprogram = \
-                    'Electromagnetic Counterparts to Gravitational Waves'
-            elif 'AMON' in event.tags:
-                scienceprogram = 'IceCube'
-            return growthdb.get_marshallink(current_user.name, scienceprogram)
 
 
 def human_time(*args, **kwargs):
@@ -261,16 +235,14 @@ def event(dateobs):
         return redirect(url_for('event', dateobs=event.dateobs))
 
     return render_template(
-        'event.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        'event.html', event=models.Event.query.get_or_404(dateobs))
 
 
 @app.route('/event/<datetime:dateobs>/objects')
 @login_required
 def objects(dateobs):
     return render_template(
-        'objects.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        'objects.html', event=models.Event.query.get_or_404(dateobs))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
@@ -1238,16 +1210,6 @@ def health_queue(telescope):
     or an HTTP 500 Internal Server Error response on failure.
     """
     tasks.scheduler.ping.delay(telescope).get(10)
-    return '', 204  # No Content
-
-
-@app.route('/health/growth-marshal')
-def health_growth_marshal():
-    """Check connectivity with the GROWTH Marshal.
-    Returns an HTTP 204 No Content response on success,
-    or an HTTP 500 Internal Server Error response on failure.
-    """
-    from . import growthdb  # noqa: F401
     return '', 204  # No Content
 
 

@@ -28,11 +28,6 @@
 
 version: '3.3'
 
-networks:
-  internal: {}
-  growth_net:
-    external: true
-
 secrets:
   application.cfg.d:
     file: secrets/application.cfg.d
@@ -57,21 +52,15 @@ volumes:
 services:
   postgres:
     image: postgres:11
-    networks:
-      - internal
     volumes:
       - too-data:/var/lib/postgresql/data
     restart: always
   redis:
     image: redis
-    networks:
-      - internal
     restart: always
   tunnel:
     build: .
     image: growthastro/growth-too-marshal
-    networks:
-      - internal
     restart: always
     secrets:
       - id_rsa
@@ -97,8 +86,6 @@ services:
     command: celery flower --url-prefix=flower
     depends_on:
       - redis
-    networks:
-      - internal
     restart: always
   celery:
     build: .
@@ -109,11 +96,6 @@ services:
     command: celery worker --loglevel info --concurrency 4
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
@@ -128,8 +110,6 @@ services:
     command: celery beat --loglevel info
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    networks:
-      - internal
     restart: always
     secrets:
       - application.cfg.d
@@ -143,11 +123,6 @@ services:
       - redis
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
@@ -161,11 +136,6 @@ services:
       - tunnel
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
@@ -179,8 +149,6 @@ services:
     depends_on:
       - flask
       - flower
-    networks:
-      - internal
     ports:
       - "8081:8081"
     restart: always
