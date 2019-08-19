@@ -30,6 +30,7 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps -w /wheelhouse /src
 FROM debian:testing-slim AS apt-install
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
+    gunicorn3 \
     openssh-client \
     python3-astropy \
     python3-astroquery \
@@ -40,6 +41,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-flask-login \
     python3-flask-sqlalchemy \
     python3-future \
+    python3-gevent \
     python3-healpy \
     python3-humanize \
     python3-h5py \
