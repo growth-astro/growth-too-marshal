@@ -2,6 +2,7 @@
 Database schema.
 """
 
+import sys
 import datetime
 import enum
 import os
@@ -176,6 +177,8 @@ def create_all():
 
             fields = np.recfromtxt(
                 f, usecols=range(3), names=['field_id', 'ra', 'dec'])
+
+            print(fields, file=sys.stderr)
 
             for field_id, ra, dec in fields:
                 ref_filter_ids = reference_images.get(field_id, [])
@@ -440,8 +443,7 @@ class Field(db.Model):
         Sequence('field_id_seq', start=-1, increment=-1),
         primary_key=True,
         comment='Field ID',
-        autoincrement=True,
-        unique=True, nullable=False)
+        autoincrement=True)
 
     ra = db.Column(
         db.Float,
