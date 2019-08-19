@@ -9,9 +9,6 @@ from werkzeug.routing import BaseConverter
 # Application object
 app = Flask(__name__, instance_relative_config=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///growth-too-marshal'
-app.config['SQLALCHEMY_BINDS'] = {
-    'growthdb': 'postgresql:///growthtest'
-}
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 

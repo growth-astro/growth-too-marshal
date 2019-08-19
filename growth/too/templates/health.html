@@ -18,10 +18,6 @@
                         <td><span class=status-badge data-status-url="{{url_for('health_queue', telescope=telescope.telescope)}}"></span></td>
                     </tr>
                 {% endfor %}
-                <tr>
-                    <td>GROWTH Transient Database</td>
-                    <td><span class=status-badge data-status-url="{{url_for('health_growth_marshal')}}"></span></td>
-                </tr>
             </table>
             <button type=button class="btn btn-primary" id=reload><i class="fa fa-refresh mr-2"></i> Refresh</button>
         </div>
