@@ -10,3 +10,4 @@ dist
 htmlcov
 Dockerfile*
 docker-compose.yml
+secrets
