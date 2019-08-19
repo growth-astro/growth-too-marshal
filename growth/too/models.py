@@ -2,7 +2,6 @@
 Database schema.
 """
 
-import sys
 import datetime
 import enum
 import os
@@ -177,8 +176,6 @@ def create_all():
 
             fields = np.recfromtxt(
                 f, usecols=range(3), names=['field_id', 'ra', 'dec'])
-
-            print(fields, file=sys.stderr)
 
             for field_id, ra, dec in fields:
                 ref_filter_ids = reference_images.get(field_id, [])
