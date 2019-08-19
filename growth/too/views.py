@@ -1254,18 +1254,39 @@ class ObservationForm(ModelForm):
 def observations(dateobs):
 
     # start_time, end_time = 0.0, 3.0
-    telescope = 'DECam'
+    # telescope = 'DECam'
+
+    form = ObservationForm(dateobs=dateobs)
+    form.telescope.choices = [
+        (row.telescope,) * 2 for row in models.Telescope.query]
+    form.localization.choices = [
+        (row.localization_name,) * 2 for row in
+        models.Localization.query.filter_by(dateobs=dateobs)]
+
     start_time = time.Time('2019-04-26T15:46:58', format='isot')
     end_time = time.Time('2019-04-29T15:46:58', format='isot')
-    if telescope == 'ZTF': tasks.ztf_client.ztf_obs(start_time = start_time, end_time = end_time)
-    elif telescope == 'DECam': tasks.decam_client.decam_obs(start_time = start_time, end_time = end_time)
+    # start_time = time.TimeDelta(start_time, time.Time.now().jd, format='jd')
+    # end_time = time.Time(end_time, time.Time.now().jd, format='jd')
+
+    telescope = form.telescope.data
+    telescope = 'DECam'
+
+    #if telescope == 'ZTF': tasks.ztf_client.ztf_obs(start_time = start_time, end_time = end_time)
+    tasks.decam_client.decam_obs(start_time = start_time, end_time = end_time)
+
+    start_time = 0 
+    end_time = 3   
 
     localization_name = models.Localization.query.filter_by(
         dateobs=dateobs).all()[-1].localization_name
 
-    telescope = models.Telescope.query.filter_by(telescope=telescope).one()
     observations = models.Observations.query.filter_by(telescope=telescope,
                                                        dateobs=dateobs).all()
+
+
+
+    telescope = models.Telescope.query.filter_by(telescope=telescope).one()
+
     if len(observations) == 0:
         observations = models.Observations(dateobs=dateobs,
                                            localization_name=localization_name,
@@ -1275,12 +1296,7 @@ def observations(dateobs):
     else:
         observations = observations[0]
 
-    form = ObservationForm(dateobs=dateobs)
-    form.telescope.choices = [
-        (row.telescope,) * 2 for row in models.Telescope.query]
-    form.localization.choices = [
-        (row.localization_name,) * 2 for row in
-        models.Localization.query.filter_by(dateobs=dateobs)]
+
 
     if request.method == 'POST':
         if form.validate():
