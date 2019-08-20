@@ -261,7 +261,7 @@ def get_planned_observations(
         telescope = params["telescopes"][0]
         config_struct = params["config"][telescope]
 
-        field_ids, ras, decs, probs, nexposures = [], [], [], [], []
+        field_ids = []
         segmentlist = segments.segmentlist()
         totprob = 0.0
         for field_id in tile_structs[telescope].keys():
@@ -270,10 +270,6 @@ def get_planned_observations(
 
             if tile_struct["nexposures"] > 0.0:
                 field_ids.append(field_id)
-                ras.append(tile_struct["ra"])
-                decs.append(tile_struct["dec"])
-                probs.append(tile_struct["prob"])
-                nexposures.append(tile_struct["nexposures"])
                 totprob = totprob+tile_struct["prob"]
 
                 segmentlist = segmentlist + tile_struct["segmentlist"]
