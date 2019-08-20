@@ -1,9 +1,9 @@
 #
-# Stage 1: wheelbuilder
-# Build some Python packages that do not exist as binaries in apt or PyPI.
+# Stage 1: wheel-deps
+# Build Python wheels for dependencies that are not in apt or PyPI.
 #
 
-FROM quay.io/pypa/manylinux1_x86_64 AS wheelbuilder
+FROM quay.io/pypa/manylinux1_x86_64 AS wheel-deps
 RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps \
     lscsoft-glue \
     ligo-segments \
@@ -14,11 +14,20 @@ RUN cp *none-any.whl /wheelhouse
 
 
 #
-# Stage 2: aptinstall
+# Stage 2: wheel-self
+# Build a Python wheel for this package itself.
+#
+FROM quay.io/pypa/manylinux1_x86_64 AS wheel-self
+COPY . /src
+RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps -w /wheelhouse /src
+
+
+#
+# Stage 3: apt-install
 # Install as many of our dependencies as possible with apt.
 #
 
-FROM debian:testing-slim AS aptinstall
+FROM debian:testing-slim AS apt-install
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
     openssh-client \
@@ -65,39 +74,39 @@ RUN pip3 install --upgrade pip
 
 
 #
-# Stage 3: pipinstalldeps
+# Stage 4: pip-install-deps
 # Install remaining dependencies with pip.
 #
 
-FROM aptinstall AS pipinstalldeps
+FROM apt-install AS pip-install-deps
 
 # Install requirements. Do this before installing our own package, because
 # presumably the requirements change less frequently than our own code.
 COPY requirements.txt /
-COPY --from=wheelbuilder /wheelhouse /wheelhouse
+COPY --from=wheel-deps /wheelhouse /wheelhouse
 RUN pip3 install --no-cache-dir -f /wheelhouse \
     flower \
     -r /requirements.txt
 
 
 #
-# Stage 4: pipinstall
-# Install our own code with pip.
+# Stage 5: pip-install-self
+# Install our own wheel.
 #
 
-FROM aptinstall AS pipinstall
-COPY . /src
-RUN pip3 install --no-cache-dir --no-deps /src
+FROM apt-install AS pip-install-self
+COPY --from=wheel-self /wheelhouse /wheelhouse
+RUN pip3 install --no-cache-dir --no-deps /wheelhouse/*.whl
 
 
 #
-# Stage 5: (final build)
+# Stage 6: (final build)
 # Overlay pip dependencies, install our own source, and set configuration.
 #
 
-FROM aptinstall
-COPY --from=pipinstalldeps /usr/local /usr/local
-COPY --from=pipinstall /usr/local /usr/local
+FROM apt-install
+COPY --from=pip-install-deps /usr/local /usr/local
+COPY --from=pip-install-self /usr/local /usr/local
 
 # Set locale (needed for Flask CLI)
 ENV LC_ALL C.UTF-8
