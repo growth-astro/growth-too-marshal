@@ -130,7 +130,14 @@ services:
     build: .
     image: growthastro/growth-too-marshal
     entrypoint: gunicorn3
-    command: --worker-class=gevent --workers=4 --threads=4 --bind=0.0.0.0:8081 --timeout 120 --graceful-timeout 120 growth.too.tool:app
+    command:
+      - --worker-class=gevent
+      - --workers=4
+      - --threads=4
+      - --bind=0.0.0.0:8081
+      - --timeout=120
+      - --graceful-timeout=120
+      - growth.too.tool:app
     depends_on:
       - postgres
       - redis
