@@ -127,12 +127,6 @@ RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config && \
     ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
-# FIXME: generate the Flask secret key here. This should probably be specified
-# as an env variable or a docker-compose secret so that it is truly persistent.
-# As it is here, it will be regenerated only rarely, if the above steps change.
-RUN python3 -c 'import os; print("SECRET_KEY =", os.urandom(24))' \
-    >> /usr/var/growth.too.flask-instance/application.cfg
-
 RUN useradd -mr growth-too-marshal
 USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
