@@ -299,6 +299,7 @@ class Event(db.Model):
 
     _tags = db.relationship(
         lambda: Tag,
+        lazy='selectin',
         order_by=lambda: (
             db.func.lower(Tag.text).notin_({'fermi', 'swift', 'amon', 'lvc'}),
             db.func.lower(Tag.text).notin_({'long', 'short'}),
