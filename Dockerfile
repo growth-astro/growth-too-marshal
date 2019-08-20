@@ -109,8 +109,7 @@ COPY --from=pip-install-deps /usr/local /usr/local
 COPY --from=pip-install-self /usr/local /usr/local
 
 # Set locale (needed for Flask CLI)
-ENV LC_ALL C.UTF-8
-ENV LANG C.UTF-8
+ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 
 # Add host fingerprints.
 COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
