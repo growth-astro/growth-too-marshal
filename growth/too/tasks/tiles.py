@@ -270,7 +270,7 @@ def get_planned_observations(
 
             if tile_struct["nexposures"] > 0.0:
                 field_ids.append(field_id)
-                totprob = totprob+tile_struct["prob"]
+                totprob += tile_struct["prob"]
 
                 segmentlist = segmentlist + tile_struct["segmentlist"]
                 segmentlist = segmentlist.coalesce()
