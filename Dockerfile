@@ -111,11 +111,6 @@ COPY --from=pip-install-self /usr/local /usr/local
 # Set locale (needed for Flask CLI)
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 
-# Add host fingerprints.
-COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
-
-# Provide SSH keys through Docker secrets.
-# Note that SSH correctly guesses the public key by appending ".pub".
 RUN useradd -mr growth-too-marshal && \
     echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config && \
     mkdir -p /usr/var/growth.too.flask-instance && \
@@ -126,6 +121,7 @@ RUN useradd -mr growth-too-marshal && \
     ln -s /run/secrets/netrc /root/netrc && \
     ln -s /run/secrets/GROWTH-India.tess /usr/var/growth.too.flask-instance/input/GROWTH-India.tess && \
     ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
+COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
 USER growth-too-marshal:growth-too-marshal
