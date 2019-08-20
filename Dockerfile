@@ -116,7 +116,8 @@ COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 
 # Provide SSH keys through Docker secrets.
 # Note that SSH correctly guesses the public key by appending ".pub".
-RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config && \
+RUN useradd -mr growth-too-marshal && \
+    echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config && \
     mkdir -p /usr/var/growth.too.flask-instance && \
     mkdir -p /usr/var/growth.too.flask-instance/catalog && \
     mkdir -p /usr/var/growth.too.flask-instance/input && \
@@ -127,7 +128,6 @@ RUN echo IdentityFile /run/secrets/id_rsa >> /etc/ssh/ssh_config && \
     ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
-RUN useradd -mr growth-too-marshal
 USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
 
