@@ -139,7 +139,7 @@ services:
       - --graceful-timeout=120
       - --access-logfile=-
       - --error-logfile=-
-      - growth.too.tool:app
+      - growth.too.tool:wsgiapp
     depends_on:
       - postgres
       - redis
