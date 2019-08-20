@@ -272,7 +272,7 @@ def get_planned_observations(
                 field_ids.append(field_id)
                 totprob += tile_struct["prob"]
 
-                segmentlist = segmentlist + tile_struct["segmentlist"]
+                segmentlist += tile_struct["segmentlist"]
                 segmentlist = segmentlist.coalesce()
 
                 if params["tilesType"] == "galaxy":
