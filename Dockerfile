@@ -25,6 +25,8 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps -w /wheelhouse /src
 #
 # Stage 3: apt-install
 # Install as many of our dependencies as possible with apt.
+# Not that we also update pip because Debian's pip is too old to install
+# manylinux2010 wheels.
 #
 
 FROM debian:testing-slim AS apt-install
@@ -69,10 +71,8 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-tz \
     python3-wtforms \
     python3-pyvo && \
-    rm -rf /var/lib/apt/lists/*
-
-# Debian's pip is too old to install manylinux2010 wheels.
-RUN pip3 install --upgrade pip
+    rm -rf /var/lib/apt/lists/* && \
+    pip3 install --upgrade pip
 
 
 #
