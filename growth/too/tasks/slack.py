@@ -46,7 +46,7 @@ def slack_too(telescope, queue_name):
         text=body)
 
     if not response["ok"]:
-        raise RuntimeError('Slack ToO message failed...')
+        raise RuntimeError('Slack ToO message failed...', response)
 
 
 @celery.task(ignore_result=True, shared=False)
@@ -60,4 +60,4 @@ def slack_everyone(dateobs):
         text=body)
 
     if not response["ok"]:
-        raise RuntimeError('Slack event message failed...')
+        raise RuntimeError('Slack event message failed...', response)
