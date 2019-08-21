@@ -373,7 +373,8 @@ def tile(localization_name, dateobs, telescope,
     plan_args.setdefault('probability', 0.9)
 
     if plan_name is None:
-        plan_name = "%s_%s_%d_%d_%s_%d_%d" % (
+        plan_name = "%s_%s_%s_%d_%d_%s_%d_%d" % (
+            localization_name,
             "".join(plan_args['filt']), plan_args['schedule_type'],
             plan_args['doDither'], plan_args['doReferences'],
             plan_args['filterScheduleType'],
