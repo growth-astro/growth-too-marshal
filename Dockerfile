@@ -4,13 +4,18 @@
 #
 
 FROM quay.io/pypa/manylinux1_x86_64 AS wheel-deps
-RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps \
+
+RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
     lscsoft-glue \
     ligo-segments \
     python-ligo-lw \
-    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286
-RUN for wheel in *.whl; do auditwheel repair $wheel; done
-RUN cp *none-any.whl /wheelhouse
+    git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286 && \
+    # Audit all binary wheels
+    ls *.whl | xargs -L 1 auditwheel repair && \
+    # Copy all architecture-independent wheels
+    mv *none-any.whl /wheelhouse && \
+    # Clean up to reduce size of cache
+    rm *.whl
 
 
 #
