@@ -125,22 +125,21 @@ def create_all():
 
     for tele in tqdm(telescopes, 'populating telescopes'):
 
-        filename = \
-            pkg_resources.resource_filename(__name__, 'input/%s.ref' % tele)
+        filename = pkg_resources.resource_filename(
+            __name__, 'input/%s.ref' % tele)
         if os.path.isfile(filename):
-            refstable = table.Table.read(filename,
-                                         format='ascii', data_start=2,
-                                         data_end=-1)
+            refstable = table.Table.read(
+                filename, format='ascii', data_start=2, data_end=-1)
             refs = table.unique(refstable, keys=['field', 'fid'])
             if "maglimcat" not in refs.columns:
                 refs["maglimcat"] = np.nan
 
-            reference_images = \
-                {group[0]['field']: group['fid'].astype(int).tolist()
-                 for group in refs.group_by('field').groups}
-            reference_mags = \
-                {group[0]['field']: group['maglimcat'].tolist()
-                 for group in refs.group_by('field').groups}
+            reference_images = {
+                group[0]['field']: group['fid'].astype(int).tolist()
+                for group in refs.group_by('field').groups}
+            reference_mags = {
+                group[0]['field']: group['maglimcat'].tolist()
+                for group in refs.group_by('field').groups}
 
         else:
             reference_images = {}
@@ -151,8 +150,8 @@ def create_all():
             tessfile = app.open_instance_resource(tesspath)
         except IOError:
             tessfile = pkg_resources.resource_stream(__name__, tesspath)
-        configfile = pkg_resources.resource_stream(__name__,
-                                                   'config/%s.config' % tele)
+        configfile = pkg_resources.resource_stream(
+            __name__, 'config/%s.config' % tele)
         with tessfile as f, configfile as g:
 
             config_struct = {}
