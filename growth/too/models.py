@@ -155,7 +155,8 @@ def create_all():
             tessfilename = tessfile.name
             tessfile.close()
             fields = np.recfromtxt(
-                tessfilename, usecols=range(3), names=['field_id', 'ra', 'dec'])
+                tessfilename, usecols=range(3),
+                names=['field_id', 'ra', 'dec'])
 
             with pkg_resources.resource_stream(
                     __name__, 'config/%s.config' % tele) as g:
