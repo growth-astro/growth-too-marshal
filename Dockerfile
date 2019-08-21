@@ -70,7 +70,6 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-socks \
     python3-shapely \
     python3-sqlalchemy-utils \
-    python3-tqdm \
     python3-tornado \
     python3-twilio \
     python3-tz \
