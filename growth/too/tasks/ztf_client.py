@@ -33,6 +33,9 @@ def ztf_obs(start_time=None, end_time=None):
     """.format(start_time.jd, end_time.jd)).to_table()
 
     obstable = obstable.filled()
+    if len(obstable) == 0:
+        log.info('No observations in time window to ingest.')
+        return
 
     obs_grouped_by_exp = obstable.group_by('expid').groups
     for expid, rows in zip(obs_grouped_by_exp.keys, obs_grouped_by_exp):
