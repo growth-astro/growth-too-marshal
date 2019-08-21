@@ -5,7 +5,6 @@ import click
 from flask.cli import FlaskGroup
 import lxml.etree
 from passlib.apache import HtpasswdFile
-import pkg_resources
 from tqdm import tqdm
 
 from .flask import app
@@ -96,18 +95,22 @@ def create(sample):
         models.db.session.merge(models.User(name='fritz'))
         models.db.session.commit()
 
-        filenames = ['tests/data/GRB180116A_Fermi_GBM_Alert.xml',
-                     'tests/data/GRB180116A_Fermi_GBM_Flt_Pos.xml',
-                     'tests/data/GRB180116A_Fermi_GBM_Gnd_Pos.xml',
-                     'tests/data/GRB180116A_Fermi_GBM_Fin_Pos.xml',
-                     'tests/data/MS181101ab-1-Preliminary.xml',
-                     'tests/data/MS181101ab-4-Retraction.xml',
-                     'tests/data/AMON_151115.xml']
+        filenames = ['GRB180116A_Fermi_GBM_Alert.xml',
+                     'GRB180116A_Fermi_GBM_Flt_Pos.xml',
+                     'GRB180116A_Fermi_GBM_Gnd_Pos.xml',
+                     'GRB180116A_Fermi_GBM_Fin_Pos.xml',
+                     'MS181101ab-1-Preliminary.xml',
+                     'MS181101ab-4-Retraction.xml',
+                     'AMON_151115.xml']
 
-        for filename in tqdm(filenames, 'processing sample GCNs'):
-            payload = pkg_resources.resource_string(
-                __name__, filename)
-            handle(payload, lxml.etree.fromstring(payload))
+        with tqdm(filenames) as progress:
+            for filename in progress:
+                progress.set_description(
+                    'processing sample GCN {}'.format(filename))
+                with app.open_resource(
+                        os.path.join('tests/data', filename)) as f:
+                    payload = f.read()
+                handle(payload, lxml.etree.fromstring(payload))
 
         tasks.ztf_client.ztf_obs()
 

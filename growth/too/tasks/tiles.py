@@ -353,6 +353,7 @@ def tile(localization_name, dateobs, telescope,
          validity_window_end=None,
          plan_name=None,
          **plan_args):
+    log.info('localization_name=%r, dateobs=%r, telescope=%r', localization_name, dateobs, telescope)
 
     if validity_window_start is None:
         validity_window_start = datetime.datetime.now()

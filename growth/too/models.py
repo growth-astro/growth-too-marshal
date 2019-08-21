@@ -123,128 +123,130 @@ def create_all():
         }
     }
 
-    for tele in tqdm(telescopes, 'populating telescopes'):
+    with tqdm(telescopes) as telescope_progress:
+        for tele in telescope_progress:
+            telescope_progress.set_description('populating {}'.format(tele))
 
-        filename = pkg_resources.resource_filename(
-            __name__, 'input/%s.ref' % tele)
-        if os.path.isfile(filename):
-            refstable = table.Table.read(
-                filename, format='ascii', data_start=2, data_end=-1)
-            refs = table.unique(refstable, keys=['field', 'fid'])
-            if "maglimcat" not in refs.columns:
-                refs["maglimcat"] = np.nan
+            filename = pkg_resources.resource_filename(
+                __name__, 'input/%s.ref' % tele)
+            if os.path.isfile(filename):
+                refstable = table.Table.read(
+                    filename, format='ascii', data_start=2, data_end=-1)
+                refs = table.unique(refstable, keys=['field', 'fid'])
+                if "maglimcat" not in refs.columns:
+                    refs["maglimcat"] = np.nan
 
-            reference_images = {
-                group[0]['field']: group['fid'].astype(int).tolist()
-                for group in refs.group_by('field').groups}
-            reference_mags = {
-                group[0]['field']: group['maglimcat'].tolist()
-                for group in refs.group_by('field').groups}
+                reference_images = {
+                    group[0]['field']: group['fid'].astype(int).tolist()
+                    for group in refs.group_by('field').groups}
+                reference_mags = {
+                    group[0]['field']: group['maglimcat'].tolist()
+                    for group in refs.group_by('field').groups}
 
-        else:
-            reference_images = {}
-            reference_mags = {}
+            else:
+                reference_images = {}
+                reference_mags = {}
 
-        tesspath = 'input/%s.tess' % tele
-        try:
-            tessfile = app.open_instance_resource(tesspath)
-        except IOError:
-            tessfile = pkg_resources.resource_stream(__name__, tesspath)
-        tessfilename = tessfile.name
-        tessfile.close()
-        fields = np.recfromtxt(
-            tessfilename, usecols=range(3), names=['field_id', 'ra', 'dec'])
+            tesspath = 'input/%s.tess' % tele
+            try:
+                tessfile = app.open_instance_resource(tesspath)
+            except IOError:
+                tessfile = pkg_resources.resource_stream(__name__, tesspath)
+            tessfilename = tessfile.name
+            tessfile.close()
+            fields = np.recfromtxt(
+                tessfilename, usecols=range(3), names=['field_id', 'ra', 'dec'])
 
-        with pkg_resources.resource_stream(
-                __name__, 'config/%s.config' % tele) as g:
-            config_struct = {}
-            for line in g.readlines():
-                line_without_return = line.decode().split("\n")
-                line_split = line_without_return[0].split(" ")
-                line_split = list(filter(None, line_split))
-                if line_split:
-                    try:
-                        config_struct[line_split[0]] = float(line_split[1])
-                    except ValueError:
-                        config_struct[line_split[0]] = line_split[1]
+            with pkg_resources.resource_stream(
+                    __name__, 'config/%s.config' % tele) as g:
+                config_struct = {}
+                for line in g.readlines():
+                    line_without_return = line.decode().split("\n")
+                    line_split = line_without_return[0].split(" ")
+                    line_split = list(filter(None, line_split))
+                    if line_split:
+                        try:
+                            config_struct[line_split[0]] = float(line_split[1])
+                        except ValueError:
+                            config_struct[line_split[0]] = line_split[1]
 
-        db.session.merge(Telescope(telescope=tele,
-                                   lat=config_struct["latitude"],
-                                   lon=config_struct["longitude"],
-                                   elevation=config_struct["elevation"],
-                                   timezone=config_struct["timezone"],
-                                   filters=available_filters[tele],
-                                   default_plan_args=plan_args[tele]))
+            db.session.merge(Telescope(telescope=tele,
+                                       lat=config_struct["latitude"],
+                                       lon=config_struct["longitude"],
+                                       elevation=config_struct["elevation"],
+                                       timezone=config_struct["timezone"],
+                                       filters=available_filters[tele],
+                                       default_plan_args=plan_args[tele]))
 
-        for field_id, ra, dec in tqdm(fields, 'populating fields'):
-            ref_filter_ids = reference_images.get(field_id, [])
-            ref_filter_mags = []
-            for val in reference_mags.get(field_id, []):
-                ref_filter_mags.append(val)
-            bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
-            ref_filter_bands = [bands.get(n, n) for n
-                                in ref_filter_ids]
+            for field_id, ra, dec in tqdm(fields, 'populating fields'):
+                ref_filter_ids = reference_images.get(field_id, [])
+                ref_filter_mags = []
+                for val in reference_mags.get(field_id, []):
+                    ref_filter_mags.append(val)
+                bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
+                ref_filter_bands = [bands.get(n, n) for n
+                                    in ref_filter_ids]
 
-            if config_struct["FOV_type"] == "square":
-                ipix, radecs, patch, area = gwemopt.utils.getSquarePixels(
-                    ra, dec, config_struct["FOV"], Localization.nside)
-            elif config_struct["FOV_type"] == "circle":
-                ipix, radecs, patch, area = gwemopt.utils.getCirclePixels(
-                    ra, dec, config_struct["FOV"], Localization.nside)
-            if len(radecs) == 0:
-                continue
-            corners = np.vstack((radecs, radecs[0, :]))
-            if corners.size == 10:
-                corners_copy = copy.deepcopy(corners)
-                corners[2] = corners_copy[3]
-                corners[3] = corners_copy[2]
-            contour = {
-                'type': 'Feature',
-                'geometry': {
-                    'type': 'MultiLineString',
-                    'coordinates': [corners.tolist()]
-                },
-                'properties': {
-                    'telescope': tele,
-                    'field_id': int(field_id),
-                    'ra': ra,
-                    'dec': dec,
-                    'depth': dict(zip(ref_filter_bands, ref_filter_mags))
+                if config_struct["FOV_type"] == "square":
+                    ipix, radecs, patch, area = gwemopt.utils.getSquarePixels(
+                        ra, dec, config_struct["FOV"], Localization.nside)
+                elif config_struct["FOV_type"] == "circle":
+                    ipix, radecs, patch, area = gwemopt.utils.getCirclePixels(
+                        ra, dec, config_struct["FOV"], Localization.nside)
+                if len(radecs) == 0:
+                    continue
+                corners = np.vstack((radecs, radecs[0, :]))
+                if corners.size == 10:
+                    corners_copy = copy.deepcopy(corners)
+                    corners[2] = corners_copy[3]
+                    corners[3] = corners_copy[2]
+                contour = {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'MultiLineString',
+                        'coordinates': [corners.tolist()]
+                    },
+                    'properties': {
+                        'telescope': tele,
+                        'field_id': int(field_id),
+                        'ra': ra,
+                        'dec': dec,
+                        'depth': dict(zip(ref_filter_bands, ref_filter_mags))
+                    }
                 }
-            }
-            db.session.merge(Field(telescope=tele,
-                                   field_id=int(field_id),
-                                   ra=ra, dec=dec, contour=contour,
-                                   reference_filter_ids=ref_filter_ids,
-                                   reference_filter_mags=ref_filter_mags,
-                                   ipix=ipix.tolist()))
+                db.session.merge(Field(telescope=tele,
+                                       field_id=int(field_id),
+                                       ra=ra, dec=dec, contour=contour,
+                                       reference_filter_ids=ref_filter_ids,
+                                       reference_filter_mags=ref_filter_mags,
+                                       ipix=ipix.tolist()))
 
-        if tele == "ZTF":
-            quadrant_coords = get_ztf_quadrants()
+            if tele == "ZTF":
+                quadrant_coords = get_ztf_quadrants()
 
-            skyoffset_frames = coordinates.SkyCoord(
-                fields['ra'], fields['dec'], unit=u.deg
-            ).skyoffset_frame()
+                skyoffset_frames = coordinates.SkyCoord(
+                    fields['ra'], fields['dec'], unit=u.deg
+                ).skyoffset_frame()
 
-            quadrant_coords_icrs = coordinates.SkyCoord(
-                *np.tile(
-                    quadrant_coords[:, np.newaxis, ...],
-                    (len(fields), 1, 1)), unit=u.deg,
-                frame=skyoffset_frames[:, np.newaxis, np.newaxis]
-            ).transform_to(coordinates.ICRS)
+                quadrant_coords_icrs = coordinates.SkyCoord(
+                    *np.tile(
+                        quadrant_coords[:, np.newaxis, ...],
+                        (len(fields), 1, 1)), unit=u.deg,
+                    frame=skyoffset_frames[:, np.newaxis, np.newaxis]
+                ).transform_to(coordinates.ICRS)
 
-            quadrant_xyz = np.moveaxis(
-                quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
+                quadrant_xyz = np.moveaxis(
+                    quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
 
-            for field_id, xyz in zip(
-                    tqdm(fields['field_id'], 'populating subfields'),
-                    quadrant_xyz):
-                for ii, xyz in enumerate(xyz):
-                    ipix = hp.query_polygon(Localization.nside, xyz)
-                    db.session.merge(SubField(telescope=tele,
-                                              field_id=int(field_id),
-                                              subfield_id=int(ii),
-                                              ipix=ipix.tolist()))
+                for field_id, xyz in zip(
+                        tqdm(fields['field_id'], 'populating subfields'),
+                        quadrant_xyz):
+                    for ii, xyz in enumerate(xyz):
+                        ipix = hp.query_polygon(Localization.nside, xyz)
+                        db.session.merge(SubField(telescope=tele,
+                                                  field_id=int(field_id),
+                                                  subfield_id=int(ii),
+                                                  ipix=ipix.tolist()))
 
 
 class User(db.Model, UserMixin):
