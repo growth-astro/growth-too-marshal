@@ -242,14 +242,12 @@ def create_all():
                 for field_id, xyz in zip(
                         tqdm(fields['field_id'], 'populating subfields'),
                         quadrant_xyz):
-                    db.session.bulk_save_objects([
-                        SubField(telescope=tele,
-                                 field_id=int(field_id),
-                                 subfield_id=int(ii),
-                                 ipix=hp.query_polygon(
-                                     Localization.nside, xyz).tolist())
-                        for ii, xyz in enumerate(xyz)
-                    ])
+                    for ii, xyz in enumerate(xyz):
+                        ipix = hp.query_polygon(Localization.nside, xyz)
+                        db.session.merge(SubField(telescope=tele,
+                                                  field_id=int(field_id),
+                                                  subfield_id=int(ii),
+                                                  ipix=ipix.tolist()))
 
 
 class User(db.Model, UserMixin):
