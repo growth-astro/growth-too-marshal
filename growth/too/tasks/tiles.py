@@ -266,7 +266,7 @@ def get_planned_observations(
         totprob = 0.0
 
         field_maps = {}
-        for field_id in enumerate(tile_structs[telescope].keys()):
+        for field_id in tile_structs[telescope].keys():
             tile_struct = tile_structs[telescope][field_id]
             ra, dec = tile_struct["ra"], tile_struct["dec"]
 
