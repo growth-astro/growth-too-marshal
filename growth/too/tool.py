@@ -106,7 +106,7 @@ def create(sample):
         with tqdm(filenames) as progress:
             for filename in progress:
                 progress.set_description(
-                    'processing sample GCN {}'.format(filename))
+                    'processing GCN {}'.format(filename))
                 with app.open_resource(
                         os.path.join('tests/data', filename)) as f:
                     payload = f.read()
