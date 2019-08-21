@@ -24,7 +24,7 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
 #
 FROM quay.io/pypa/manylinux1_x86_64 AS wheel-self
 COPY . /src
-RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps -w /wheelhouse /src
+RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir -w /wheelhouse /src
 
 
 #
