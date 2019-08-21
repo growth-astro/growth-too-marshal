@@ -311,6 +311,19 @@ def get_planned_observations(
                         fields = models.Field.query.filter_by(
                             telescope=telescope, ra=ra, dec=dec).all()
 
+                    if len(fields) == 0:
+                        contour = {}
+                        field = models.Field(telescope=telescope,
+                                             ra=ra, dec=dec,
+                                             contour=contour,
+                                             reference_filter_ids=[],
+                                             reference_filter_mags=[],
+                                             ipix=ipix.tolist())
+                        models.db.session.merge(field)
+
+                        fields = models.Field.query.filter_by(
+                            telescope=telescope, ra=ra, dec=dec).all()
+
                     field = fields[0]
                     field_maps[field_id] = field.field_id
 
