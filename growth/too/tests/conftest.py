@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 from pytest_socket import socket_allow_hosts
 
@@ -35,6 +37,11 @@ def celery(monkeypatch):
 def mail(monkeypatch):
     """Set the Flask-Mail MAIL_SUPPRESS_SEND flag."""
     monkeypatch.setattr(tasks.email.mail.state, 'suppress', True)
+
+
+@pytest.fixture(autouse=True)
+def slackclient(monkeypatch):
+    monkeypatch.setattr(tasks.slack, 'client', Mock(client))
 
 
 def pytest_runtest_setup():
