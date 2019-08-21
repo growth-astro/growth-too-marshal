@@ -6,6 +6,7 @@ from flask.cli import FlaskGroup
 import lxml.etree
 from passlib.apache import HtpasswdFile
 import pkg_resources
+from tqdm import tqdm
 
 from .flask import app
 from . import models, tasks
@@ -95,13 +96,15 @@ def create(sample):
         models.db.session.merge(models.User(name='fritz'))
         models.db.session.commit()
 
-        for filename in ['tests/data/GRB180116A_Fermi_GBM_Alert.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Flt_Pos.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Gnd_Pos.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Fin_Pos.xml',
-                         'tests/data/MS181101ab-1-Preliminary.xml',
-                         'tests/data/MS181101ab-4-Retraction.xml',
-                         'tests/data/AMON_151115.xml']:
+        filenames = ['tests/data/GRB180116A_Fermi_GBM_Alert.xml',
+                     'tests/data/GRB180116A_Fermi_GBM_Flt_Pos.xml',
+                     'tests/data/GRB180116A_Fermi_GBM_Gnd_Pos.xml',
+                     'tests/data/GRB180116A_Fermi_GBM_Fin_Pos.xml',
+                     'tests/data/MS181101ab-1-Preliminary.xml',
+                     'tests/data/MS181101ab-4-Retraction.xml',
+                     'tests/data/AMON_151115.xml']
+
+        for filename in tqdm(filenames, 'processing sample GCNs'):
             payload = pkg_resources.resource_string(
                 __name__, filename)
             handle(payload, lxml.etree.fromstring(payload))

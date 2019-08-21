@@ -23,6 +23,7 @@ import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
+from tqdm import tqdm
 
 from .flask import app
 
@@ -122,7 +123,7 @@ def create_all():
         }
     }
 
-    for tele in telescopes:
+    for tele in tqdm(telescopes, 'populating telescopes'):
 
         filename = \
             pkg_resources.resource_filename(__name__, 'input/%s.ref' % tele)
@@ -176,7 +177,7 @@ def create_all():
             fields = np.recfromtxt(
                 f, usecols=range(3), names=['field_id', 'ra', 'dec'])
 
-            for field_id, ra, dec in fields:
+            for field_id, ra, dec in tqdm(fields, 'populating fields'):
                 ref_filter_ids = reference_images.get(field_id, [])
                 ref_filter_mags = []
                 for val in reference_mags.get(field_id, []):
@@ -236,7 +237,9 @@ def create_all():
                 quadrant_xyz = np.moveaxis(
                     quadrant_coords_icrs.cartesian.xyz.value, 0, -1)
 
-                for field_id, xyz in zip(fields['field_id'], quadrant_xyz):
+                for field_id, xyz in zip(
+                        tqdm(fields['field_id'], 'populating subfields'),
+                        quadrant_xyz):
                     for ii, xyz in enumerate(xyz):
                         ipix = hp.query_polygon(Localization.nside, xyz)
                         db.session.merge(SubField(telescope=tele,

@@ -28,5 +28,6 @@ redis >= 3.3.0
 retry
 sqlalchemy >= 1.2.0
 sqlalchemy_utils[phone]
+tqdm
 wtforms_alchemy
 wtforms_components
