@@ -22,12 +22,18 @@ __author__ = "Michael Coughlin <michael.coughlin@ligo.org>"
 
 from flask import render_template
 from slack import WebClient
+from celery.local import PromiseProxy
 
 from ..flask import app
 from . import celery
 from .. import models
 
-client = WebClient(token=app.config['SLACK_API_TOKEN'])
+
+def get_client():
+    return WebClient(token=app.config['SLACK_API_TOKEN'])
+
+
+client = PromiseProxy(get_client)
 
 
 @celery.task(ignore_result=True, shared=False)
@@ -38,10 +44,10 @@ def slack_too(telescope, queue_name):
     response = client.chat_postMessage(
         channel='#general',
         text=body)
-    try:
-        assert response["ok"]
-    except AssertionError:
-        pass
+
+    if not response["ok"]:
+        raise RuntimeError
+
 
 @celery.task(ignore_result=True, shared=False)
 def slack_everyone(dateobs):
@@ -52,7 +58,6 @@ def slack_everyone(dateobs):
     response = client.chat_postMessage(
         channel='#general',
         text=body)
-    try:
-        assert response["ok"]
-    except AssertionError:
-        pass
+
+    if not response["ok"]:
+        raise RuntimeError
