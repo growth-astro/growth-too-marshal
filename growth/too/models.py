@@ -48,8 +48,7 @@ def get_ztf_quadrants():
 def create_all():
     db.create_all(bind=None)
 
-    # telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
-    telescopes = ["ZTF", "DECam"]
+    telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
