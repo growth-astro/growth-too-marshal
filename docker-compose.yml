@@ -2,7 +2,7 @@
 #   docker-compose build
 #
 # To initialize the database, run:
-#   docker-compose run flask db create
+#   docker-compose run celery db create
 #
 # To start me up, run:
 #   docker-compose up --build
