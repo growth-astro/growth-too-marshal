@@ -77,7 +77,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-wtforms \
     python3-pyvo && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install --upgrade pip
+    pip3 install --upgrade --no-cache-dir pip
 
 
 #
