@@ -47,10 +47,10 @@ Run an interactive Python shell::
 
     docker-compose run --rm redis redis-cli -h redis
 
-Run a Flask (Python) shell::
+Run an interactive Flask (Python) shell::
 
     docker-compose run --rm --entrypoint growth-too flask shell
 
-Run a Celery (Python) shell::
+Run an interactive Celery (Python) shell::
 
-    docker-compose run --rm celery shell
+    docker-compose run --rm celery celery shell
