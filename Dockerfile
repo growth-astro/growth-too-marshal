@@ -37,6 +37,7 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir -w /wheelhouse
 FROM debian:testing-slim AS apt-install
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
+    ipython3 \
     gunicorn3 \
     openssh-client \
     python3-astropy \
