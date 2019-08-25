@@ -20,11 +20,12 @@ neutrino_programidx=program_dict['Electromagnetic Counterparts to Neutrinos']
 
 
 def get_programidx(program_name):
-    """ Given a program name, it returns the programidx """
+    """Given a program name, it returns the programidx"""
 
     r = requests.post('http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
-    programs=json.loads(r.text)
-    program_dict={p['name']:p['programidx'] for i,p in enumerate(programs)}
+    r.raise_for_status()
+    programs = json.loads(r.text)
+    program_dict = {p['name']:p['programidx'] for i,p in enumerate(programs)}
 
     try:
         return program_dict[program_name]
@@ -78,7 +79,7 @@ def update_local_db_growthmarshal(sources, program_name):
             rcid = int(s['rcid'])
             field = int(s['field'])
             candid = int(s['candid'])
-        except:
+        except (KeyError, ValueError):
             rcid = None
             field = None
             candid = None
@@ -90,20 +91,20 @@ def update_local_db_growthmarshal(sources, program_name):
 
         models.db.session.merge( 
             models.Candidates(
-                name = s['name'],
-                subfield_id = rcid,
-                creationdate = datetime.datetime(creationdate_list_int[0],\
+                name=s['name'],
+                subfield_id=rcid,
+                creationdate=datetime.datetime(creationdate_list_int[0],\
                 creationdate_list_int[1],creationdate_list_int[2]),
-                classification = s['classification'],
-                redshift = redshift,
-                iauname = s['iauname'],
-                field_id = field,
-                candid = candid,
-                ra = float(s['ra']),
-                dec = float(s['dec']),
-                lastmodified = datetime.datetime(lastmodified_list_int[0],\
+                classification=s['classification'],
+                redshift=redshift,
+                iauname=s['iauname'],
+                field_id=field,
+                candid=candid,
+                ra=float(s['ra']),
+                dec=float(s['dec']),
+                lastmodified=datetime.datetime(lastmodified_list_int[0],\
                 lastmodified_list_int[1],lastmodified_list_int[2]),
-                autoannotations = s['autoannotations']
+                autoannotations=s['autoannotations']
                 )
         )
     models.db.session.commit()
