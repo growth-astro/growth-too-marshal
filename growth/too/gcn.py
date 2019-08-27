@@ -120,9 +120,17 @@ def get_skymap(gcn_notice, root):
         for child in children:
             if child.attrib['name'] == 'skymap_fits':
                 url = child.attrib['value']
+                multiorder_url = url.replace('.fits.gz',
+                                             '.multiorder.fits')
                 break
 
-        return tasks.skymaps.download.s(url, gcn_notice.dateobs)
+        return (
+            tasks.skymaps._check_multiorder_url_existence.si(
+                multiorder_url, url
+            )
+            |
+            tasks.skymaps.download.s(gcn_notice.dateobs)
+        )
 
     retraction = root.find("./What/Param[@name='Retraction']")
     if retraction is not None:
