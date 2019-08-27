@@ -1,6 +1,6 @@
 astropy >= 3.1
 astropy-healpix>=0.3
-celery[redis] >= 4.3.0rc1  # https://github.com/celery/celery/pull/4852
+celery[redis] >= 4.3.0  # https://github.com/celery/celery/pull/4852
 flask
 flask_caching
 flask_celeryext
