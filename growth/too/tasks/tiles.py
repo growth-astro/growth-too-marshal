@@ -265,7 +265,6 @@ def get_planned_observations(
         segmentlist = segments.segmentlist()
         totprob = 0.0
 
-        field_maps = {}
         for field_id in tile_structs[telescope].keys():
             tile_struct = tile_structs[telescope][field_id]
             ra, dec = tile_struct["ra"], tile_struct["dec"]
@@ -296,7 +295,6 @@ def get_planned_observations(
                         corners[2] = corners_copy[3]
                         corners[3] = corners_copy[2]
 
-
                     contour = {
                         'type': 'Feature',
                         'geometry': {
@@ -318,9 +316,6 @@ def get_planned_observations(
                                          reference_filter_mags=[],
                                          ipix=ipix.tolist())
                     models.db.session.merge(field)
-
-                    fields = models.Field.query.filter_by(
-                        telescope=telescope, ra=ra, dec=dec).all()
 
         filter_ids = {"g": 1, "r": 2, "i": 3, "z": 4, "J": 5}
         for ii in range(len(coverage_struct["ipix"])):
