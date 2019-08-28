@@ -143,7 +143,7 @@ def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
-                          mock_call_everyone, mock_text_everyone, 
+                          mock_call_everyone, mock_text_everyone,
                           mock_slack_everyone, celery,
                           flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
@@ -163,6 +163,7 @@ def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
     mock_text_everyone.assert_not_called()
     mock_call_everyone.assert_not_called()
     mock_slack_everyone.assert_not_called()
+
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
