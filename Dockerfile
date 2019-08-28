@@ -55,6 +55,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-h5py \
     python3-lxml \
     python3-flask-mail \
+    python3-freezegun \
     python3-matplotlib \
     python3-networkx \
     python3-numpy \

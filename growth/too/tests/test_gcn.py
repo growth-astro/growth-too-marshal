@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 
 from astropy import time
@@ -6,12 +7,21 @@ import gcn
 import lxml.etree
 import numpy as np
 import pkg_resources
+import pytest
 
 from .. import models
 from ..jinja import btoa
 from ..flask import app
 from ..gcn import handle, listen
 from . import mock_download_file
+
+
+@pytest.mark.freeze_time('2017-08-17')
+def test_freeze_time():
+    """Test that freezing time works."""
+    assert datetime.date.today() == datetime.date(2017, 8, 17)
+    assert datetime.datetime.now() == datetime.datetime(2017, 8, 17)
+    assert time.Time.now() == time.Time('2017-08-17')
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
@@ -36,6 +46,7 @@ def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
+@pytest.mark.freeze_time('2019-08-21')
 def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
                             celery, flask, mail):
     # Read test GCN
@@ -92,7 +103,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
         assert np.all(np.array(exposure.exposure_time) > 0)
         assert np.all(np.array(exposure.weight) <= 1)
 
-    assert np.isclose(plan.area, 604.8028691170906)
+    assert np.isclose(plan.area, 651.6459456904389)
 
     # Try submitting some of the observing plans.
     flask.post(
