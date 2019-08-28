@@ -5,7 +5,7 @@ from pytest_socket import socket_allow_hosts
 
 from .. import tasks
 from ..flask import app
-
+from tasks.slack import client
 
 @pytest.fixture(autouse=True, scope='session')
 def database(postgresql_proc):
