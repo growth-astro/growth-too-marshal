@@ -322,9 +322,6 @@ def get_planned_observations(
                     fields = models.Field.query.filter_by(
                         telescope=telescope, ra=ra, dec=dec).all()
 
-                    field = fields[0]
-                    field_maps[field_id] = field.field_id
-
         filter_ids = {"g": 1, "r": 2, "i": 3, "z": 4, "J": 5}
         for ii in range(len(coverage_struct["ipix"])):
             data = coverage_struct["data"][ii, :]
@@ -341,17 +338,24 @@ def get_planned_observations(
             exposure_time, field_id, prob = data[4], data[5], data[6]
 
             if params["tilesType"] == "galaxy":
-                field_id = field_maps[field_id]
-
-            yield models.PlannedObservation(
-                obstime=tt.datetime,
-                field_id=field_id,
-                exposure_time=exposure_time,
-                weight=prob,
-                filter_id=filter_id,
-                telescope=telescope,
-                planned_observation_id=ii,
-                overhead_per_exposure=overhead_per_exposure)
+                yield models.PlannedObservation(
+                    obstime=tt.datetime,
+                    exposure_time=exposure_time,
+                    weight=prob,
+                    filter_id=filter_id,
+                    telescope=telescope,
+                    planned_observation_id=ii,
+                    overhead_per_exposure=overhead_per_exposure)
+            else:
+                yield models.PlannedObservation(
+                    obstime=tt.datetime,
+                    field_id=field_id,
+                    exposure_time=exposure_time,
+                    weight=prob,
+                    filter_id=filter_id,
+                    telescope=telescope,
+                    planned_observation_id=ii,
+                    overhead_per_exposure=overhead_per_exposure)
 
 
 @celery.task(ignore_result=True, shared=False)
