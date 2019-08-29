@@ -45,6 +45,7 @@ def slack_too(telescope, queue_name):
         channel='#general',
         username='Grobot',
         as_user=False,
+        icon_url='https://vignette.wikia.nocookie.net/mario/images/9/99/Grobot.png/revision/latest?cb=20130903151824',  # noqa: E501
         text=body)
 
     if not response["ok"]:
@@ -61,6 +62,7 @@ def slack_everyone(dateobs):
         channel='#general',
         username='Grobot',
         as_user=False,
+        icon_url='https://vignette.wikia.nocookie.net/mario/images/9/99/Grobot.png/revision/latest?cb=20130903151824',  # noqa: E501
         text=body)
 
     if not response["ok"]:
