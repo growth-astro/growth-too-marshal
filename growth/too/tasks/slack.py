@@ -43,6 +43,8 @@ def slack_too(telescope, queue_name):
 
     response = client.chat_postMessage(
         channel='#general',
+        username='Grobot',
+        as_user=False,
         text=body)
 
     if not response["ok"]:
@@ -57,6 +59,8 @@ def slack_everyone(dateobs):
 
     response = client.chat_postMessage(
         channel='#general',
+        username='Grobot',
+        as_user=False,
         text=body)
 
     if not response["ok"]:
