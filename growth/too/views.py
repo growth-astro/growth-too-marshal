@@ -817,11 +817,13 @@ def galaxies_data(dateobs):
         ).one_or_none() or event.localizations[-1])
     results = find_injection_moc(
         localization.table,
-        np.deg2rad(table['ra']),
-        np.deg2rad(table['dec']),
-        table['distmpc'])
-    table['2D CL'][:] = np.ma.masked_invalid(results.searched_prob)
-    table['3D CL'][:] = np.ma.masked_invalid(results.searched_prob_vol)
+        table['ra'].to(u.rad).value,
+        table['dec'].to(u.rad).value,
+        table['distmpc'].to(u.Mpc).value)
+    table['2D CL'][:] = np.ma.masked_invalid(results.searched_prob) * 100
+    table['3D CL'][:] = np.ma.masked_invalid(results.searched_prob_vol) * 100
+    table['2D pdf'][:] = np.ma.masked_invalid(results.probdensity)
+    table['3D pdf'][:] = np.ma.masked_invalid(results.probdensity_vol)
 
     result = {}
 
