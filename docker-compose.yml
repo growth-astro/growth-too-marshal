@@ -41,8 +41,6 @@ secrets:
     file: secrets/id_rsa
   id_rsa.pub:
     file: secrets/id_rsa.pub
-  GROWTH-India.tess:
-    file: secrets/input/GROWTH-India.tess
   CLU.hdf5:
     file: secrets/catalog/CLU.hdf5
 
@@ -152,7 +150,6 @@ services:
       - htpasswd
       - id_rsa
       - id_rsa.pub
-      - GROWTH-India.tess
       - CLU.hdf5
   nginx:
     image: nginx
