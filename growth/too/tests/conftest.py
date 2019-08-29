@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 from unittest.mock import create_autospec
 
 import pytest
@@ -45,7 +45,8 @@ def mail(monkeypatch):
 @pytest.fixture(autouse=True)
 def slackclient(monkeypatch):
     client = create_autospec(PromiseProxy)
-    monkeypatch.setattr(tasks.slack, 'client', Mock(client))
+    client.chat_postMessage = {"ok": True}
+    monkeypatch.setattr(tasks.slack, 'client', MagicMock(client))
 
 
 def pytest_runtest_setup():
