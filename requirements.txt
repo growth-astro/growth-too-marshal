@@ -16,7 +16,7 @@ healpy
 h5py
 ligo-gracedb
 ligo-segments
-ligo.skymap >= 0.1.9
+ligo.skymap == 0.1.9
 lxml
 networkx
 pandas
