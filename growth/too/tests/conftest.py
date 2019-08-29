@@ -1,11 +1,13 @@
 from unittest.mock import Mock
+from unittest.mock import create_autospec
 
 import pytest
 from pytest_socket import socket_allow_hosts
 
+from celery.local import PromiseProxy
+
 from .. import tasks
 from ..flask import app
-from ..tasks.slack import client
 
 
 @pytest.fixture(autouse=True, scope='session')
@@ -42,6 +44,7 @@ def mail(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def slackclient(monkeypatch):
+    client = create_autospec(PromiseProxy)
     monkeypatch.setattr(tasks.slack, 'client', Mock(client))
 
 
