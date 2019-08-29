@@ -27,6 +27,7 @@ pytz
 pyvo
 redis >= 3.3.0
 retry
+slackclient
 sqlalchemy >= 1.2.0
 sqlalchemy_utils[phone]
 tqdm

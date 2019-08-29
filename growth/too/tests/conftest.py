@@ -1,5 +1,10 @@
+from unittest.mock import MagicMock
+from unittest.mock import create_autospec
+
 import pytest
 from pytest_socket import socket_allow_hosts
+
+from celery.local import PromiseProxy
 
 from .. import tasks
 from ..flask import app
@@ -35,6 +40,13 @@ def celery(monkeypatch):
 def mail(monkeypatch):
     """Set the Flask-Mail MAIL_SUPPRESS_SEND flag."""
     monkeypatch.setattr(tasks.email.mail.state, 'suppress', True)
+
+
+@pytest.fixture(autouse=True)
+def slackclient(monkeypatch):
+    client = create_autospec(PromiseProxy)
+    client.chat_postMessage = {"ok": True}
+    monkeypatch.setattr(tasks.slack, 'client', MagicMock(client))
 
 
 def pytest_runtest_setup():

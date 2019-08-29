@@ -45,9 +45,11 @@ def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
+@mock.patch('growth.too.tasks.slack.slack_everyone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 @pytest.mark.freeze_time('2019-08-21')
-def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
+def test_grb180116a_fin_pos(mock_call_everyone, mock_slack_everyone,
+                            mock_contour,
                             celery, flask, mail):
     # Read test GCN
     payload = pkg_resources.resource_string(
@@ -70,6 +72,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
     assert event.tags == ['Fermi', 'long', 'GRB']
 
     mock_call_everyone.assert_not_called()
+    mock_slack_everyone.assert_not_called()
 
     localization, = event.localizations
     assert np.isclose(localization.flat_2d.sum(), 1.0)
@@ -134,12 +137,14 @@ def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
                  {'now': lambda: time.Time('2018-04-22T21:55:30').datetime})
 @mock.patch('growth.too.tasks.twilio.text_everyone.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
+@mock.patch('growth.too.tasks.slack.slack_everyone.run')
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
-                          mock_call_everyone, mock_text_everyone, celery,
+                          mock_call_everyone, mock_text_everyone,
+                          mock_slack_everyone, celery,
                           flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
     no database conflicts."""
@@ -157,6 +162,7 @@ def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
 
     mock_text_everyone.assert_not_called()
     mock_call_everyone.assert_not_called()
+    mock_slack_everyone.assert_not_called()
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
