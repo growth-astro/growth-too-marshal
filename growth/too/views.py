@@ -280,8 +280,8 @@ def plan(dateobs):
             group(
                 group(
                     tasks.scheduler.submit.s(telescope, plan_name),
-                    tasks.email.compose_too.s(telescope, plan_name),
-                    tasks.slack.slack_too.s(telescope, plan_name)
+                    tasks.email.compose_too.si(telescope, plan_name),
+                    tasks.slack.slack_too.si(telescope, plan_name)
                 )
                 for telescope, plan_name in plans
             ).delay(dateobs)
