@@ -9,17 +9,14 @@ from astropy import table
 from astropy.coordinates import SkyCoord
 from sqlalchemy import Table, orm
 from celery.task import PeriodicTask
-from celery.utils.log import get_task_logger
-from celery.local import PromiseProxy
+# from celery.utils.log import get_task_logger
 import numpy as np
-import pyvo.dal
 import pkg_resources
 
 from . import celery
 from .. import models
 
-log = get_task_logger(__name__)
-
+# log = get_task_logger(__name__)
 
 
 class DECamTiles(db.Model):
@@ -40,23 +37,25 @@ def decam_obs(start_time=None, end_time=None):
 
     # get all the DECam tiles, filter by mjd_obs
     query = db.session.query(DECamTiles).filter(DECamTiles.mjd_obs.between(start_time.mjd, end_time.mjd))
-    tiles = query.all()
 
     bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6, 'a': 7}
     fields = ( 'exptime', 'ra', 'dec', 'field_id', 'id', 'filter_id', 'subfield_id', 'airmass', 'maglim')
 
     tiles_table = table.Table(names=fields)
 
-    tessfile = pkg_resources.resource_stream(__name__, '../input/DECam.tess')
-    fields = np.recfromtxt(tessfile, usecols=range(3), names=['field_id', 'ra', 'dec'])
+    fields = models.Field.query.filter_by(telescope='DECam')
+    field_ids = np.array([field.field_id for field in fields])
+    ra = np.array([field.ra for field in fields])
+    dec = np.array([field.dec for field in fields])
+    tess_catalog = SkyCoord(ra=ra*u.deg, dec=dec*u.deg)
 
-    tess_catalog = SkyCoord(ra=fields['ra']*u.deg, dec=fields['dec']*u.deg)
+    ra_tiles = np.array([tile.ra for tile in tiles])
+    dec_tiles = np.array([tile.dec for tile in tiles])
+    tiles_catalog = SkyCoord(ra=ra_tiles*u.deg, dec=dec_tiles*u.deg)    
 
+    idx, d2d, d3d = tiles_catalog.match_to_catalog_sky(tess_catalog)
     for i, tile in enumerate(tiles):
-        # map the tile ra and dec to the field_id using minimum separation
-        coord = SkyCoord(ra=tile.ra*u.deg, dec=tile.dec*u.deg)
-        separation = tess_catalog.separation(coord)
-        field_id = fields['field_id'][np.argmin(separation)]
+        field_id = field_ids[i]
         filter_id = bands[tile.filter]
         obstime = time.Time(tile.mjd_obs, format='mjd').datetime
 

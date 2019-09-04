@@ -56,22 +56,22 @@
                     {% for filt in telescope.filters %} 
                     <tr>
                         <td>{{filt}}</td>
-                        <td>{{ observations.starttime(filt,start_time,end_time)  }}</td>
-                        <td>{{ observations.nexp(filt,start_time,end_time) }}</td>
-                        <td>{{ observations.totaltime(filt,start_time,end_time) }}</td>
-                        <td>{{ "%.1f"|format(observations.area(filt,start_time,end_time)) }}</td>
-                        <td>{{ "%.1f"|format(100*observations.get_probability(filt,start_time,end_time)) }}</td>
-                        <td>{{ "%.1f"|format(observations.limmag(filt,start_time,end_time)) }}</td>
+                        <td>{{ observation_list.starttime(filt,start_time,end_time)  }}</td>
+                        <td>{{ observation_list.nexp(filt,start_time,end_time) }}</td>
+                        <td>{{ observation_list.totaltime(filt,start_time,end_time) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.area(filt,start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(100*observation_list.get_probability(filt,start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.limmag(filt,start_time,end_time)) }}</td>
                     </tr>
                     {% endfor %}
                     <tr>
                         <td>All</td>
-                        <td>{{ observations.starttime("a",start_time,end_time)  }}</td>
-                        <td>{{ observations.nexp("a",start_time,end_time) }}</td>
-                        <td>{{ observations.totaltime("a",start_time,end_time) }}</td>
-                        <td>{{ "%.1f"|format(observations.area("a",start_time,end_time)) }}</td>
-                        <td>{{ "%.1f"|format(100*observations.get_probability("a",start_time,end_time)) }}</td>
-                        <td>{{ "%.1f"|format(observations.limmag("a",start_time,end_time)) }}</td>
+                        <td>{{ observation_list.starttime("a",start_time,end_time)  }}</td>
+                        <td>{{ observation_list.nexp("a",start_time,end_time) }}</td>
+                        <td>{{ observation_list.totaltime("a",start_time,end_time) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.area("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(100*observation_list.get_probability("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.limmag("a",start_time,end_time)) }}</td>
                     </tr>
             </tbody>
         </table>

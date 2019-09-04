@@ -1249,18 +1249,18 @@ class ObservationForm(ModelForm):
     end_time = FloatField(default=3)
 
 
-@app.route('/event/<datetime:dateobs>/observations', methods=['GET', 'POST'])
+@app.route('/event/<datetime:dateobs>/telescope/<telescope>/observations', methods=['GET', 'POST'])
 @login_required
-def observations(dateobs):
+def observations(dateobs, telescope):
 
-    form = ObservationForm(dateobs=dateobs)
-    form.telescope.choices = [
-        (row.telescope,) * 2 for row in models.Telescope.query]
-    form.localization.choices = [
-        (row.localization_name,) * 2 for row in
-        models.Localization.query.filter_by(dateobs=dateobs)]
+    # form = ObservationForm(dateobs=dateobs)
+    # form.telescope.choices = [
+    #     (row.telescope,) * 2 for row in models.Telescope.query]
+    # form.localization.choices = [
+    #     (row.localization_name,) * 2 for row in
+    #     models.Localization.query.filter_by(dateobs=dateobs)]
 
-    telescope = form.telescope.data
+    # telescope = form.telescope.data
 
     # useful for testing the query
 
@@ -1276,21 +1276,20 @@ def observations(dateobs):
     localization_name = models.Localization.query.filter_by(
         dateobs=dateobs).all()[-1].localization_name
 
-    observations = models.Observations.query.filter_by(telescope=telescope,
-                                                       dateobs=dateobs).all()
+    observation_list = models.ObservationList.query.filter_by(telescope=telescope,
+                                                              dateobs=dateobs).all()
 
 
 
     telescope = models.Telescope.query.filter_by(telescope=telescope).one()
 
-    if len(observations) == 0:
-        observations = models.Observations(dateobs=dateobs,
-                                           localization_name=localization_name,
-                                           telescope=telescope.telescope)
-        models.db.session.merge(observations)
+    if len(observation_list) == 0:
+        observation_list = models.ObservationList(dateobs=dateobs,
+                                                  telescope=telescope.telescope)
+        models.db.session.merge(observation_list)
         models.db.session.commit()
     else:
-        observations = observations[0]
+        observation_list = observation_list[0]
 
 
 
@@ -1303,24 +1302,22 @@ def observations(dateobs):
 
             telescope = models.Telescope.query.filter_by(
                 telescope=telescope).one()
-            observations = models.Observations.query.filter_by(
+            observation_list = models.ObservationList.query.filter_by(
                 telescope=telescope.telescope,
-                dateobs=dateobs,
-                localization_name=localization_name).all()
-            if len(observations) == 0:
-                observations = models.Observations(
+                dateobs=dateobs).all()
+            if len(observation_list) == 0:
+                observation_list = models.ObservationList(
                     dateobs=dateobs,
-                    localization_name=localization_name,
                     telescope=telescope.telescope)
-                models.db.session.merge(observations)
+                models.db.session.merge(observation_list)
                 models.db.session.commit()
             else:
-                observations = observations[0]
+                observation_list = observation_list[0]
 
     return render_template('observations.html',
                            form=form,
                            event=models.Event.query.get_or_404(dateobs),
                            telescope=telescope,
-                           observations=observations,
+                           observations=observation_list,
                            start_time=start_time,
                            end_time=end_time)
