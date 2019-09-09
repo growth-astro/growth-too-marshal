@@ -132,6 +132,16 @@ RUN useradd -mr growth-too-marshal && \
 COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
 
+# FIXME: find a different way to store the database access information
+COPY docker/db_access.csv /usr/var/growth.too.flask-instance/db_access.csv
+
+# FIXME: generate the Flask secret key here. This should probably be specified
+# as an env variable or a docker-compose secret so that it is truly persistent.
+# As it is here, it will be regenerated only rarely, if the above steps change.
+RUN python3 -c 'import os; print("SECRET_KEY =", os.urandom(24))' \
+    >> /usr/var/growth.too.flask-instance/application.cfg
+
+RUN useradd -mr growth-too-marshal
 USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
 

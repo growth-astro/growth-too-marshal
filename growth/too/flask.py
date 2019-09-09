@@ -4,11 +4,22 @@ import os
 from flask import Flask
 from flask_humanize import Humanize
 from werkzeug.routing import BaseConverter
+from astropy.io import ascii
 
 
 # Application object
 app = Flask(__name__, instance_relative_config=True)
+
+# read db access information
+# db_access_path = os.path.join(app.instance_path, 'db_access.csv')
+# db_access = ascii.read(db_access_path,format='csv')
+# db_decam = db_access[db_access['db']=='decam']
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///growth-too-marshal'
+app.config['SQLALCHEMY_BINDS'] = {'decam_db': 'postgresql:///growthtest'}
+
+# 'decam_db': f'postgresql://{db_decam["user"][0]}:{db_decam["password"][0]}@{db_decam["host"][0]}:{db_decam["port"][0]}/{db_decam["dbname"][0]}'
+
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 

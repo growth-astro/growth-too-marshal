@@ -423,6 +423,8 @@ class Telescope(db.Model):
 
     plans = db.relationship(lambda: Plan)
 
+    observation_list = db.relationship(lambda: ObservationList)
+
     default_plan_args = db.Column(
         db.JSON,
         nullable=False,
@@ -943,3 +945,228 @@ class Observation(db.Model):
          db.Boolean,
          nullable=False,
          comment='processed successfully?')
+
+
+class ObservationList(db.Model):
+    """Observation information, including the field ID, exposure time, and
+    filter."""
+
+    telescope = db.Column(
+        db.String,
+        db.ForeignKey(Telescope.telescope),
+        primary_key=True,
+        comment='Telescope')
+
+    dateobs = db.Column(
+        db.DateTime,
+        db.ForeignKey(Event.dateobs),
+        primary_key=True,
+        comment='UTC event timestamp')
+
+    def ipix(self, filt, start_time, end_time):
+        observation_list = self.get_observations(filt,
+                                             start_time, end_time)
+        return {
+            i for observation in observation_list
+            if observation.field.ipix is not None
+            for i in observation.field.ipix}
+
+    def area(self, filt, start_time, end_time):
+        nside = Localization.nside
+        ipix = self.ipix(filt, start_time, end_time)
+        return hp.nside2pixarea(nside, degrees=True) * len(ipix)
+
+    def nexp(self, filt, start_time, end_time):
+        observation_list = self.get_observations(filt,
+                                             start_time, end_time)
+        observation_ids = []
+        for ii, observation in enumerate(observation_list):
+            if observation.observation_id not in observation_ids:
+                observation_ids.append(observation.observation_id)
+        return len(observation_ids)
+
+    def starttime(self, filt, start_time, end_time):
+        observation_list = self.get_observations(filt,
+                                             start_time, end_time)
+        if len(observation_list) == 0:
+            return -1
+        cnt = 0
+        for ii, observation in enumerate(observation_list):
+            if cnt == 0:
+                tt = observation.obstime
+            else:
+                tt = min(observation.obstime, tt)
+            cnt = cnt + 1
+        return tt
+
+    def totaltime(self, filt, start_time, end_time):
+        observation_list = self.get_observations(filt,
+                                             start_time, end_time)
+        tot = 0
+        observation_ids = []
+        for ii, observation in enumerate(observation_list):
+            if observation.observation_id not in observation_ids:
+                tot = tot + observation.exposure_time/60.0
+                observation_ids.append(observation.observation_id)
+        return tot
+
+    def limmag(self, filt, start_time, end_time):
+        observation_list = self.get_observations(filt,
+                                             start_time, end_time)
+        limmags = []
+        for ii, observation in enumerate(observation_list):
+            if observation.limmag is not None:
+                limmags.append(observation.limmag)
+        return np.median(limmags)
+
+    def get_probability(self, filt, start_time, end_time):
+        localization = Localization.query.filter_by(
+            dateobs=self.dateobs,
+            localization_name=Localization.localization_name).one()
+
+        ipix = np.asarray(list(self.ipix(filt, start_time, end_time)))
+        if len(ipix) > 0:
+            return localization.flat_2d[ipix].sum()
+        else:
+            return 0.0
+
+    def get_observations(self, filt, start_time, end_time):
+
+        localization = Localization.query.filter_by(
+            dateobs=self.dateobs,
+            localization_name=self.localization_name).one()
+        prob = localization.flat_2d
+
+        fields = Field.query.filter_by(telescope=self.telescope).all()
+        field_prob_1, field_ids_1 = [], []
+        field_prob_2, field_ids_2 = [], []
+        for field in fields:
+            if field.field_id > 800 and self.telescope == 'ZTF':
+                field_ids_2.append(field.field_id)
+                field_prob_2.append(np.sum(prob[field.ipix]))
+            else:
+                field_ids_1.append(field.field_id)
+                field_prob_1.append(np.sum(prob[field.ipix]))
+
+        field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
+        field_prob_1 = np.array(field_prob_1)
+        field_prob_2 = np.array(field_prob_2)
+
+        field_ids_1 = field_ids_1[np.argsort(field_prob_1)[::-1]]
+        field_prob_1 = np.sort(field_prob_1)[::-1]
+
+        field_ids_2 = field_ids_2[np.argsort(field_prob_2)[::-1]]
+        field_prob_2 = np.sort(field_prob_2)[::-1]
+
+        cumsum = np.cumsum(field_prob_1)
+        idx2 = np.argmin(np.abs(cumsum-0.99))
+        field_ids_1 = field_ids_1[:idx2]
+        field_prob_1 = field_prob_1[:idx2]
+
+        cumsum = np.cumsum(field_prob_2)
+        idx2 = np.argmin(np.abs(cumsum-0.99))
+        field_ids_2 = field_ids_2[:idx2]
+        field_prob_2 = field_prob_2[:idx2]
+
+        field_ids = np.hstack((field_ids_1,field_ids_2))
+
+        telescope = Telescope.query.filter_by(telescope=self.telescope).one()
+        filts = list(telescope.filters)
+        filts.append('a')
+
+        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6, 'a': 7}
+        filter_id = bands[filt]
+        if filt == "a":
+            observations = Observation.query.filter(
+                (Observation.telescope == telescope.telescope) &
+                (Observation.obstime >=
+                 self.dateobs+datetime.timedelta(start_time)) &
+                (Observation.obstime <=
+                 self.dateobs+datetime.timedelta(end_time))).all()
+        else:
+            observations = Observation.query.filter(
+                (Observation.telescope == telescope.telescope) &
+                (Observation.obstime >=
+                 self.dateobs+datetime.timedelta(start_time)) &
+                (Observation.obstime <=
+                 self.dateobs+datetime.timedelta(end_time)) &
+                (Observation.filter_id == filter_id)).all()
+
+        observation_list = []
+        for ii, observation in enumerate(observations):
+            if observation.field_id not in field_ids:
+                continue
+            observation_list.append(observation)
+
+        return observation_list
+
+
+class LocalizationObservability(db.Model):
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(
+            ['dateobs',
+             'localization_name'],
+            ['localization.dateobs',
+             'localization.localization_name']
+        ),
+    )
+
+    dateobs = db.Column(
+        db.DateTime,
+        db.ForeignKey(Event.dateobs),
+        primary_key=True,
+        comment='UTC event timestamp')
+
+    localization_name = db.Column(
+        db.String,
+        primary_key=True,
+        comment='Localization name')
+
+    date = db.Column(
+        db.DateTime,
+        primary_key=True,
+        comment='UTC date')
+
+    segment_list = db.deferred(db.Column(
+        db.ARRAY(db.Float),
+        nullable=False,
+        comment='Accessible times (total)'))
+
+    airmass = db.deferred(db.Column(
+        db.LargeBinary,
+        comment='Airmass chart'))
+
+
+class PlanObservability(db.Model):
+
+    dateobs = db.Column(
+        db.DateTime,
+        db.ForeignKey(Event.dateobs),
+        primary_key=True,
+        comment='UTC event timestamp')
+
+    telescope = db.Column(
+        db.String,
+        db.ForeignKey(Telescope.telescope),
+        primary_key=True,
+        comment='Telescope')
+
+    plan_name = db.Column(
+        db.String,
+        primary_key=True,
+        comment='Plan name')
+
+    date = db.Column(
+        db.DateTime,
+        primary_key=True,
+        comment='UTC date')
+
+    segment_list = db.deferred(db.Column(
+        db.ARRAY(db.Float),
+        nullable=False,
+        comment='Accessible times (total)'))
+
+    airmass = db.deferred(db.Column(
+        db.LargeBinary,
+        comment='Airmass chart'))
