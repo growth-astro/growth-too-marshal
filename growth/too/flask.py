@@ -16,10 +16,7 @@ app = Flask(__name__, instance_relative_config=True)
 # db_decam = db_access[db_access['db']=='decam']
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///growth-too-marshal'
-app.config['SQLALCHEMY_BINDS'] = {
-    'growthdb': 'postgresql:///growthtest',
-    'decam_db': 'postgresql:///growthtest'
-}
+app.config['SQLALCHEMY_BINDS'] = {'decam_db': 'postgresql:///growthtest'}
 
 # 'decam_db': f'postgresql://{db_decam["user"][0]}:{db_decam["password"][0]}@{db_decam["host"][0]}:{db_decam["port"][0]}/{db_decam["dbname"][0]}'
 
