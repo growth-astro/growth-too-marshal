@@ -1010,7 +1010,7 @@ class PlanObservability(db.Model):
         comment='Airmass chart'))
 
 
-class Candidates(db.Model):
+class Candidate(db.Model):
 
     name = db.Column(
         db.String,
