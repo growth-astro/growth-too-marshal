@@ -150,7 +150,7 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["doDatabase"] = True
     params["doReferences"] = doReferences
     params["doUsePrimary"] = doUsePrimary
-    params["doBalanceExposure"] = doBalanceExposure,
+    params["doBalanceExposure"] = doBalanceExposure
     params["doSplit"] = False
     params["doParallel"] = False
     params["doUseCatalog"] = False
