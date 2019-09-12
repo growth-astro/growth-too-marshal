@@ -65,8 +65,9 @@ def get_candidates_growth_marshal(program_name):
     sources = r.json()
     # Add autoannotations
     for source in sources:
-        yield dict(source,
-        annotations=get_source_autoannotations(source["id"]))
+        yield dict(
+            source,
+            annotations=get_source_autoannotations(source["id"]))
 
 
 def update_local_db_growthmarshal(sources, program_name):
@@ -113,16 +114,19 @@ def update_local_db_growthmarshal(sources, program_name):
     models.db.session.commit()
 
 
-@celery.task(base=PeriodicTask,
-shared=False, run_every=datetime.timedelta(seconds=180))
+@celery.task(
+    base=PeriodicTask,
+    shared=False, run_every=datetime.timedelta(seconds=180))
 def fetch_candidates_growthmarshal():
     """Fetch the candidates present in the GROWTH marshal
     for the MMA science programs and store them in the local db."""
 
-    program_names = ['DECAM GW Followup',
-    'Afterglows of Fermi Gamma Ray Bursts',
-    'Electromagnetic Counterparts to Neutrinos',
-    'Electromagnetic Counterparts to Gravitational Waves']
+    program_names = [
+        'DECAM GW Followup',
+        'Afterglows of Fermi Gamma Ray Bursts',
+        'Electromagnetic Counterparts to Neutrinos',
+        'Electromagnetic Counterparts to Gravitational Waves'
+        ]
 
     for program_name in program_names:
         sources = get_candidates_growth_marshal(program_name)
