@@ -2,7 +2,7 @@
 #   docker-compose build
 #
 # To initialize the database, run:
-#   docker-compose run flask db create
+#   docker-compose run celery db create
 #
 # To start me up, run:
 #   docker-compose up --build
@@ -28,11 +28,6 @@
 
 version: '3.3'
 
-networks:
-  internal: {}
-  growth_net:
-    external: true
-
 secrets:
   application.cfg.d:
     file: secrets/application.cfg.d
@@ -57,52 +52,50 @@ volumes:
 services:
   postgres:
     image: postgres:11
-    networks:
-      - internal
     volumes:
       - too-data:/var/lib/postgresql/data
     restart: always
   redis:
     image: redis
-    networks:
-      - internal
     restart: always
   tunnel:
-    build:
-      context: docker
-      dockerfile: Dockerfile.tunnel
-    image: tunnel
-    networks:
-      - internal
+    build: .
+    image: growthastro/growth-too-marshal
     restart: always
     secrets:
       - id_rsa
       - id_rsa.pub
+    entrypoint:
+      - ssh
+      - -v
+      # Don't execute a command after logging in.
+      - -N
+      # Don't read from stdin.
+      - -n
+      # Listen on local port 9999, forward connections to remote port 9999.
+      - -L
+      - 0.0.0.0:9999:127.0.0.1:9999
+      # Connect to ssh server on nonstandard port.
+      - -p
+      - '22220'
+      # Username and host.
+      - too_team@hale.palomar.caltech.edu
   flower:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    build: .
+    image: growthastro/growth-too-marshal
     command: celery flower --url-prefix=flower
     depends_on:
       - redis
-    networks:
-      - internal
     restart: always
   celery:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    build: .
+    image: growthastro/growth-too-marshal
     depends_on:
       - postgres
       - redis
     command: celery worker --loglevel info --concurrency 4
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
@@ -110,23 +103,19 @@ services:
       - id_rsa.pub
       - CLU.hdf5
   celery_beat:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    build: .
+    image: growthastro/growth-too-marshal
     depends_on:
       - redis
     command: celery beat --loglevel info
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    networks:
-      - internal
     restart: always
     secrets:
       - application.cfg.d
   gcn:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    build: .
+    image: growthastro/growth-too-marshal
     command: gcn
     depends_on:
       - celery
@@ -134,30 +123,29 @@ services:
       - redis
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
   flask:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    command: run --with-threads --host=0.0.0.0 --port 8081
+    build: .
+    image: growthastro/growth-too-marshal
+    entrypoint: gunicorn3
+    command:
+      - --worker-class=gevent
+      - --workers=4
+      - --threads=4
+      - --bind=0.0.0.0:8081
+      - --timeout=120
+      - --graceful-timeout=120
+      - --access-logfile=-
+      - --error-logfile=-
+      - growth.too.tool:app
     depends_on:
       - postgres
       - redis
       - tunnel
     environment:
       HOST_HOSTNAME: "${HOSTNAME}"
-    external_links:
-      - growth-db
-    networks:
-      - internal
-      - growth_net
     restart: always
     secrets:
       - application.cfg.d
@@ -167,16 +155,14 @@ services:
       - GROWTH-India.tess
       - CLU.hdf5
   nginx:
-    build:
-      context: docker
-      dockerfile: Dockerfile.nginx
+    image: nginx
     depends_on:
       - flask
       - flower
-    networks:
-      - internal
     ports:
       - "8081:8081"
     restart: always
     secrets:
       - htpasswd
+    volumes:
+      - ${PWD}/docker/etc/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro

@@ -1,5 +1,10 @@
+from unittest.mock import MagicMock
+from unittest.mock import create_autospec
+
 import pytest
 from pytest_socket import socket_allow_hosts
+
+from celery.local import PromiseProxy
 
 from .. import tasks
 from ..flask import app
@@ -11,8 +16,6 @@ def database(postgresql_proc):
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
         proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
-    for key in app.config['SQLALCHEMY_BINDS']:
-        app.config['SQLALCHEMY_BINDS'][key] = database_uri
     from .. import models
     models.create_all()
     models.db.session.commit()
@@ -37,6 +40,13 @@ def celery(monkeypatch):
 def mail(monkeypatch):
     """Set the Flask-Mail MAIL_SUPPRESS_SEND flag."""
     monkeypatch.setattr(tasks.email.mail.state, 'suppress', True)
+
+
+@pytest.fixture(autouse=True)
+def slackclient(monkeypatch):
+    client = create_autospec(PromiseProxy)
+    client.chat_postMessage = {"ok": True}
+    monkeypatch.setattr(tasks.slack, 'client', MagicMock(client))
 
 
 def pytest_runtest_setup():

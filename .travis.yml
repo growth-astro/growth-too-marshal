@@ -19,9 +19,10 @@ jobs:
             - postgresql-11
         postgresql: "11"
       install:
+        - pip install 'kombu <= 4.5.0'  # FIXME: https://github.com/celery/celery/issues/5261
         - pip install pytest-cov coveralls -r requirements.txt -r test-requirements.txt
-        - pip install -r requirements.txt
-        - python -c 'from astropy.coordinates import EarthLocation; from astroplan import download_IERS_A; EarthLocation.get_site_names(); download_IERS_A()'
+        - pip install -e .
+        - growth-too iers
       script:
         - python setup.py test --addopts='-vv --durations=0 --cov'
       after_success:
@@ -34,9 +35,3 @@ jobs:
         - pip install flake8
       script:
         - flake8 --show-source growth
-
-    - name: IERS Connectivity
-      env:
-        CACHE_NAME: iers-connectivity
-      script:
-        - curl http://maia.usno.navy.mil/ser7/finals2000A.all

@@ -5,7 +5,7 @@ import click
 from flask.cli import FlaskGroup
 import lxml.etree
 from passlib.apache import HtpasswdFile
-import pkg_resources
+from tqdm import tqdm
 
 from .flask import app
 from . import models, tasks
@@ -30,6 +30,30 @@ def gcn():
     """Listen for GCN Notices."""
     from .gcn import listen
     listen()
+
+
+@app.cli.command()
+def iers():
+    """Update IERS data for precise positional astronomy.
+
+    The IERS Bulletin A data set is used for precise time conversions and
+    positional astronomy. To initialize Astroplan, you need to download it.
+    According to https://astroplan.readthedocs.io/en/latest/faq/iers.html, you
+    need to run this command::
+
+        python -c 'from astroplan import download_IERS_A; download_IERS_A()'
+
+    Unfortunately, the USNO server that provides the data file is extremely
+    flaky. This tool attempts to work around that by retrying the download
+    several times.
+    """
+    from retry.api import retry_call
+    from astroplan import download_IERS_A
+    from urllib.error import URLError
+
+    retry_call(
+        download_IERS_A, exceptions=(IndexError, URLError, ValueError),
+        tries=5, delay=1, backoff=2)
 
 
 @app.cli.command()
@@ -71,16 +95,22 @@ def create(sample):
         models.db.session.merge(models.User(name='fritz'))
         models.db.session.commit()
 
-        for filename in ['tests/data/GRB180116A_Fermi_GBM_Alert.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Flt_Pos.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Gnd_Pos.xml',
-                         'tests/data/GRB180116A_Fermi_GBM_Fin_Pos.xml',
-                         'tests/data/MS181101ab-1-Preliminary.xml',
-                         'tests/data/MS181101ab-4-Retraction.xml',
-                         'tests/data/AMON_151115.xml']:
-            payload = pkg_resources.resource_string(
-                __name__, filename)
-            handle(payload, lxml.etree.fromstring(payload))
+        filenames = ['GRB180116A_Fermi_GBM_Alert.xml',
+                     'GRB180116A_Fermi_GBM_Flt_Pos.xml',
+                     'GRB180116A_Fermi_GBM_Gnd_Pos.xml',
+                     'GRB180116A_Fermi_GBM_Fin_Pos.xml',
+                     'MS181101ab-1-Preliminary.xml',
+                     'MS181101ab-4-Retraction.xml',
+                     'AMON_151115.xml']
+
+        with tqdm(filenames) as progress:
+            for filename in progress:
+                progress.set_description(
+                    'processing GCN {}'.format(filename))
+                with app.open_resource(
+                        os.path.join('tests/data', filename)) as f:
+                    payload = f.read()
+                handle(payload, lxml.etree.fromstring(payload))
 
         tasks.ztf_client.ztf_obs()
 

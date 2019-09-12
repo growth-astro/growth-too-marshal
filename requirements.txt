@@ -1,7 +1,6 @@
 astropy >= 3.1
 astropy-healpix>=0.3
-celery[redis] >= 4.3.0rc1  # https://github.com/celery/celery/pull/4852
-ephem
+celery[redis] >= 4.3.0  # https://github.com/celery/celery/pull/4852
 flask
 flask_caching
 flask_celeryext
@@ -11,12 +10,13 @@ flask_mail
 flask_sqlalchemy
 flask_twilio >= 0.0.6
 flask_wtf
-gwemopt >= 0.0.49
+kombu == 4.5.0  # FIXME: https://github.com/celery/celery/issues/5261
+gwemopt == 0.0.55  # must be '==', since gwemopt does not have a stable API
 healpy
 h5py
 ligo-gracedb
 ligo-segments
-ligo.skymap >= 0.1.8
+ligo.skymap >= 0.1.11
 lxml
 networkx
 pandas
@@ -26,7 +26,10 @@ pygcn >= 0.1.15
 pytz
 pyvo
 redis >= 3.3.0
+retry
+slackclient
 sqlalchemy >= 1.2.0
 sqlalchemy_utils[phone]
+tqdm
 wtforms_alchemy
 wtforms_components

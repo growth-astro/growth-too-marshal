@@ -63,16 +63,6 @@
                 </div>
             </li>
             {% endif %}
-            <li class=list-group-item>
-                <h6>Marshal Links</h6>
-                <ul>
-                    {% if not marshallink == "None" %}
-                        <li>
-                        <a href="{{ marshallink }}">Transient page</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </li>
         </ul>
     </div>
 {% endblock %}
@@ -80,11 +70,9 @@
 {% block scripts %}
 <script>
     $('img.lightcurve').on('error', function() {
-        console.log(this);
         $(this).replaceWith('<small>(Not yet available)</small>');
     });
     $('img.airmass').on('error', function() {
-        console.log(this);
         $(this).replaceWith('<small>(Airmass chart not yet available)</small>');
     });
 </script>

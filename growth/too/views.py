@@ -1,4 +1,3 @@
-import warnings
 import datetime
 import json
 import os
@@ -21,6 +20,7 @@ from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
 from ligo.skymap.tool.ligo_skymap_plot_observability import main \
     as plot_observability
 import matplotlib.style
+import pkg_resources
 
 from flask import (
     abort, flash, jsonify, make_response, redirect, render_template, request,
@@ -33,12 +33,12 @@ from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
 from passlib.apache import HtpasswdFile
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from .flask import app
 from .jinja import atob
 from . import catalogs, models, tasks
+from ._version import get_versions
 
 #
 #
@@ -90,30 +90,6 @@ def load_user(user_id):
     # the database. Once the htpasswd file goes away, drop everything after
     # the `or`.
     return models.User.query.get(user_id) or models.User(name=user_id)
-
-
-def get_marshallink(dateobs):
-
-    try:
-        from . import growthdb
-    except OperationalError:
-        warnings.warn('growth-db does not appear to be accessible.')
-        return 'None'
-    else:
-        event = models.Event.query.filter_by(dateobs=dateobs).all()
-        if len(event) == 0 or event is None:
-            return 'None'
-        else:
-            event = event[0]
-            scienceprogram = None
-            if 'Fermi' in event.tags:
-                scienceprogram = 'GBM'
-            elif 'GW' in event.tags:
-                scienceprogram = \
-                    'Electromagnetic Counterparts to Gravitational Waves'
-            elif 'AMON' in event.tags:
-                scienceprogram = 'IceCube'
-            return growthdb.get_marshallink(current_user.name, scienceprogram)
 
 
 def human_time(*args, **kwargs):
@@ -259,16 +235,14 @@ def event(dateobs):
         return redirect(url_for('event', dateobs=event.dateobs))
 
     return render_template(
-        'event.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        'event.html', event=models.Event.query.get_or_404(dateobs))
 
 
 @app.route('/event/<datetime:dateobs>/objects')
 @login_required
 def objects(dateobs):
     return render_template(
-        'objects.html', event=models.Event.query.get_or_404(dateobs),
-        marshallink=get_marshallink(dateobs))
+        'objects.html', event=models.Event.query.get_or_404(dateobs))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
@@ -306,7 +280,8 @@ def plan(dateobs):
             group(
                 group(
                     tasks.scheduler.submit.s(telescope, plan_name),
-                    tasks.email.compose_too.s(telescope, plan_name)
+                    tasks.email.compose_too.si(telescope, plan_name),
+                    tasks.slack.slack_too.si(telescope, plan_name)
                 )
                 for telescope, plan_name in plans
             ).delay(dateobs)
@@ -429,6 +404,8 @@ class PlanForm(ModelForm):
 
     primary = BooleanField(default=False)
 
+    balance = BooleanField(default=False)
+
     filterschedule = RadioField(
         choices=[('block', 'block'), ('integrated', 'integrated')],
         default='block')
@@ -513,6 +490,7 @@ class PlanForm(ModelForm):
             doDither=self.dither.data,
             doReferences=self.references.data,
             doUsePrimary=self.primary.data,
+            doBalanceExposure=self.balance.data,
             filterScheduleType=self.filterschedule.data,
             schedule_strategy=self.schedule_strategy.data,
             usePrevious=self.previous.data,
@@ -622,6 +600,8 @@ def plan_manual():
                 tasks.scheduler.submit_manual.s(
                     telescope, json_data, queue_name),
                 tasks.email.compose_too.s(
+                    telescope, queue_name),
+                tasks.slack.slack_too.s(
                     telescope, queue_name)
             ).delay()
 
@@ -826,22 +806,27 @@ def nan_to_none(o):
 
 
 @app.route('/event/<datetime:dateobs>/galaxies/json')
-# @login_required
+@login_required
 def galaxies_data(dateobs):
     event = models.Event.query.get_or_404(dateobs)
     table = catalogs.galaxies.copy()
 
     # Populate 2D and 3D credible levels.
     localization_name = request.args.get('search[value]')
-    localization = models.Localization.query.filter_by(
-        dateobs=event.dateobs, localization_name=localization_name).one_or_none() or event.localizations[-1]
+    localization = (
+        models.Localization.query.filter_by(
+            dateobs=event.dateobs,
+            localization_name=localization_name
+        ).one_or_none() or event.localizations[-1])
     results = find_injection_moc(
         localization.table,
-        np.deg2rad(table['ra']),
-        np.deg2rad(table['dec']),
-        table['distmpc'])
-    table['2D CL'] = results.searched_prob
-    table['3D CL'] = results.searched_prob_vol
+        table['ra'].to(u.rad).value,
+        table['dec'].to(u.rad).value,
+        table['distmpc'].to(u.Mpc).value)
+    table['2D CL'][:] = np.ma.masked_invalid(results.searched_prob) * 100
+    table['3D CL'][:] = np.ma.masked_invalid(results.searched_prob_vol) * 100
+    table['2D pdf'][:] = np.ma.masked_invalid(results.probdensity)
+    table['3D pdf'][:] = np.ma.masked_invalid(results.probdensity_vol)
 
     result = {}
 
@@ -867,7 +852,8 @@ def galaxies_data(dateobs):
             pass
         else:
             try:
-                value2, = np.asarray([value['min']], dtype=table[table.colnames[i]].dtype)
+                value2, = np.asarray(
+                    [value['min']], dtype=table[table.colnames[i]].dtype)
             except KeyError:
                 pass
             except ValueError:
@@ -876,7 +862,8 @@ def galaxies_data(dateobs):
                 table = table[table[table.colnames[i]] >= value2]
 
             try:
-                value2, = np.asarray([value['max']], dtype=table[table.colnames[i]].dtype)
+                value2, = np.asarray(
+                    [value['max']], dtype=table[table.colnames[i]].dtype)
             except (KeyError, ValueError):
                 pass
             else:
@@ -920,14 +907,26 @@ def galaxies_data(dateobs):
     else:
         table = table[:value]
 
-    result['data'] = [[nan_to_none(col) for col in row]
-                      for row in table.as_array().tolist()]
+    result['data'] = list(
+        zip(
+            *(
+                (
+                    None if item == '--' else item
+                    for item in table.formatter._pformat_col_iter(
+                        column, max_lines=-1, show_name=False,
+                        show_unit=False, outs={}
+                    )
+                )
+                for column in table.columns.values()
+            )
+        )
+    )
 
     return jsonify(result)
 
 
 @app.route('/event/<datetime:dateobs>/galaxies')
-# @login_required
+@login_required
 def galaxies(dateobs):
     event = models.Event.query.get_or_404(dateobs)
     return render_template(
@@ -1222,17 +1221,16 @@ def health_queue(telescope):
     return '', 204  # No Content
 
 
-@app.route('/health/growth-marshal')
-def health_growth_marshal():
-    """Check connectivity with the GROWTH Marshal.
-    Returns an HTTP 204 No Content response on success,
-    or an HTTP 500 Internal Server Error response on failure.
-    """
-    from . import growthdb  # noqa: F401
-    return '', 204  # No Content
-
-
 @app.route('/health')
 @login_required
 def health():
     return render_template('health.html', telescopes=models.Telescope.query)
+
+
+@app.route('/about')
+@login_required
+def about():
+    return render_template(
+        'about.html',
+        packages=pkg_resources.working_set,
+        versions=get_versions())

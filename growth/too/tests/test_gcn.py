@@ -1,3 +1,4 @@
+import datetime
 from unittest import mock
 
 from astropy import time
@@ -6,12 +7,21 @@ import gcn
 import lxml.etree
 import numpy as np
 import pkg_resources
+import pytest
 
 from .. import models
 from ..jinja import btoa
 from ..flask import app
 from ..gcn import handle, listen
 from . import mock_download_file
+
+
+@pytest.mark.freeze_time('2017-08-17')
+def test_freeze_time():
+    """Test that freezing time works."""
+    assert datetime.date.today() == datetime.date(2017, 8, 17)
+    assert datetime.datetime.now() == datetime.datetime(2017, 8, 17)
+    assert time.Time.now() == time.Time('2017-08-17')
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
@@ -35,8 +45,11 @@ def test_grb180116a_gnd_pos(mock_from_cone, mock_tile, mock_contour,
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
+@mock.patch('growth.too.tasks.slack.slack_everyone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
-def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
+@pytest.mark.freeze_time('2019-08-21')
+def test_grb180116a_fin_pos(mock_call_everyone, mock_slack_everyone,
+                            mock_contour,
                             celery, flask, mail):
     # Read test GCN
     payload = pkg_resources.resource_string(
@@ -59,6 +72,7 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
     assert event.tags == ['Fermi', 'long', 'GRB']
 
     mock_call_everyone.assert_not_called()
+    mock_slack_everyone.assert_not_called()
 
     localization, = event.localizations
     assert np.isclose(localization.flat_2d.sum(), 1.0)
@@ -70,11 +84,12 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
     filterScheduleType = 'block'
     schedule_type = 'greedy'
     probability = 0.9
-    plan_name = "%s_%s_%d_%d_%s_%d_%d" % ("".join(filt), schedule_type,
-                                          doDither, doReferences,
-                                          filterScheduleType,
-                                          exposuretimes[0],
-                                          100*probability)
+    plan_name = "%s_%s_%s_%d_%d_%s_%d_%d" % (localization.localization_name,
+                                             "".join(filt), schedule_type,
+                                             doDither, doReferences,
+                                             filterScheduleType,
+                                             exposuretimes[0],
+                                             100*probability)
     plan = models.Plan.query.filter_by(plan_name=plan_name,
                                        telescope=telescope).one()
 
@@ -87,11 +102,11 @@ def test_grb180116a_fin_pos(mock_call_everyone, mock_contour,
 
     for exposure in exposures:
         field_id = exposure.field_id
-        assert np.all(np.array(field_id) < 907)
+        assert np.all(np.array(field_id) < 2000)
         assert np.all(np.array(exposure.exposure_time) > 0)
         assert np.all(np.array(exposure.weight) <= 1)
 
-    assert np.isclose(plan.area, 790.3129926351713)
+    assert np.isclose(plan.area, 651.6459456904389)
 
     # Try submitting some of the observing plans.
     flask.post(
@@ -122,12 +137,14 @@ def test_grb180116a_multiple_gcns(mock_download, mock_from_cone, mock_tile,
                  {'now': lambda: time.Time('2018-04-22T21:55:30').datetime})
 @mock.patch('growth.too.tasks.twilio.text_everyone.run')
 @mock.patch('growth.too.tasks.twilio.call_everyone.run')
+@mock.patch('growth.too.tasks.slack.slack_everyone.run')
 @mock.patch('growth.too.tasks.skymaps.contour.run')
 @mock.patch('growth.too.tasks.tiles.tile.run')
 @mock.patch('growth.too.tasks.skymaps.from_cone.run')
 @mock.patch('astropy.io.fits.file.download_file', mock_download_file)
 def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
-                          mock_call_everyone, mock_text_everyone, celery,
+                          mock_call_everyone, mock_text_everyone,
+                          mock_slack_everyone, celery,
                           flask, mail):
     """Test reading and ingesting all three GCNs. Make sure that there are
     no database conflicts."""
@@ -145,6 +162,7 @@ def test_gbm_subthreshold(mock_from_cone, mock_tile, mock_contour,
 
     mock_text_everyone.assert_not_called()
     mock_call_everyone.assert_not_called()
+    mock_slack_everyone.assert_not_called()
 
 
 @mock.patch('growth.too.tasks.skymaps.contour.run')

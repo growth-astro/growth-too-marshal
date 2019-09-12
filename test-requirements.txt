@@ -1,3 +1,5 @@
+mirakuru <= 1.1.0  # FIXME: https://github.com/ClearcodeHQ/pytest-postgresql/issues/232
 pytest >= 3.0
-pytest-postgresql
+pytest-freezegun
+pytest-postgresql <= 1.4.1  # FIXME: https://github.com/ClearcodeHQ/pytest-postgresql/issues/232
 pytest-socket

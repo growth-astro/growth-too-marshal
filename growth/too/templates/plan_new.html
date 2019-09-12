@@ -65,6 +65,14 @@
                         {{ render_field(form.primary, class='custom-control-input') }}
                         <label for=primary class=custom-control-label>Use primary only</label>
                     </div>
+                    <div class="custom-control custom-switch" aria-describedby="balanceHelpBlock">
+                        {{ render_field(form.balance, class='custom-control-input') }}
+                        <label for=balance class=custom-control-label>Filter balancing</label>
+                        <small id="balanceHelpBlock" class="form-text text-muted">
+                        Require field observations in all requested filters
+                        </small>
+
+                    </div>
                 </div>
             </div>
             <div class=form-row>

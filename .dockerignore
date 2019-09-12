@@ -10,5 +10,4 @@ dist
 htmlcov
 Dockerfile*
 docker-compose.yml
-.git
-.gitignore
+secrets
