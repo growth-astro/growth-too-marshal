@@ -33,7 +33,7 @@ def get_programidx(program_name):
     try:
         return program_dict[program_name]
     except KeyError:
-        logging.error(f"The user does not have access to the GROWTH Marshal program '{program_name}'"))
+        logging.error(f"The user does not have access to the GROWTH Marshal program '{program_name}'")
 
 
 def get_source_autoannotations(sourceid):
