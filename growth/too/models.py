@@ -26,6 +26,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
 from sqlalchemy.dialects import postgresql as psql
+from sqlalchemy import Index
 
 from tqdm import tqdm
 
@@ -481,6 +482,8 @@ class Field(db.Model):
     ipix = db.Column(
         db.ARRAY(db.Integer),
         comment='Healpix indices')
+
+    idx = Index(ipix, postgresql_using='gin')
 
     subfields = db.relationship(lambda: SubField)
 
