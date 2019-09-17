@@ -23,7 +23,7 @@ import lxml.etree
 import pkg_resources
 import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
 from sqlalchemy.dialects import postgresql as psql
 
@@ -699,7 +699,7 @@ class Localization(db.Model):
     def observations_contained_within_contour(self, ranking):
         ipix_arr = self.ipix_in_greedy_confidence_interval(ranking)
         query = db.session.query(Observation).join(Field).filter(Field.ipix.overlap(ipix_arr))
-        return query.all()
+        return query
 
 
 class Plan(db.Model):
