@@ -698,7 +698,7 @@ class Localization(db.Model):
 
     def observations_contained_within_contour(self, ranking):
         ipix_arr = self.ipix_in_greedy_confidence_interval(ranking)
-        query = db.session.query(Observation).join(Field).filter(Field.ipix.overlap(ipix_arr))
+        query = db.session.query(Observation).join(Field).filter(ipix_arr.overlap(Field.ipix))
         return query
 
 
