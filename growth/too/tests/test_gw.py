@@ -4,10 +4,13 @@ from urllib.error import HTTPError
 import lxml.etree
 import pkg_resources
 
+import pytest
+
 from .. import models
 from ..gcn import handle
 
 
+@pytest.mark.enable_socket
 @mock.patch('urllib.request.urlopen',
             side_effect=HTTPError('some/invalid/url', 404, 'Not found',
                                   'some header', 'some fp'))
@@ -32,6 +35,7 @@ def test_lvc_flatten_map(mock_tile, mock_contour, mock_download,
     assert event.tags == ['LVC', 'GW', 'BNS', 'MDC']
 
 
+@pytest.mark.enable_socket
 @mock.patch('urllib.request.urlopen')
 @mock.patch('growth.too.tasks.skymaps.download.run')
 @mock.patch('growth.too.tasks.skymaps.contour.run')
