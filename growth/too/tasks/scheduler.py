@@ -1,6 +1,5 @@
 import json
 import os.path
-import csv
 import requests
 import subprocess
 import tempfile
@@ -238,7 +237,6 @@ def get_decam_dict(data_row, queue_name, cnt, nrows,
 def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
                           priority=10000, domesleep=100):
 
-    
     t = Table(rows=json_data['targets'])
     coords = SkyCoord(ra=t['ra'], dec=t['dec'], unit=(u.degree, u.degree))
     hanle = EarthLocation(lat=32.77889*u.degree,
