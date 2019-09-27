@@ -99,7 +99,10 @@ def ztf_references():
 def ztf_depot(start_time=None, end_time=None):
     """ 
     ZTF depot reader, ingesting information about images from
-    all program ids (including program_id = 1). 
+    all program ids (including program_id = 1) based on the
+    nightly summary. This supplements what is available from 
+    the TAP interface, where information about public images
+    is not available.
   
     Parameters: 
         start_time (astropy.Time): start time of request. 
