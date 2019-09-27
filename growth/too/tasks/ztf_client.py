@@ -1,17 +1,21 @@
+import os
+import copy
 from astropy import time
 import astropy.units as u
+from astropy.table import Table
 from celery.task import PeriodicTask
 from celery.utils.log import get_task_logger
 from celery.local import PromiseProxy
 import numpy as np
 import pyvo.dal
+import requests
 
 from . import celery
 from .. import models
 
 log = get_task_logger(__name__)
 
-__all__ = ('ztf_references', 'ztf_obs')
+__all__ = ('ztf_references', 'ztf_obs', 'ztf_depot')
 
 client = PromiseProxy(
     pyvo.dal.TAPService,
@@ -88,4 +92,70 @@ def ztf_references():
             models.Field(telescope='ZTF', field_id=int(field_id[0]),
                          reference_filter_ids=rows['fid'].tolist(),
                          reference_filter_mags=rows['maglimit'].tolist()))
+    models.db.session.commit()
+
+
+@celery.task(base=PeriodicTask, shared=False, run_every=3600)
+def ztf_depot(start_time=None, end_time=None):
+
+    if start_time is None:
+        start_time = time.Time.now() - time.TimeDelta(1.0*u.day)
+    if end_time is None:
+        end_time = time.Time.now()
+
+    depotdir = 'https://ztfweb.ipac.caltech.edu/ztf/depot'
+
+    mjds = np.arange(np.floor(start_time.mjd), np.ceil(end_time.mjd))
+    for mjd in mjds:
+        this_time = time.Time(mjd, format='mjd')
+        dstr = this_time.iso.split(" ")[0].replace("-","")
+
+        filename = os.path.join(depotdir,'%s/goodsubs_%s.txt' % (dstr, dstr))
+        r = requests.get(filename)
+        lines = r.text.split("\n")
+        names = ['jd', 'field', 'rcid', 'ra0', 'dec0',
+                 'nalertpackets', 'programid', 'expid', 'fid',
+                 'scimaglim','diffmaglim','sciinpseeing','difffwhm']
+        data = []
+        cnt = 0
+        for ii, line in enumerate(lines):
+            if ii == 0: continue
+            lineSplit = list(filter(None,line.replace(" ","").split("|")))
+            if not len(lineSplit) == len(names): continue
+            row = np.array(lineSplit, dtype=float)
+            if cnt == 0:
+                data = copy.copy(row)
+            else:
+                data = np.vstack((data,row))
+            cnt = cnt + 1
+        if len(data) == 0: continue
+        obstable = Table(names=names,data=data)
+
+        obs_grouped_by_jd = obstable.group_by('jd').groups
+        for jd, rows in zip(obs_grouped_by_jd.keys, obs_grouped_by_jd):
+            for row in rows:
+                obstime = time.Time(row['jd'], format='jd').datetime,
+                models.db.session.merge(
+                    models.Observation(telescope='ZTF',
+                                       field_id=int(row['field']),
+                                       observation_id=int(row['expid']),
+                                       obstime=obstime,
+                                       exposure_time=int(30), # fixme
+                                       filter_id=int(row['fid']),
+                                       subfield_id=int(row['rcid']),
+                                       successful=1))
+            subfield_ids = rows['rcid'].tolist()
+            quadrantIDs = np.arange(64)
+            missing_quadrants = np.setdiff1d(quadrantIDs, subfield_ids)
+            for missing_quadrant in missing_quadrants:
+                obstime = time.Time(rows['jd'][0], format='jd').datetime,
+                models.db.session.merge(
+                    models.Observation(telescope='ZTF',
+                                       field_id=int(rows['field'][0]),
+                                       observation_id=int(row['expid']),
+                                       obstime=obstime,
+                                       exposure_time=int(30), # fixme
+                                       filter_id=int(row['fid']),
+                                       subfield_id=int(missing_quadrant),
+                                       successful=0))
     models.db.session.commit()
