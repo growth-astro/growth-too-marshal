@@ -96,16 +96,20 @@ def ztf_references():
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
 def ztf_depot(start_time=None, end_time=None):
-    """
-    ZTF depot reader, ingesting information about images from
-    all program ids (including program_id = 1) based on the
-    nightly summary. This supplements what is available from
-    the TAP interface, where information about public images
-    is not available.
+    """ZTF depot reader.
 
-    Parameters:
-        start_time (astropy.Time): start time of request.
-        end_time (astropy.Time): end time of request.
+    Ingests information about images from all program ids
+    (including program_id = 1) based on the nightly summary.
+    This supplements what is available from the TAP interface,
+    where information about public images is not available.
+
+    Parameters
+    ----------
+    start_time : astropy.Time
+        Start time of request.
+    end_time : astropy.Time)
+        End time of request.
+
     """
 
     if start_time is None:
@@ -116,14 +120,12 @@ def ztf_depot(start_time=None, end_time=None):
     depotdir = 'https://ztfweb.ipac.caltech.edu/ztf/depot'
 
     mjds = np.arange(np.floor(start_time.mjd), np.ceil(end_time.mjd))
-    print(mjds)
     for mjd in mjds:
         this_time = time.Time(mjd, format='mjd')
         dstr = this_time.iso.split(" ")[0].replace("-", "")
 
         url = os.path.join(depotdir, '%s/goodsubs_%s.txt' % (dstr, dstr))
         deptable = get_deptable(url)
-        print(deptable)
         if len(deptable) == 0:
             continue
 
