@@ -1,5 +1,4 @@
 import os
-import copy
 from astropy import time
 import astropy.units as u
 from astropy.table import Table
@@ -97,16 +96,16 @@ def ztf_references():
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
 def ztf_depot(start_time=None, end_time=None):
-    """ 
+    """
     ZTF depot reader, ingesting information about images from
     all program ids (including program_id = 1) based on the
-    nightly summary. This supplements what is available from 
+    nightly summary. This supplements what is available from
     the TAP interface, where information about public images
     is not available.
-  
-    Parameters: 
-        start_time (astropy.Time): start time of request. 
-        end_time (astropy.Time): end time of request.    
+
+    Parameters:
+        start_time (astropy.Time): start time of request.
+        end_time (astropy.Time): end time of request.
     """
 
     if start_time is None:
@@ -117,40 +116,35 @@ def ztf_depot(start_time=None, end_time=None):
     depotdir = 'https://ztfweb.ipac.caltech.edu/ztf/depot'
 
     mjds = np.arange(np.floor(start_time.mjd), np.ceil(end_time.mjd))
+    print(mjds)
     for mjd in mjds:
         this_time = time.Time(mjd, format='mjd')
         dstr = this_time.iso.split(" ")[0].replace("-", "")
 
-        filename = os.path.join(depotdir, '%s/goodsubs_%s.txt' % (dstr, dstr))
-        r = requests.get(filename)
-        lines = r.text.split("\n")
-        names = ['jd', 'field', 'rcid', 'ra0', 'dec0',
-                 'nalertpackets', 'programid', 'expid', 'fid',
-                 'scimaglim', 'diffmaglim', 'sciinpseeing', 'difffwhm']
-        data = Table.read(r.text, format='ascii.fixed_width',
-                   data_start=2, data_end=-1)
-        if len(data) == 0:
+        url = os.path.join(depotdir, '%s/goodsubs_%s.txt' % (dstr, dstr))
+        deptable = get_deptable(url)
+        print(deptable)
+        if len(deptable) == 0:
             continue
-        obstable = Table(names=names, data=data)
 
-        obs_grouped_by_jd = obstable.group_by('jd').groups
+        obs_grouped_by_jd = deptable.group_by('jd').groups
         for jd, rows in zip(obs_grouped_by_jd.keys, obs_grouped_by_jd):
+            obstime = time.Time(rows['jd'][0], format='jd').datetime
             for row in rows:
-                obstime = time.Time(row['jd'], format='jd').datetime,
                 models.db.session.merge(
                     models.Observation(telescope='ZTF',
                                        field_id=int(row['field']),
                                        observation_id=int(row['expid']),
                                        obstime=obstime,
+                                       limmag=row['scimaglim'],
                                        exposure_time=int(30),  # fixme
                                        filter_id=int(row['fid']),
                                        subfield_id=int(row['rcid']),
                                        successful=1))
-            subfield_ids = rows['rcid'].tolist()
-            quadrantIDs = np.arange(64)
-            missing_quadrants = np.setdiff1d(quadrantIDs, subfield_ids)
+            subfield_ids = set(rows['rcid'])
+            quadrant_ids = set(range(64))
+            missing_quadrants = quadrant_ids - subfield_ids
             for missing_quadrant in missing_quadrants:
-                obstime = time.Time(rows['jd'][0], format='jd').datetime,
                 models.db.session.merge(
                     models.Observation(telescope='ZTF',
                                        field_id=int(rows['field'][0]),
@@ -161,3 +155,10 @@ def ztf_depot(start_time=None, end_time=None):
                                        subfield_id=int(missing_quadrant),
                                        successful=0))
     models.db.session.commit()
+
+
+def get_deptable(url):
+    with requests.get(url) as r:
+        deptable = Table.read(r.text, format='ascii.fixed_width',
+                              data_start=2, data_end=-1)
+    return deptable
