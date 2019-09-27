@@ -97,6 +97,14 @@ def ztf_references():
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
 def ztf_depot(start_time=None, end_time=None):
+    """ 
+    ZTF depot reader, ingesting information about images from
+    all program ids (including program_id = 1). 
+  
+    Parameters: 
+        start_time (astropy.Time): start time of request. 
+        end_time (astropy.Time): end time of request.    
+    """
 
     if start_time is None:
         start_time = time.Time.now() - time.TimeDelta(1.0*u.day)
@@ -116,20 +124,8 @@ def ztf_depot(start_time=None, end_time=None):
         names = ['jd', 'field', 'rcid', 'ra0', 'dec0',
                  'nalertpackets', 'programid', 'expid', 'fid',
                  'scimaglim', 'diffmaglim', 'sciinpseeing', 'difffwhm']
-        data = []
-        cnt = 0
-        for ii, line in enumerate(lines):
-            if ii == 0:
-                continue
-            lineSplit = list(filter(None, line.replace(" ", "").split("|")))
-            if not len(lineSplit) == len(names):
-                continue
-            row = np.array(lineSplit, dtype=float)
-            if cnt == 0:
-                data = copy.copy(row)
-            else:
-                data = np.vstack((data, row))
-            cnt = cnt + 1
+        data = Table.read(r.text, format='ascii.fixed_width',
+                   data_start=2, data_end=-1)
         if len(data) == 0:
             continue
         obstable = Table(names=names, data=data)
