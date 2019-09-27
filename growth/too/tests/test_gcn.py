@@ -183,6 +183,42 @@ def test_amon_151115(mock_from_cone, mock_tile, mock_contour,
     assert event.tags == ['AMON']
 
 
+@mock.patch('growth.too.tasks.skymaps.contour.run')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
+def test_amon_icecube_gold_190730(mock_from_cone, mock_tile, mock_contour,
+                                  celery, flask, mail):
+    # Read test GCN
+    payload = pkg_resources.resource_string(
+        __name__, 'data/AMON_ICECUBE_GOLD_190730.xml')
+    root = lxml.etree.fromstring(payload)
+
+    # Run function under test
+    handle(payload, root)
+
+    dateobs = '2019-07-30T20:50:41'
+    event = models.Event.query.get(dateobs)
+    assert event.tags == ['AMON']
+
+
+@mock.patch('growth.too.tasks.skymaps.contour.run')
+@mock.patch('growth.too.tasks.tiles.tile.run')
+@mock.patch('growth.too.tasks.skymaps.from_cone.run')
+def test_amon_icecube_bronze_190819(mock_from_cone, mock_tile, mock_contour,
+                                    celery, flask, mail):
+    # Read test GCN
+    payload = pkg_resources.resource_string(
+        __name__, 'data/AMON_ICECUBE_BRONZE_190819.xml')
+    root = lxml.etree.fromstring(payload)
+
+    # Run function under test
+    handle(payload, root)
+
+    dateobs = '2019-08-19T17:34:24'
+    event = models.Event.query.get(dateobs)
+    assert event.tags == ['AMON']
+
+
 @mock.patch('gcn.listen')
 def test_listen(mock_listen):
     # Run function under test
