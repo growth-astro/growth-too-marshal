@@ -108,28 +108,31 @@ def ztf_depot(start_time=None, end_time=None):
     mjds = np.arange(np.floor(start_time.mjd), np.ceil(end_time.mjd))
     for mjd in mjds:
         this_time = time.Time(mjd, format='mjd')
-        dstr = this_time.iso.split(" ")[0].replace("-","")
+        dstr = this_time.iso.split(" ")[0].replace("-", "")
 
-        filename = os.path.join(depotdir,'%s/goodsubs_%s.txt' % (dstr, dstr))
+        filename = os.path.join(depotdir, '%s/goodsubs_%s.txt' % (dstr, dstr))
         r = requests.get(filename)
         lines = r.text.split("\n")
         names = ['jd', 'field', 'rcid', 'ra0', 'dec0',
                  'nalertpackets', 'programid', 'expid', 'fid',
-                 'scimaglim','diffmaglim','sciinpseeing','difffwhm']
+                 'scimaglim', 'diffmaglim', 'sciinpseeing', 'difffwhm']
         data = []
         cnt = 0
         for ii, line in enumerate(lines):
-            if ii == 0: continue
-            lineSplit = list(filter(None,line.replace(" ","").split("|")))
-            if not len(lineSplit) == len(names): continue
+            if ii == 0:
+                continue
+            lineSplit = list(filter(None, line.replace(" ", "").split("|")))
+            if not len(lineSplit) == len(names):
+                continue
             row = np.array(lineSplit, dtype=float)
             if cnt == 0:
                 data = copy.copy(row)
             else:
-                data = np.vstack((data,row))
+                data = np.vstack((data, row))
             cnt = cnt + 1
-        if len(data) == 0: continue
-        obstable = Table(names=names,data=data)
+        if len(data) == 0:
+            continue
+        obstable = Table(names=names, data=data)
 
         obs_grouped_by_jd = obstable.group_by('jd').groups
         for jd, rows in zip(obs_grouped_by_jd.keys, obs_grouped_by_jd):
@@ -140,7 +143,7 @@ def ztf_depot(start_time=None, end_time=None):
                                        field_id=int(row['field']),
                                        observation_id=int(row['expid']),
                                        obstime=obstime,
-                                       exposure_time=int(30), # fixme
+                                       exposure_time=int(30),  # fixme
                                        filter_id=int(row['fid']),
                                        subfield_id=int(row['rcid']),
                                        successful=1))
@@ -154,7 +157,7 @@ def ztf_depot(start_time=None, end_time=None):
                                        field_id=int(rows['field'][0]),
                                        observation_id=int(row['expid']),
                                        obstime=obstime,
-                                       exposure_time=int(30), # fixme
+                                       exposure_time=int(30),  # fixme
                                        filter_id=int(row['fid']),
                                        subfield_id=int(missing_quadrant),
                                        successful=0))
