@@ -308,7 +308,5 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     t.add_column(Column(name='i',data=dic['i']))
     t.add_column(Column(name='z',data=dic['z']))
 
-    t.write('%s/too_emgw_%s_%s.csv'%(dirct,datetime.now().isoformat().replace(':',''),p))
-
     return t
 
