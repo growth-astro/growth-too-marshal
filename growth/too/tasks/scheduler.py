@@ -11,7 +11,6 @@ from astropy.time import Time
 import astropy.units as u
 from astroplan import Observer, is_always_observable
 from astroplan.constraints import AltitudeConstraint
-
 from . import celery
 from .. import models
 from .. import views
@@ -240,7 +239,7 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     hanle = EarthLocation(lat=32.77889*u.degree,
                           lon=78.96472*u.degree,
                           height=4500*u.m)
-    iao = Observer(location=hanle, name="GIT", timezone="Asia/Kolkata")
+    iao = Observer(location=hanle, name="GIT",timezone="Asia/Kolkata")
 
     twilight_prime = iao.sun_rise_time(Time.now(),
                                        which="next",
@@ -265,16 +264,19 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     dic['r'] = ['']*len(t)
     dic['i'] = ['']*len(t)
     dic['z'] = ['']*len(t)
-    dic[filt] = ['1X%i'%(t[0]['exposure_time'])]*len(t)
-    name = [ligoname]*len(t)
+    name = ['EMGW']*len(t)
+    bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'u'}
     
+    for i in range(len(t)):
+        filt = bands[t[i]['filter_id']]
+        dic[filt][i] = '1X%i'%(t[i]['exposure_time'])
+
     t.remove_columns(['request_id','filter_id','program_pi','program_id','subprogram_name','exposure_time'])
     t.rename_column('field_id','tile_id')
-    t.rename_column('dec','Dec')
-    
+    t.rename_column('dec','Dec') 
+
     domesleeparr = np.zeros(len(t)) + domesleep
-    priority = np.zeros(len(t)) + p
-    
+    priority = np.zeros(len(t)) + priority
     minalt = AltitudeConstraint(min=horizon*u.degree)
     always_up = is_always_observable(minalt,iao,coords,
                                      Time(twilight_prime,
