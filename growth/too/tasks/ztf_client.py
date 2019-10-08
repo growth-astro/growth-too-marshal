@@ -125,7 +125,7 @@ def ztf_depot(start_time=None, end_time=None):
         dstr = this_time.iso.split(" ")[0].replace("-", "")
 
         url = os.path.join(depotdir, '%s/goodsubs_%s.txt' % (dstr, dstr))
-        deptable = get_deptable(url)
+        deptable = get_ztf_depot_table(url)
         if len(deptable) == 0:
             continue
 
@@ -159,7 +159,7 @@ def ztf_depot(start_time=None, end_time=None):
     models.db.session.commit()
 
 
-def get_deptable(url):
+def get_ztf_depot_table(url):
     with requests.get(url) as r:
         deptable = Table.read(r.text, format='ascii.fixed_width',
                               data_start=2, data_end=-1)

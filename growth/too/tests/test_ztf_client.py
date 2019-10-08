@@ -64,14 +64,14 @@ def mock_deptable():
 
 
 @pytest.fixture
-def mock_get_deptable(monkeypatch, mock_deptable):
-    get_deptable = MagicMock(**{'return_value': mock_deptable})
-    monkeypatch.setattr('growth.too.tasks.ztf_client.get_deptable',
-                        get_deptable)
-    return get_deptable
+def mock_get_ztf_depot_table(monkeypatch, mock_deptable):
+    get_ztf_depot_table = MagicMock(**{'return_value': mock_deptable})
+    monkeypatch.setattr('growth.too.tasks.ztf_client.get_ztf_depot_table',
+                        get_ztf_depot_table)
+    return get_ztf_depot_table
 
 
-def test_depot(mock_get_deptable):
+def test_depot(mock_get_ztf_depot_table):
     start_time = time.Time('2019-09-25T00:00:00',
                            format='isot', scale='utc')
     end_time = time.Time('2019-09-26T00:00:00',
