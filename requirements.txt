@@ -22,7 +22,7 @@ networkx
 pandas
 passlib
 psycopg2
-pygcn >= 0.1.15
+pygcn >= 0.1.20
 pytz
 pyvo
 redis >= 3.3.0
