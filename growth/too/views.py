@@ -564,10 +564,6 @@ class PlanManualForm(ModelForm):
         validators=[validators.DataRequired()],
         default='REPLACE ME')
 
-    submitter = TextField(
-        validators=[validators.DataRequired()],
-        default='REPLACE ME')
-
     subprogram_name = TextField(
         validators=[validators.DataRequired()],
         default='GW')
@@ -973,7 +969,7 @@ def get_json_data_manual(form):
     queue_name = form.queue_name.data
     subprogram_name = form.subprogram_name.data
     program_id = int(form.program_id.data)
-    submitter = form.submitter.data
+    username = current_user.name
 
     start_mjd = time.Time(form.validity_window_start.data).mjd
     end_mjd = time.Time(form.validity_window_end.data).mjd
@@ -1002,7 +998,7 @@ def get_json_data_manual(form):
                       'dec': field.dec,
                       'filter_id': filter_id,
                       'exposure_time': exposure_time,
-                      'program_pi': program_pis[telescope] + '/' + submitter,
+                      'program_pi': program_pis[telescope] + '/' + username,
                       'subprogram_name': "ToO_" + subprogram_name
                       }
             targets.append(target)
