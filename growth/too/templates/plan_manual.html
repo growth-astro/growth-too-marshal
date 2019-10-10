@@ -18,6 +18,10 @@
                     <label for=telescope class=form-label>Telescope</label>
                     {{ render_field(form.telescope, class='custom-select') }}
                 </div>
+                <div class="form-group col-sm-6">
+                    <label for=program_id class=form-label>Program ID (ZTF only)</label>
+                    {{ render_field(form.program_id, class='custom-select') }}
+                </div>
             </div>
             <div class=form-row>
                 <div class="form-group col-sm-6">
@@ -58,9 +62,16 @@
                 </div>
             </div>
             <div class=form-row>
-                <div class="form-group col-sm-12">
+                <div class="form-group col-sm-6">
                     <label for=plan_name>Queue name</label>
                     {{ render_field(form.queue_name, placeholder='Queue name') }}
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for=subprogram_name>Subprogram name</label>
+                    {{ render_field(form.subprogram_name, placeholder='Subprogram name') }}
+                <small id="balanceHelpBlock" class="form-text text-muted">
+                GW, GRB, Neutrino, NEO, etc.
+                </small>
                 </div>
             </div>
             <div class=form-row>

@@ -564,6 +564,14 @@ class PlanManualForm(ModelForm):
         validators=[validators.DataRequired()],
         default='REPLACE ME')
 
+    subprogram_name = TextField(
+        validators=[validators.DataRequired()],
+        default='GW')
+
+    program_id = SelectField(default='Partnership',
+                             choices=[('2', 'Partnership'),
+                                      ('3', 'Caltech')])
+
     def validate_validity_window_end(self, field):
         other = self.validity_window_start
         if field.validate(self) and other.validate(self):
@@ -960,6 +968,9 @@ def get_json_data_manual(form):
     doReferences = bool(form.references.data)
     exposure_time = form.exposure_time.data
     queue_name = form.queue_name.data
+    subprogram_name = form.subprogram_name.data
+    username = current_user.name
+    program_id = int(form.program_id.data)
 
     start_mjd = time.Time(form.validity_window_start.data).mjd
     end_mjd = time.Time(form.validity_window_end.data).mjd
@@ -968,7 +979,6 @@ def get_json_data_manual(form):
                    'Gattini': 'Kasliwal', 'KPED': 'Coughlin',
                    'GROWTH-India': 'Bhalerao'}
 
-    program_id = 2
     bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
     json_data = {'queue_name': "ToO_" + queue_name,
                  'validity_window_mjd': [start_mjd, end_mjd]}
@@ -989,8 +999,8 @@ def get_json_data_manual(form):
                       'dec': field.dec,
                       'filter_id': filter_id,
                       'exposure_time': exposure_time,
-                      'program_pi': program_pis[telescope],
-                      'subprogram_name': "ToO_manual"
+                      'program_pi': program_pis[telescope] + '/' + username,
+                      'subprogram_name': "ToO_" + subprogram_name
                       }
             targets.append(target)
             cnt = cnt + 1
