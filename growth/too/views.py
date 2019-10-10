@@ -568,7 +568,9 @@ class PlanManualForm(ModelForm):
         validators=[validators.DataRequired()],
         default='GW')
 
-    program_id = SelectField(default='Partnership')
+    program_id = SelectField(default='Partnership',
+                             choices=[('2', 'Partnership'),
+                                      ('3', 'Caltech')])
 
     def validate_validity_window_end(self, field):
         other = self.validity_window_start
@@ -596,7 +598,6 @@ def plan_manual():
     form = PlanManualForm()
     form.telescope.choices = [
         (row.telescope,) * 2 for row in models.Telescope.query]
-    form.program_id.choices = [('Partnership',) * 2, ('Caltech',) * 2]
 
     if request.method == 'POST':
         if form.validate():
@@ -969,11 +970,7 @@ def get_json_data_manual(form):
     queue_name = form.queue_name.data
     subprogram_name = form.subprogram_name.data
     username = current_user.name
-
-    if form.program_id.data == 'Partnership':
-        program_id = 2
-    elif form.program_id.data == 'Caltech':
-        program_id = 3
+    program_id = int(form.program_id.data)
 
     start_mjd = time.Time(form.validity_window_start.data).mjd
     end_mjd = time.Time(form.validity_window_end.data).mjd
