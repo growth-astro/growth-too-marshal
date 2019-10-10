@@ -264,7 +264,7 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     dic['r'] = ['']*len(t)
     dic['i'] = ['']*len(t)
     dic['z'] = ['']*len(t)
-    name = ['EMGW']*len(t)
+    target = ['EMGW']*len(t)
     bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'u'}
     
     for i in range(len(t)):
@@ -287,28 +287,25 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     ras_format = []
     decs_format = []
     for i in range(len(t)):
-        ras_format.append('%i:%i:%.2f'%(coords[i].ra.hms[0],
-                                        coords[i].ra.hms[1],
-                                        coords[i].ra.hms[2]))
-        decs_format.append('%i:%i:%.2f'%(coords[i].dec.dms[0],
-                                         coords[i].dec.dms[1],
-                                         coords[i].dec.dms[2]))
+            ras_format.append(coords[i].ra.to_string(u.hour,  sep=':'))
+            decs_format.append(coords[i].dec.to_string(u.degree,  sep=':'))
+    
     
     #Add columns
-    t.add_column(Column(name='domesleep',data=domesleeparr))
-    t.add_column(Column(name='Priority',data=priority))
-    t.add_column(Column(name='dec',data=decs_format))
-    t.add_column(Column(name='rise_time_IST',data=rise_time_IST))
-    t.add_column(Column(name='set_time_IST',data=set_time_IST))
-    t.add_column(Column(name='moon_angle',data=sep))
-    t.add_column(Column(name='RA',data=ras_format))
-    t.add_column(Column(name='Target',data=name))
-    t.add_column(Column(name='x',data=dic['x']))
-    t.add_column(Column(name='u',data=dic['u']))
-    t.add_column(Column(name='g',data=dic['g']))
-    t.add_column(Column(name='r',data=dic['r']))
-    t.add_column(Column(name='i',data=dic['i']))
-    t.add_column(Column(name='z',data=dic['z']))
+    t['domesleep']=domesleeparr
+    t['Priority']=priority
+    t['dec']=decs_format
+    t['rise_time_IST']=rise_time_IST
+    t['set_time_IST']=set_time_IST
+    t['moon_angle']=sep
+    t['RA']=ras_format
+    t['Target']=target
+    t['x']=dic['x']
+    t['u']=dic['u']
+    t['g']=dic['g']
+    t['r']=dic['r']
+    t['i']=dic['i']
+    t['z']=dic['z']
 
     return t
 
