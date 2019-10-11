@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import urllib.parse
 import numpy as np
-from astropy.table import Table, Column
+from astropy.table import Table
 from astropy.coordinates import SkyCoord, EarthLocation, get_moon
 from astropy.time import Time
 import astropy.units as u
@@ -231,6 +231,7 @@ def get_decam_dict(data_row, queue_name, cnt, nrows,
 
     return decam_dict
 
+
 def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
                           priority=10000, domesleep=100):
     """Make .csv file in GIT toO format for a given .json file"""
@@ -239,12 +240,12 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     hanle = EarthLocation(lat=32.77889*u.degree,
                           lon=78.96472*u.degree,
                           height=4500*u.m)
-    iao = Observer(location=hanle, name="GIT",timezone="Asia/Kolkata")
+    iao = Observer(location=hanle, name="GIT", timezone="Asia/Kolkata")
 
     twilight_prime = iao.sun_rise_time(Time.now(),
                                        which="next",
                                        horizon=sunrise_horizon*u.degree)\
-        - 12*u.hour
+                                       -12*u.hour
     targets_rise_time = iao.target_rise_time(twilight_prime,
                                              coords,
                                              which="nearest",
@@ -269,43 +270,41 @@ def get_growthindia_table(json_data, sunrise_horizon=-12, horizon=20,
     
     for i in range(len(t)):
         filt = bands[t[i]['filter_id']]
-        dic[filt][i] = '1X%i'%(t[i]['exposure_time'])
+        dic[filt][i] = '1X%i' % (t[i]['exposure_time'])
 
-    t.remove_columns(['request_id','filter_id','program_pi','program_id','subprogram_name','exposure_time'])
-    t.rename_column('field_id','tile_id')
-    t.rename_column('dec','Dec') 
-
+    del t['request_id', 'filter_id', 'program_pi', 'program_id', 
+          'subprogram_name', 'exposure_time']
+    t['field_id'].name = 'tile_id'
+    t['dec'].name = 'Dec' 
     domesleeparr = np.zeros(len(t)) + domesleep
     priority = np.zeros(len(t)) + priority
     minalt = AltitudeConstraint(min=horizon*u.degree)
-    always_up = is_always_observable(minalt,iao,coords,
-                                     Time(twilight_prime,
-                                          twilight_prime+12*u.hour))
-    rise_time_IST[np.where(always_up)] = (twilight_prime + 5.5*u.hour).isot
-    set_time_IST[np.where(always_up)] = (twilight_prime + 24*u.hour + 5.5*u.hour).isot
-    
+    always_up = is_always_observable(minalt, iao, coords, 
+                                     Time(twilight_prime, 
+                                     twilight_prime+12*u.hour))
+    rise_time_IST[np.where(always_up)] = (twilight_prime 
+                                          + 5.5*u.hour).isot
+    set_time_IST[np.where(always_up)] = (twilight_prime 
+                                         + 24*u.hour 
+                                         + 5.5*u.hour).isot
     ras_format = []
     decs_format = []
-    for i in range(len(t)):
-            ras_format.append(coords[i].ra.to_string(u.hour,  sep=':'))
-            decs_format.append(coords[i].dec.to_string(u.degree,  sep=':'))
-    
-    
-    #Add columns
-    t['domesleep']=domesleeparr
-    t['Priority']=priority
-    t['dec']=decs_format
-    t['rise_time_IST']=rise_time_IST
-    t['set_time_IST']=set_time_IST
-    t['moon_angle']=sep
-    t['RA']=ras_format
-    t['Target']=target
-    t['x']=dic['x']
-    t['u']=dic['u']
-    t['g']=dic['g']
-    t['r']=dic['r']
-    t['i']=dic['i']
-    t['z']=dic['z']
+    ras_format = coords.ra.to_string(u.hour, sep=':')
+    decs_format = coords.dec.to_string(u.degree, sep=':') 
+    # Add columns
+    t['domesleep'] = domesleeparr
+    t['Priority'] = priority
+    t['dec'] = decs_format
+    t['rise_time_IST'] = rise_time_IST
+    t['set_time_IST'] = set_time_IST
+    t['moon_angle'] = sep
+    t['RA'] = ras_format
+    t['Target'] = target
+    t['x'] = dic['x']
+    t['u'] = dic['u']
+    t['g'] = dic['g']
+    t['r'] = dic['r']
+    t['i'] = dic['i']
+    t['z'] = dic['z']
 
     return t
-
