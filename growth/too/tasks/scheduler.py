@@ -284,6 +284,8 @@ def get_growthindia_table(json_data, sunrise_hor=-12, horizon=20,
     set_time_IST[np.where(always_up)] = (twilight_prime +
                                          24*u.hour +
                                          5.5*u.hour).isot
+    rise_time_IST = np.array(rise_time_IST)
+    set_time_IST = np.array(set_time_IST)
     ras_format = []
     decs_format = []
     ras_format = coords.ra.to_string(u.hour, sep=':')
