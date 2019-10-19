@@ -47,7 +47,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
                   schedule_strategy='tiling',
                   doCompletedObservations=False,
                   cobs=None,
-                  doPlannedObservations=False):
+                  doPlannedObservations=False,
+                  doMaxTiles=False,
+                  max_nb_tiles=1000):
 
     growthpath = os.path.dirname(growth.__file__)
     config_directory = os.path.join(growthpath, 'too', 'config')
@@ -168,6 +170,8 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["doMinimalTiling"] = False
     params["doIterativeTiling"] = False
     params["galaxies_FoV_sep"] = 1.0
+    params["doMaxTiles"] = doMaxTiles
+    params["max_nb_tiles"] = max_nb_tiles
 
     if params["doEvent"]:
         params["skymap"], eventinfo = gwemopt.gracedb.get_event(params)
