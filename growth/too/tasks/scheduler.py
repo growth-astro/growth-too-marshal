@@ -252,8 +252,8 @@ def get_growthindia_table(json_data, sunrise_hor=-12, horizon=20,
     targets_set_time = iao.target_set_time(targets_rise_time, coords,
                                            which="next",
                                            horizon=horizon*u.degree)
-    rise_time_IST = np.array((targets_rise_time + 5.5*u.hour).isot)
-    set_time_IST = np.array((targets_set_time + 5.5*u.hour).isot)
+    rise_time_IST = np.array([(targets_rise_time + 5.5*u.hour).isot])
+    set_time_IST = np.array([(targets_set_time + 5.5*u.hour).isot])
     tend = targets_set_time
     mooncoords = get_moon(tend, hanle)
     sep = mooncoords.separation(coords)
