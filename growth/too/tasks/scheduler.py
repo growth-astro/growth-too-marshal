@@ -189,7 +189,7 @@ def schedule_growth_india(json_data):
 
     with tempfile.NamedTemporaryFile(mode='w') as f:
         tab = get_growthindia_table(json_data)
-        tab.write(f, format='csv')
+        tab.write(f, format='csv')f.seek(0)
         dest = os.path.join(GROWTH_INDIA_PATH,
                             json_data["queue_name"] + '.csv')
         subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
