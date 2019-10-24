@@ -4,7 +4,13 @@ import requests
 import subprocess
 import tempfile
 import urllib.parse
-
+import numpy as np
+from astropy.table import Table
+from astropy.coordinates import SkyCoord, EarthLocation, get_moon
+from astropy.time import Time
+import astropy.units as u
+from astroplan import Observer, is_always_observable
+from astroplan.constraints import AltitudeConstraint
 from . import celery
 from .. import models
 from .. import views
@@ -182,11 +188,11 @@ def schedule_kped(json_data):
 def schedule_growth_india(json_data):
 
     with tempfile.NamedTemporaryFile(mode='w') as f:
-        json.dump(json_data, f, indent=4, sort_keys=True)
-        f.flush()
-
+        tab = get_growthindia_table(json_data)
+        tab.write(f, format='csv')
+        f.seek(0)
         dest = os.path.join(GROWTH_INDIA_PATH,
-                            json_data["queue_name"] + '.json')
+                            json_data["queue_name"] + '.csv')
         subprocess.run(['scp', '-oBatchMode=yes', '-v', f.name, dest],
                        check=True)
 
@@ -225,3 +231,78 @@ def get_decam_dict(data_row, queue_name, cnt, nrows,
     decam_dict["wait"] = "False"
 
     return decam_dict
+
+
+def get_growthindia_table(json_data, sunrise_hor=-12, horizon=20,
+                          priority=10000, domesleep=100):
+    """Make .csv file in GIT toO format for a given .json file"""
+    t = Table(rows=json_data['targets'])
+    coords = SkyCoord(ra=t['ra'], dec=t['dec'], unit=(u.degree, u.degree))
+    hanle = EarthLocation(lat=32.77889*u.degree,
+                          lon=78.96472*u.degree,
+                          height=4500*u.m)
+    iao = Observer(location=hanle, name="GIT", timezone="Asia/Kolkata")
+
+    twilight_prime = iao.sun_rise_time(Time.now(), which="next",
+                                       horizon=sunrise_hor*u.deg) - 12*u.hour
+    targets_rise_time = iao.target_rise_time(twilight_prime,
+                                             coords,
+                                             which="nearest",
+                                             horizon=horizon*u.degree)
+    targets_set_time = iao.target_set_time(targets_rise_time, coords,
+                                           which="next",
+                                           horizon=horizon*u.degree)
+    rise_time_IST = np.array([(targets_rise_time + 5.5*u.hour).isot])
+    set_time_IST = np.array([(targets_set_time + 5.5*u.hour).isot])
+    tend = targets_set_time
+    mooncoords = get_moon(tend, hanle)
+    sep = mooncoords.separation(coords)
+    dic = {}
+    dic['x'] = ['']*len(t)
+    dic['u'] = ['']*len(t)
+    dic['g'] = ['']*len(t)
+    dic['r'] = ['']*len(t)
+    dic['i'] = ['']*len(t)
+    dic['z'] = ['']*len(t)
+    target = ['EMGW']*len(t)
+    bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'u'}
+
+    for i in range(len(t)):
+        filt = bands[t[i]['filter_id']]
+        dic[filt][i] = '1X%i' % (t[i]['exposure_time'])
+
+    del t['request_id', 'filter_id', 'program_pi', 'program_id',
+          'subprogram_name', 'exposure_time']
+    t['field_id'].name = 'tile_id'
+    t['dec'].name = 'Dec'
+    domesleeparr = np.zeros(len(t)) + domesleep
+    priority = np.zeros(len(t)) + priority
+    minalt = AltitudeConstraint(min=horizon*u.degree)
+    always_up = is_always_observable(minalt, iao, coords, Time(twilight_prime,
+                                     twilight_prime+12*u.hour))
+    rise_time_IST[np.where(always_up)] = (twilight_prime +
+                                          5.5*u.hour).isot
+    set_time_IST[np.where(always_up)] = (twilight_prime +
+                                         24*u.hour +
+                                         5.5*u.hour).isot
+    ras_format = []
+    decs_format = []
+    ras_format = coords.ra.to_string(u.hour, sep=':')
+    decs_format = coords.dec.to_string(u.degree, sep=':')
+    # Add columns
+    t['domesleep'] = domesleeparr
+    t['Priority'] = priority
+    t['dec'] = decs_format
+    t['rise_time_IST'] = rise_time_IST
+    t['set_time_IST'] = set_time_IST
+    t['moon_angle'] = sep
+    t['RA'] = ras_format
+    t['Target'] = target
+    t['x'] = dic['x']
+    t['u'] = dic['u']
+    t['g'] = dic['g']
+    t['r'] = dic['r']
+    t['i'] = dic['i']
+    t['z'] = dic['z']
+
+    return t
