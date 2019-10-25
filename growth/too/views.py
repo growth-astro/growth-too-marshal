@@ -539,7 +539,7 @@ def plan_new(dateobs):
             models.db.session.add(plan)
             models.db.session.commit()
             kwargs = dict(plan.plan_args)
-            tasks.tiles.tile(
+            tasks.tiles.tile.delay(
                 kwargs.pop('localization_name'), plan.dateobs,
                 plan.telescope, plan_name=plan.plan_name,
                 validity_window_start=plan.validity_window_start,
