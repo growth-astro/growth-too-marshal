@@ -2,9 +2,12 @@ import datetime
 import os
 import glob
 import copy
+import requests
+import urllib.parse
 
 from astropy import table
 from astropy import time
+from astropy import units as u
 from celery.utils.log import get_task_logger
 import ephem
 import gwemopt.utils
@@ -21,6 +24,7 @@ import gwemopt.segments
 import gwemopt.catalog
 from ligo import segments
 import numpy as np
+import pandas as pd
 
 import growth
 from . import celery
@@ -40,7 +44,10 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
                   doUsePrimary=False,
                   doBalanceExposure=False,
                   filterScheduleType='block',
-                  schedule_strategy='tiling'):
+                  schedule_strategy='tiling',
+                  doCompletedObservations=False,
+                  cobs=None,
+                  doPlannedObservations=False):
 
     growthpath = os.path.dirname(growth.__file__)
     config_directory = os.path.join(growthpath, 'too', 'config')
@@ -202,6 +209,96 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params = gwemopt.segments.get_telescope_segments(params)
     params = gwemopt.utils.params_checker(params)
 
+    if doCompletedObservations or doPlannedObservations:
+        bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
+        coverage_struct = {}
+        coverage_struct["data"] = np.empty((0, 8))
+        coverage_struct["filters"] = []
+        coverage_struct["ipix"] = []
+
+    if doCompletedObservations:
+
+        if cobs is None:
+            completed_end_time = time.Time.now()
+            completed_start_time = completed_end_time - time.TimeDelta(1*u.day)
+        else:
+            completed_start_time = time.Time(cobs[0], format='mjd')
+            completed_end_time = time.Time(cobs[1], format='mjd')
+
+        observations = models.Observation.query.filter(
+            (models.Observation.telescope == tele) &
+            (models.Observation.obstime >= completed_start_time.datetime) &
+            (models.Observation.obstime <= completed_end_time.datetime)).all()
+
+        for observation in observations:
+            field_id = observation.field_id
+            ipix = observation.field.ipix
+            ra, dec = observation.field.ra, observation.field.dec
+            filter_id = observation.filter_id
+            exposure_time = observation.exposure_time
+            successful = observation.successful
+
+            mjd_exposure_start = time.Time(observation.obstime).mjd
+
+            if successful:
+                coverage_struct["data"] = np.append(
+                    coverage_struct["data"],
+                    np.array([[ra, dec, mjd_exposure_start, -1,
+                               exposure_time, field_id, -1, -1]]), axis=0)
+                coverage_struct["filters"].append(bands[filter_id])
+                coverage_struct["ipix"].append(ipix)
+
+        if len(coverage_struct["data"]) > 0:
+            rows, idx, cnts = np.unique(coverage_struct["data"],
+                                        return_index=True,
+                                        return_counts=True,
+                                        axis=0)
+            if tele == "ZTF":
+                idx = idx[cnts >= 32]
+            coverage_struct["data"] = coverage_struct["data"][idx, :]
+            coverage_struct["filters"] = [coverage_struct["filters"][ii]
+                                          for ii in idx]
+            coverage_struct["ipix"] = [coverage_struct["ipix"][ii]
+                                       for ii in idx]
+            params["previous_coverage_struct"] = coverage_struct
+
+    if doPlannedObservations:
+
+        from .scheduler import ZTF_URL
+
+        r = requests.get(
+            urllib.parse.urljoin(ZTF_URL, 'current_queue'))
+        data = r.json()
+        queue = pd.read_json(data['queue'], orient='records')
+        if len(queue) > 0:
+            for index, row in queue.iterrows():
+                field_id = row["field_id"]
+                filter_id = row["filter_id"]
+                exposure_time = row["exposure_time"]
+                start_time = time.Time(row["slot_start_time"],
+                                       format="datetime")
+                program_id = row["program_id"]
+                if program_id == 1:
+                    continue
+
+                if np.isnan(filter_id):
+                    filter_id = 2
+                f = models.Field.query.filter_by(telescope=tele,
+                                                 field_id=field_id).one()
+                coverage_struct["data"] = np.append(
+                    coverage_struct["data"],
+                    np.array([[f.ra, f.dec, start_time.mjd, -1,
+                               exposure_time, field_id, -1, -1]]), axis=0)
+                coverage_struct["filters"].append(bands[filter_id])
+                coverage_struct["ipix"].append(f.ipix)
+
+            if "previous_coverage_struct" in params:
+                params["previous_coverage_struct"] = \
+                    gwemopt.coverage.combine_coverage_structs(
+                        [params["previous_coverage_struct"], coverage_struct])
+            else:
+                params["previous_coverage_struct"] = coverage_struct
+
     if params["doPlots"]:
         if not os.path.isdir(params["outputDir"]):
             os.makedirs(params["outputDir"])
@@ -243,8 +340,13 @@ def gen_structs(params):
         raise ValueError(
             'Need tilesType to be moc, greedy, hierarchical, galaxy or ranked')
 
-    tile_structs, coverage_struct = gwemopt.coverage.timeallocation(
-        params, map_struct, tile_structs)
+    if "previous_coverage_struct" in params:
+        tile_structs, coverage_struct = gwemopt.coverage.timeallocation(
+            params, map_struct, tile_structs,
+            previous_coverage_struct=params["previous_coverage_struct"])
+    else:
+        tile_structs, coverage_struct = gwemopt.coverage.timeallocation(
+            params, map_struct, tile_structs)
 
     if params["doPlots"]:
         gwemopt.plotting.skymap(params, map_struct)
@@ -392,6 +494,9 @@ def tile(localization_name, dateobs, telescope,
     models.db.session.merge(plan)
     models.db.session.commit()
 
+    planned = plan_args['doPlannedObservations']
+    completed = plan_args['doCompletedObservations']
+
     params = params_struct(dateobs, tobs=np.asarray(plan_args['tobs']),
                            filt=plan_args['filt'],
                            exposuretimes=exposuretimes,
@@ -402,7 +507,10 @@ def tile(localization_name, dateobs, telescope,
                            doUsePrimary=plan_args['doUsePrimary'],
                            filterScheduleType=plan_args['filterScheduleType'],
                            schedule_strategy=plan_args['schedule_strategy'],
-                           mindiff=plan_args['mindiff'])
+                           mindiff=plan_args['mindiff'],
+                           doCompletedObservations=completed,
+                           cobs=plan_args['cobs'],
+                           doPlannedObservations=planned)
 
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))
