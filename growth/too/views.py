@@ -242,7 +242,8 @@ def event(dateobs):
 @login_required
 def objects(dateobs):
     return render_template(
-        'objects.html', event=models.Event.query.get_or_404(dateobs))
+        'objects.html', event=models.Event.query.get_or_404(dateobs),
+        candidates=models.Candidates.query))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
