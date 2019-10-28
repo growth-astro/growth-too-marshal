@@ -37,73 +37,92 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% if sources_growth_marshal | length > 0 %}
+                            {% for source in sources_growth_marshal %}
+                                {% set telescope_name='?' %}
+                                {% if source.name[0:3] == 'ZTF' %} {% set telescope_name = 'ZTF' %} {% endif %}
+                                {% if source.name[0:2] == 'DG' %} {% set telescope_name = 'DECam' %} {% endif %}
+                                {% if source.name[0:2] == 'KP' %} {% set telescope_name = 'KPED' %} {% endif %}
+                                {% if source.name[0:4] == 'PGIR' %} {% set telescope_name = 'Gattini' %} {% endif %}
+                                {% if source.name[0:3] == 'GIT' %} {% set telescope_name = 'GROWTH-India ' %} {% endif %}
+                                <tr>
+                                    <td>
+                                    <a href="http://skipper.caltech.edu:8080/cgi-bin/growth/view_source.cgi?name={{source.name}}">
+                                    {{source.name}}
+                                    </a>
+                                </td>
+                                    <td>{{telescope_name}}</td>
+                                    <td>{{'%02.0f' % source.ra.hms.h}}:{{'%02.0f' % source.ra.hms.m}}:{{'%02.2f' % source.ra.hms.s}}</td>
+                                    <td>{{'%02.0f' % source.dec.dms.d}}:{{'%02.0f' % source.dec.dms.m|abs}}:{{'%02.2f' % source.dec.dms.s|abs}}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                         <tr>
-                            <td>ZTF19awesome</td>
-                            <td>ZTF</td>
-                            <td>7:08:03.2592</td>
-                            <td>56:02:02.892</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19ab</td>
+                            <td>DG19ab</td>
                             <td>DECam</td>
                             <td>23:18:03.2592</td>
                             <td>-36:00:00.8</td>
                         </tr>
                         <tr>
-                            <td>GROWTH19bt</td>
-                            <td>DECam</td>
+                            <td>PGIR19ae</td>
+                            <td>Gattini</td>
                             <td>18:10:33.231</td>
+                            <td>-40:43:23.12</td>
+                        </tr>
+                        <tr>
+                            <td>KP19r</td>
+                            <td>KPED</td>
+                            <td>18:10:33.23</td>
+                            <td>-40:43:23.12</td>
+                        </tr>
+                        <tr>
+                            <td>GIT19x</td>
+                            <td>GROWTH-India</td>
+                            <td>18:10:33.23</td>
+                            <td>-40:43:23.12</td>
+                        </tr>
+                        <tr>
+                            <td>GIT19ab</td>
+                            <td>GROWTH-India</td>
+                            <td>19:14:21.34</td>
                             <td>-40:43:23.12</td>
                         </tr>
                     </tbody>
                 </table>
             </li>
-            <li class=list-group-item>
-                <h3>Galaxies</h3>
-                <table id="galaxies" class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th> 
-                            <th>NAME</th> 
-                            <th>RA</th> 
-                            <th>DEC</th>
-                            <th>SFR FUV</th>
-                            <th>Mstar</th> 
-                            <th>DIST (Mpc)</th>
-                            <th>MAG</th>
-                            <th>PROB</th> 
-                            <th>PRIORITY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>2MASX J07070325+5601031</td>
-                            <td>7:07:03.2592</td>
-                            <td>56:01:02.892</td>
-                            <td>2.887e-01</td>
-                            <td>1.140e+10</td>
-                            <td>111.0</td>
-                            <td>nan</td>
-                            <td>1.081e-22</td>
-                            <td>5.112e-06</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>2MASX J06292278-2831060</td>
-                            <td>6:29:22.7904</td>
-                            <td>-28:31:06.204</td>
-                            <td>nan</td>
-                            <td>3.105e+10</td>
-                            <td>101.6</td>
-                            <td>15.3</td>
-                            <td>2.131e-19</td>
-                            <td>1.646e-05</td>
-                        </tr>
-                    </tbody>
+            <li class="list-group-item">
+                <h3>Processed Tiles</h3>
+                <table id=tiles class="table">
+                     <thead>
+                            <tr>
+                                <th>Time (UT)</th>
+                                <th>Filter</th>
+                                <th>RA</th>
+                                <th>Dec</th>
+                                <th>Exp. time</th>
+                                <th>Telescope</th>
+                                <th>Name image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tiles | length > 0 %}
+                                {% for tile in tiles %}
+                                    <tr>
+                                        <td>{{tile["time_obs"].iso}}</td>
+                                        <td>{{tile["filter"]}}</td>
+                                        <td>{{'%02.0f' % tile.ra.hms.h}}:{{'%02.0f' % tile.ra.hms.m}}:{{'%02.2f' % tile.ra.hms.s}}</td>
+                                        <td>{{'%02.0f' % tile.dec.dms.d}}:{{'%02.0f' % tile.dec.dms.m|abs}}:{{'%02.2f' % tile.dec.dms.s|abs}}</td>
+                                        <td>{{tile["exptime"]}}</td>
+                                        <td>DECam</td>
+                                        <td>{{tile["name"]}}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
                 </table>
             </li>
         </ul>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -111,29 +130,26 @@
     <script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
     <script>
     (function() {
-        $('#galaxies').DataTable({
-	    scrollX: true,
-            searching: true,
-            orderFixed: [0, 'asc'],
-            columnDefs: [
-                {
-                    'targets': [0],
-                    'visible': false
-                }
-            ],       	
-        });
-        $('#galaxies tbody').on('click', 'tr', function () {
-            $(this).toggleClass('table-primary');
-        });
-
         $('#candidates').DataTable({
 	    scrollX: true,
             searching: true,
+            lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
         rowGroup: {
                 dataSrc: 1
             }
         });
         $('#candidates tbody').on('click', 'tr', function () {
+            $(this).toggleClass('table-primary');
+        });
+        $('#tiles').DataTable({
+	    scrollX: true,
+            searching: true,
+            lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        rowGroup: {
+                dataSrc: 5
+            }
+        });
+        $('#tiles tbody').on('click', 'tr', function () {
             $(this).toggleClass('table-primary');
         });
     })();
