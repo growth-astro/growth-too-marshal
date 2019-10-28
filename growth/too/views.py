@@ -241,9 +241,11 @@ def event(dateobs):
 @app.route('/event/<datetime:dateobs>/objects')
 @login_required
 def objects(dateobs):
+    print(models.Candidate.query.all())
+    print('AAA')
     return render_template(
         'objects.html', event=models.Event.query.get_or_404(dateobs),
-        candidates=models.Candidates.query))
+        sources_growth_marshal=models.Candidate.query.all())
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
