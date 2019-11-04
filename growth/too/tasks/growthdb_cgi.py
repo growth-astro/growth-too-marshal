@@ -42,19 +42,19 @@ def prepare_candidates_for_object_table(sources_all):
         if ('ra' in s_dict) and ('dec' in s_dict):
             try:
                 rr, dd = s_dict['ra'].deg, s_dict['dec'].deg
-            except:
+            except (TypeError, KeyError, ValueError):
                 rr, dd = s_dict['ra'], s_dict['dec']
             s_coords = SkyCoord(ra=rr*u.deg, dec=dd*u.deg)
             s_dict["ra"], s_dict["dec"] = s_coords.ra, s_coords.dec
             s_dict["ra_string"] = f"{'{0:02d}'.format(int(s_coords.ra.hms.h))}:\
-{'{0:02d}'.format(int(s_coords.ra.hms.m))}:\
-{'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
-{'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
+    {'{0:02d}'.format(int(s_coords.ra.hms.m))}:\
+    {'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
+    {'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
             s_dict["dec_string"] = \
 f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
-{'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
-{'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
-{'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
+    {'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
+    {'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
+    {'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
         else:
             s_dict["ra_string"] = None
             s_dict["dec_string"] = None
@@ -75,8 +75,8 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
     nside = hp.pixelfunc.get_nside(skymap_prob)
     sources_growth_marshal_contour = list(s for s in sources_growth_marshal \
-if ("ra" in s) and (hp.ang2pix(nside, 0.5 * np.pi - np.deg2rad(s["dec"].value),\
- np.deg2rad(s["ra"].value)) in ipix_keep))
+if ("ra" in s) and (hp.ang2pix(nside, 0.5 * np.pi - np.deg2rad(s["dec"].value),
+                    np.deg2rad(s["ra"].value)) in ipix_keep))
 
     return sources_growth_marshal_contour
 
@@ -87,7 +87,7 @@ def get_programidx(program_name):
         'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
     r.raise_for_status()
     programs = r.json()
-    program_dict = {p['name']:p['programidx'] for i, p in enumerate(programs)}
+    program_dict = {p['name']: p['programidx'] for i, p in enumerate(programs)}
 
     try:
         return program_dict[program_name]
@@ -134,7 +134,7 @@ _program_sources.cgi',
     if not dateobs is None:
         jd_min = Time(dateobs, format='datetime').jd
 
-    if not skymap is None:
+    if skymap is not None:
         skymap_prob = skymap.flat_2d
         sort_idx = np.argsort(skymap_prob)[::-1]
         csm = np.empty(len(skymap_prob))
@@ -154,7 +154,7 @@ _program_sources.cgi',
                           np.deg2rad(source["ra"])) not in ipix_keep:
                 continue
 
-        if not dateobs is None:
+        if dateobs is not None:
             autoannotations_string, autoannotations_dict, photometry_marshal =\
  get_source_autoannotations_and_photometry(source["id"])
             s_phot_detection = list(ss for ss in photometry_marshal if ss['magpsf'] < 50.)
@@ -186,14 +186,16 @@ def update_local_db_growthmarshal(sources):
     updates the local database using SQLAlchemy."""
 
     for s in sources:
-        #Photometry
-        s_phot_detection = list(ss for ss in s['uploaded_photometry'] if ss['magpsf'] < 50.)
+        # Photometry
+        s_phot_detection = list(
+                                ss for ss in s['uploaded_photometry'] if ss['magpsf'] < 50.)
         jd_array = list(phot['jd'] for phot in s_phot_detection)
         datetime_array = list(Time(jd_array, format='jd').datetime)
         mag_array = list(phot['magpsf'] for phot in s_phot_detection)
         magerr_array = list(phot['sigmamagpsf'] for phot in s_phot_detection)
         filt_array = list(phot['filter'] for phot in s_phot_detection)
-        instrument_array = list(phot['instrument'] for phot in s_phot_detection)
+        instrument_array = list(
+                                phot['instrument'] for phot in s_phot_detection)
         min_jd = min(jd_array)
 
         creationdate = Time(s['creationdate'], format='iso').datetime
@@ -330,7 +332,7 @@ def update_local_db_growthmarshal(sources):
                   'fil': filt_array,
                   'instrument': instrument_array,
                   'first_detection_time_tmp': Time(min_jd,
-                                                   format='jd').datetime,
+                                                   format='jd').datetime
                  }
         lightcurve = models.Lightcurve.query.filter_by(name=s['name']).all()
         if len(lightcurve) == 0:

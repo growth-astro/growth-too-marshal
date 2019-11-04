@@ -35,7 +35,6 @@ from wtforms_components.fields import (
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy import select
 
 from .flask import app
 from .jinja import atob
@@ -246,12 +245,17 @@ def objects(dateobs):
     """Objects page"""
 
     sources_all = models.db.session.query(
-        models.Candidate, models.Lightcurve).join(models.Candidate).filter(
-        models.db.cast(models.Lightcurve.first_detection_time_tmp,
-        models.db.Date) >= dateobs).all()
+                                          models.Candidate, models.Lightcurve
+                                         ).join(
+                                                models.Candidate
+                                               ).filter(
+                                                        models.db.cast(
+                                                        models.Lightcurve.first_detection_time_tmp,
+                                                        models.db.Date
+                                                       ) >= dateobs).all()
 
-    sources_growth_marshal =\
-        tasks.growthdb_cgi.prepare_candidates_for_object_table(sources_all)
+    sources_growth_marshal = tasks.growthdb_cgi.\
+prepare_candidates_for_object_table(sources_all)
     skymap = models.Localization.query.filter_by(dateobs=dateobs).all()[-1]
     sources_growth_marshal_contour = \
         tasks.growthdb_cgi.select_sources_in_contour(
@@ -282,17 +286,16 @@ def objects(dateobs):
             return render_template('candidates.jinja2',
                                    table=table_string)
 
-
         elif 'btnnew' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=True,
-                                                              dateobs=dateobs,
-                                                              skymap=skymap)
+                                                                    dateobs=dateobs,
+                                                                    skymap=skymap)
             flash('Getting new objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btnupdate' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=False,
-                                                              dateobs=dateobs,
-                                                              skymap=skymap)
+                                                                    dateobs=dateobs,
+                                                                    skymap=skymap)
             flash('Updating existing objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btncomment' in request.form:
@@ -304,8 +307,8 @@ def objects(dateobs):
         'objects.html', event=models.Event.query.get_or_404(dateobs),
         sources_growth_marshal=sources_growth_marshal_contour)
 
-@app.route('/event/<datetime:dateobs>/objects/<source_name>', \
-methods=['GET', 'POST'])
+@app.route('/event/<datetime:dateobs>/objects/<source_name>',
+           methods=['GET', 'POST'])
 @login_required
 def comment(dateobs, source_name):
     if request.method == 'POST':
@@ -317,8 +320,7 @@ def comment(dateobs, source_name):
 
     return render_template('comment.html',
                            event=models.Event.query.get_or_404(dateobs),
-                           candidate=models.Candidate.query.get_or_404(\
-source_name))
+                           candidate=models.Candidate.query.get_or_404(source_name))
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
 @login_required
