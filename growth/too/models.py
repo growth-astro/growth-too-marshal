@@ -12,6 +12,7 @@ import gwemopt.ztf_tiling
 from astropy import table
 from astropy import coordinates
 from astropy import units as u
+from astropy import time
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -23,6 +24,7 @@ import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
+from sqlalchemy import func
 from tqdm import tqdm
 
 from .flask import app
@@ -49,6 +51,8 @@ def create_all():
     db.create_all(bind=None)
 
     telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
+    telescopes = ["ZTF", "DECam"]
+    telescopes = ["ZTF"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
@@ -227,7 +231,8 @@ def create_all():
                                        reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
 
-            if tele == "ZTF":
+            if False:
+            #if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
 
                 skyoffset_frames = coordinates.SkyCoord(
@@ -945,9 +950,9 @@ class Observation(db.Model):
         comment='subfield (e.g. quadrant/chip as relevant for instrument')
 
     successful = db.Column(
-         db.Boolean,
-         nullable=False,
-         comment='processed successfully?')
+        db.Boolean,
+        nullable=False,
+        comment='processed successfully?')
 
 
 class Candidate(db.Model):
@@ -1007,3 +1012,247 @@ class Candidate(db.Model):
         db.String,
         nullable=True,
         comment='Autoannotations from the GROWTH marshal')
+
+    ps1_dr2_detections = db.Column(
+        db.Integer,
+        nullable=True,
+        comment='Number of detections in PS1 DR2')
+
+    gaia_match = db.Column(
+        db.String,
+        nullable=True,
+        comment='Match with Gaia source')
+
+    gaia_parallax = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Gaia parallax')
+
+    w4 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W4')
+
+    w2mw3 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W2-W3')
+
+    w1mw2 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W1-W2')
+
+    jdstarthist = db.Column(
+        db.DateTime,
+        comment='Date (JD) of first detection')
+
+    ssmagnr = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Nearest solar system object mag')
+
+    ssdistnr = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Nearest solar system object distance')
+
+    CLU_sfr_ha = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU star formation rate Halpha')
+
+    CLU_mstar = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU stellar mass')
+
+    CLU_sfr_fuv = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU star formation rate fuv')
+
+    CLU_z = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU redshift')
+
+    CLU_name = db.Column(
+        db.String,
+        nullable=True,
+        comment='CLU name')
+
+    CLU_id = db.Column(
+        db.Integer,
+        nullable=True,
+        comment='CLU ID')
+
+    CLU_d_to_galaxy_arcsec = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU distance arcsec')
+
+    comment = db.Column(
+        db.String,
+        nullable=True,
+        comment='Comment')
+
+    lightcurve = db.relationship(lambda: Lightcurve)
+
+
+class Lightcurve(db.Model):
+    """Candidate light curve pulled from the GROWTH
+    Marshal"""
+
+    name = db.Column(
+        db.ForeignKey(Candidate.name),
+        primary_key=True,
+        nullable=False,
+        comment='Candidate name')
+
+    date_observation = db.Column(
+        db.ARRAY(db.DateTime),
+        nullable=True,
+        comment='Observation date')
+
+    fil = db.Column(
+        db.ARRAY(db.String),
+        nullable=True,
+        comment='Filter')
+
+    instrument = db.Column(
+        db.ARRAY(db.String),
+        nullable=True,
+        comment='Instruments')
+
+    limmag = db.Column(
+        db.ARRAY(db.Float),
+        nullable=True,
+        comment='Limiting magnitude')
+
+    mag = db.Column(
+        db.ARRAY(db.Float),
+        nullable=True,
+        comment='Mag PSF')
+
+    magerr = db.Column(
+        db.ARRAY(db.Float),
+        nullable=True,
+        comment='Mag uncertainty')
+
+    exptime = db.Column(
+        db.ARRAY(db.Float),
+        nullable=True,
+        comment='Exposure time')
+
+    programid = db.Column(
+        db.ARRAY(db.Integer),
+        nullable=True,
+        comment='Program ID number (1,2,3)')
+
+    first_detection_time_tmp = db.Column(
+        db.DateTime,
+        nullable=True,
+        comment='Time first detection')
+
+    @hybrid_property
+    def first_detection_time(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        min_jd = np.min(jd_array)
+        return time.Time(min_jd, format='jd').datetime
+
+    @first_detection_time.expression
+    def first_detection_time(cls):
+        return func.min(cls.date_observation)
+
+    @property
+    def first_detection_mag(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        mag_array = np.array(self.mag)
+        idx = np.argmin(jd_array)
+        return mag_array[idx]
+
+    @property
+    def first_detection_magerr(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        magerr_array = np.array(self.magerr)
+        idx = np.argmin(jd_array)
+        return magerr_array[idx]
+
+    @property
+    def first_detection_instrument(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        instrument = self.instrument
+        idx = np.argmin(jd_array)
+        return instrument[idx]
+
+    @property
+    def first_detection_filter(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        fil = self.fil
+        idx = np.argmin(jd_array)
+        return fil[idx]
+
+    @property
+    def latest_detection_time(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        max_jd = np.max(jd_array)
+        return time.Time(max_jd, format='jd').datetime
+
+    @property
+    def latest_detection_mag(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        mag_array = np.array(self.mag)
+        idx = np.argmax(jd_array)
+        return mag_array[idx]
+
+    @property
+    def latest_detection_magerr(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        magerr_array = np.array(self.magerr)
+        idx = np.argmax(jd_array)
+        return magerr_array[idx]
+
+    @property
+    def latest_detection_instrument(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        instrument = self.instrument
+        idx = np.argmax(jd_array)
+        return instrument[idx]
+
+    @property
+    def latest_detection_filter(self):
+        if self.date_observation is None:
+            return None
+        jd_array = time.Time(self.date_observation,
+                             format='datetime').jd
+        fil = self.fil
+        idx = np.argmax(jd_array)
+        return fil[idx]
