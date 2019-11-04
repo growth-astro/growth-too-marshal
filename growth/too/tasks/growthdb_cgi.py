@@ -51,7 +51,7 @@ def prepare_candidates_for_object_table(sources_all):
     {'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
     {'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
             s_dict["dec_string"] = \
-f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
+            f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
     {'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
     {'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
     {'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
@@ -74,11 +74,15 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     csm[sort_idx] = np.cumsum(skymap_prob[sort_idx])
     ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
     nside = hp.pixelfunc.get_nside(skymap_prob)
-    sources_growth_marshal_contour = list(s for s in sources_growth_marshal \
-if ("ra" in s) and (hp.ang2pix(nside, 0.5 * np.pi - np.deg2rad(s["dec"].value),
-                    np.deg2rad(s["ra"].value)) in ipix_keep))
+    sources_growth_marshal_contour = list(s for s in sources_growth_marshal
+        if ("ra" in s) and (hp.ang2pix(
+                                       nside, 
+                                       0.5 * np.pi - np.deg2rad(s["dec"].value),
+                                       np.deg2rad(s["ra"].value)
+                                      ) in ipix_keep))
 
     return sources_growth_marshal_contour
+
 
 def get_programidx(program_name):
     """Given a program name, it returns the programidx"""
@@ -108,7 +112,10 @@ def get_source_autoannotations_and_photometry(sourceid):
     autoannotations_string = '; '.join(
         f"{auto['username']}, {auto['type']}, {auto['comment']}"
         for auto in autoannotations)
-    autoannotations_dict = {f"{auto['type']}":auto['comment'] for auto in autoannotations}
+    autoannotations_dict = {
+                            f"{auto['type']}": auto['comment'] 
+                            for auto in autoannotations
+                           }
     photometry_marshal = list(phot for phot in summary['uploaded_photometry'])
 
     return autoannotations_string, autoannotations_dict, photometry_marshal
@@ -131,7 +138,7 @@ _program_sources.cgi',
     candidates = models.Candidate.query.all()
     names = [candidate.name for candidate in candidates]
 
-    if not dateobs is None:
+    if dateobs is not None:
         jd_min = Time(dateobs, format='datetime').jd
 
     if skymap is not None:
@@ -332,7 +339,8 @@ def update_local_db_growthmarshal(sources):
                   'fil': filt_array,
                   'instrument': instrument_array,
                   'first_detection_time_tmp': Time(min_jd,
-                                                   format='jd').datetime
+                                                   format='jd'
+                                                  ).datetime
                  }
         lightcurve = models.Lightcurve.query.filter_by(name=s['name']).all()
         if len(lightcurve) == 0:

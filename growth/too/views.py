@@ -250,15 +250,16 @@ def objects(dateobs):
                                                 models.Candidate
                                                ).filter(
                                                         models.db.cast(
-                                                        models.Lightcurve.first_detection_time_tmp,
-                                                        models.db.Date
-                                                       ) >= dateobs).all()
+                                                                       models.Lightcurve.first_detection_time_tmp,
+                                                                       models.db.Date
+                                                                      ) >= dateobs
+                                                       ).all()
 
     sources_growth_marshal = tasks.growthdb_cgi.\
-prepare_candidates_for_object_table(sources_all)
+        prepare_candidates_for_object_table(sources_all)
     skymap = models.Localization.query.filter_by(dateobs=dateobs).all()[-1]
-    sources_growth_marshal_contour = \
-        tasks.growthdb_cgi.select_sources_in_contour(
+    sources_growth_marshal_contour = tasks.\
+growthdb_cgi.select_sources_in_contour(
         sources_growth_marshal, skymap, level=90)
     if request.method == 'POST':
         if 'btngcn' in request.form:
@@ -321,6 +322,7 @@ def comment(dateobs, source_name):
     return render_template('comment.html',
                            event=models.Event.query.get_or_404(dateobs),
                            candidate=models.Candidate.query.get_or_404(source_name))
+
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
 @login_required
