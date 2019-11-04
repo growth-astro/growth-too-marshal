@@ -7,7 +7,6 @@ import re
 import requests
 import shutil
 import tempfile
-import sys
 
 from celery import group
 import numpy as np
@@ -36,7 +35,7 @@ from wtforms_components.fields import (
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from .flask import app
 from .jinja import atob
@@ -246,17 +245,17 @@ def event(dateobs):
 def objects(dateobs):
     """Objects page"""
 
-    sources_all = models.db.session.query(\
-models.Candidate, models.Lightcurve).join(models.Candidate).filter(\
-models.db.cast(models.Lightcurve.first_detection_time_tmp, \
-models.db.Date) >= dateobs).all()
+    sources_all = models.db.session.query(
+        models.Candidate, models.Lightcurve).join(models.Candidate).filter(
+        models.db.cast(models.Lightcurve.first_detection_time_tmp,
+        models.db.Date) >= dateobs).all()
 
-    sources_growth_marshal = \
-tasks.growthdb_cgi.prepare_candidates_for_object_table(sources_all)
+    sources_growth_marshal =\
+        tasks.growthdb_cgi.prepare_candidates_for_object_table(sources_all)
     skymap = models.Localization.query.filter_by(dateobs=dateobs).all()[-1]
     sources_growth_marshal_contour = \
-tasks.growthdb_cgi.select_sources_in_contour(\
-sources_growth_marshal, skymap, level=90)
+        tasks.growthdb_cgi.select_sources_in_contour(
+        sources_growth_marshal, skymap, level=90)
     if request.method == 'POST':
         if 'btngcn' in request.form:
             x = PrettyTable()
@@ -286,24 +285,20 @@ sources_growth_marshal, skymap, level=90)
 
         elif 'btnnew' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=True,
-                                                                    dateobs=\
-                                                                    dateobs,
-                                                                    skymap=\
-                                                                    skymap)
+                                                              dateobs=dateobs,
+                                                              skymap=skymap)
             flash('Getting new objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btnupdate' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=False,
-                                                                    dateobs=\
-                                                                    dateobs,
-                                                                    skymap=\
-                                                                    skymap)
+                                                              dateobs=dateobs,
+                                                              skymap=skymap)
             flash('Updating existing objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btncomment' in request.form:
             source_name = request.form.getlist('btncomment')[0]
-            return redirect(url_for(\
-'comment', dateobs=dateobs, source_name=source_name))
+            return redirect(url_for(
+                'comment', dateobs=dateobs, source_name=source_name))
 
     return render_template(
         'objects.html', event=models.Event.query.get_or_404(dateobs),

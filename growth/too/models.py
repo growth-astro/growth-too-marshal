@@ -232,7 +232,7 @@ def create_all():
                                        ipix=ipix.tolist()))
 
             if False:
-            #if tele == "ZTF":
+                # if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
 
                 skyoffset_frames = coordinates.SkyCoord(
