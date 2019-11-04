@@ -286,14 +286,18 @@ sources_growth_marshal, skymap, level=90)
 
         elif 'btnnew' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=True,
-                                                              dateobs=dateobs,
-                                                              skymap=skymap)
+                                                                    dateobs=\
+                                                                    dateobs,
+                                                                    skymap=\
+                                                                    skymap)
             flash('Getting new objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btnupdate' in request.form:
             tasks.growthdb_cgi.fetch_candidates_growthmarshal.delay(new=False,
-                                                              dateobs=dateobs,
-                                                              skymap=skymap)
+                                                                    dateobs=\
+                                                                    dateobs,
+                                                                    skymap=\
+                                                                    skymap)
             flash('Updating existing objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btncomment' in request.form:
@@ -312,7 +316,6 @@ def comment(dateobs, source_name):
     if request.method == 'POST':
         new_comment = request.form.get('newcomment')
         if new_comment is not None:
-            print(source_name, new_comment, file=sys.stderr)
             tasks.growthdb_cgi.update_comment(source_name, new_comment)
         flash(f'Updating comment for {source_name}', 'success')
         return redirect(url_for('objects', dateobs=dateobs))

@@ -1,11 +1,9 @@
 import requests
-import datetime
 import logging
 
 import numpy as np
-from astropy.time import Time
-from celery.task import PeriodicTask
 import celery
+from astropy.time import Time
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 import healpy as hp
@@ -48,8 +46,15 @@ def prepare_candidates_for_object_table(sources_all):
                 rr, dd = s_dict['ra'], s_dict['dec']
             s_coords = SkyCoord(ra=rr*u.deg, dec=dd*u.deg)
             s_dict["ra"], s_dict["dec"] = s_coords.ra, s_coords.dec
-            s_dict["ra_string"] = f"{'{0:02d}'.format(int(s_coords.ra.hms.h))}:{'{0:02d}'.format(int(s_coords.ra.hms.m))}:{'{0:02d}'.format(int(s_coords.ra.hms.s))}.{'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
-            s_dict["dec_string"] = f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:{'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:{'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.{'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
+            s_dict["ra_string"] = f"{'{0:02d}'.format(int(s_coords.ra.hms.h))}:\
+{'{0:02d}'.format(int(s_coords.ra.hms.m))}:\
+{'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
+{'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
+            s_dict["dec_string"] = \
+f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
+{'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
+{'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
+{'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
         else:
             s_dict["ra_string"] = None
             s_dict["dec_string"] = None
@@ -69,7 +74,9 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     csm[sort_idx] = np.cumsum(skymap_prob[sort_idx])
     ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
     nside = hp.pixelfunc.get_nside(skymap_prob)
-    sources_growth_marshal_contour = list(s for s in sources_growth_marshal if ("ra" in s) and (hp.ang2pix(nside, 0.5 * np.pi - np.deg2rad(s["dec"].value), np.deg2rad(s["ra"].value)) in ipix_keep))
+    sources_growth_marshal_contour = list(s for s in sources_growth_marshal \
+if ("ra" in s) and (hp.ang2pix(nside, 0.5 * np.pi - np.deg2rad(s["dec"].value),\
+ np.deg2rad(s["ra"].value)) in ipix_keep))
 
     return sources_growth_marshal_contour
 
@@ -80,7 +87,7 @@ def get_programidx(program_name):
         'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
     r.raise_for_status()
     programs = r.json()
-    program_dict={p['name']:p['programidx'] for i,p in enumerate(programs)}
+    program_dict = {p['name']:p['programidx'] for i, p in enumerate(programs)}
 
     try:
         return program_dict[program_name]
@@ -138,7 +145,7 @@ _program_sources.cgi',
     # Add autoannotations
     for source in sources:
         if new and (source["name"] in names):
-            continue 
+            continue
         if (not new) and (source["name"] not in names):
             continue
         if not skymap is None:
@@ -148,7 +155,8 @@ _program_sources.cgi',
                 continue
 
         if not dateobs is None:
-            autoannotations_string,autoannotations_dict, photometry_marshal = get_source_autoannotations_and_photometry(source["id"])
+            autoannotations_string, autoannotations_dict, photometry_marshal =\
+ get_source_autoannotations_and_photometry(source["id"])
             s_phot_detection = list(ss for ss in photometry_marshal if ss['magpsf'] < 50.)
             jd_array = np.array(list(phot['jd'] for phot in s_phot_detection))
             if jd_min > np.min(jd_array):
@@ -173,7 +181,7 @@ def get_or_create(session, model, defaults=None, **kwargs):
         return instance, True
 
 
-def update_local_db_growthmarshal(sources, program_name):
+def update_local_db_growthmarshal(sources):
     """Takes the candidates fetched from the GROWTH marshal and
     updates the local database using SQLAlchemy."""
 
@@ -340,7 +348,6 @@ def update_local_db_growthmarshal(sources, program_name):
     models.db.session.commit()
 
 
-
 def update_comment(source_name, new_comment):
     """Update the comment for a given source"""
     source = models.Candidate.query.filter_by(name=source_name).first()
@@ -359,9 +366,9 @@ def fetch_candidates_growthmarshal(new=False, dateobs=None, skymap=None):
         'Afterglows of Fermi Gamma Ray Bursts',
         'Electromagnetic Counterparts to Neutrinos',
         'Electromagnetic Counterparts to Gravitational Waves'
-                    ]
+        ]
     for program_name in program_names:
         sources = get_candidates_growth_marshal(program_name, new=new,
                                                 dateobs=dateobs,
                                                 skymap=skymap)
-        update_local_db_growthmarshal(sources, program_name)
+        update_local_db_growthmarshal(sources)
