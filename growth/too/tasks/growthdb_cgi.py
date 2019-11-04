@@ -20,6 +20,7 @@ neutrino_programidx=program_dict['Electromagnetic Counterparts
 to Neutrinos']
 """
 
+
 def prepare_candidates_for_object_table(sources_all):
     """Prepare a list of disctionaries with relevant info
     for each source in the marshal"""
@@ -50,11 +51,12 @@ def prepare_candidates_for_object_table(sources_all):
     {'{0:02d}'.format(int(s_coords.ra.hms.m))}:\
     {'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
     {'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
+            res = 100 * abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))
             s_dict["dec_string"] = \
-            f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
-    {'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
-    {'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
-    {'{0:02d}'.format(int(100*abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))))}"
+                f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
+                {'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
+                {'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
+                {'{0:02d}'.format(int(res))}"
         else:
             s_dict["ra_string"] = None
             s_dict["dec_string"] = None
@@ -75,11 +77,14 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
     nside = hp.pixelfunc.get_nside(skymap_prob)
     sources_growth_marshal_contour = list(s for s in sources_growth_marshal
-        if ("ra" in s) and (hp.ang2pix(
-                                       nside, 
-                                       0.5 * np.pi - np.deg2rad(s["dec"].value),
-                                       np.deg2rad(s["ra"].value)
-                                      ) in ipix_keep))
+                                          if ("ra" in s)
+                                          and (hp.ang2pix(
+                                                          nside,
+                                                          0.5 * np.pi - np.deg2rad(s["dec"].value),
+                                                          np.deg2rad(s["ra"].value)
+                                                         ) in ipix_keep
+                                               )
+                                          )
 
     return sources_growth_marshal_contour
 
@@ -113,7 +118,7 @@ def get_source_autoannotations_and_photometry(sourceid):
         f"{auto['username']}, {auto['type']}, {auto['comment']}"
         for auto in autoannotations)
     autoannotations_dict = {
-                            f"{auto['type']}": auto['comment'] 
+                            f"{auto['type']}": auto['comment']
                             for auto in autoannotations
                            }
     photometry_marshal = list(phot for phot in summary['uploaded_photometry'])
@@ -155,7 +160,7 @@ _program_sources.cgi',
             continue
         if (not new) and (source["name"] not in names):
             continue
-        if not skymap is None:
+        if skymap is not None:
             if hp.ang2pix(nside,
                           0.5 * np.pi - np.deg2rad(source["dec"]),
                           np.deg2rad(source["ra"])) not in ipix_keep:
@@ -163,8 +168,9 @@ _program_sources.cgi',
 
         if dateobs is not None:
             autoannotations_string, autoannotations_dict, photometry_marshal =\
- get_source_autoannotations_and_photometry(source["id"])
-            s_phot_detection = list(ss for ss in photometry_marshal if ss['magpsf'] < 50.)
+                get_source_autoannotations_and_photometry(source["id"])
+            s_phot_detection = list(ss for ss in photometry_marshal
+                                    if ss['magpsf'] < 50.)
             jd_array = np.array(list(phot['jd'] for phot in s_phot_detection))
             if jd_min > np.min(jd_array):
                 continue
@@ -176,33 +182,22 @@ _program_sources.cgi',
             uploaded_photometry=photometry_marshal)
 
 
-def get_or_create(session, model, defaults=None, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
-    if instance:
-        return instance, False
-    else:
-        params = dict((k, v) for k, v in kwargs.iteritems() if not isinstance(v, ClauseElement))
-        params.update(defaults or {})
-        instance = model(**params)
-        session.add(instance)
-        return instance, True
-
-
 def update_local_db_growthmarshal(sources):
     """Takes the candidates fetched from the GROWTH marshal and
     updates the local database using SQLAlchemy."""
 
     for s in sources:
         # Photometry
-        s_phot_detection = list(
-                                ss for ss in s['uploaded_photometry'] if ss['magpsf'] < 50.)
+        s_phot_detection = list(ss for ss in s['uploaded_photometry']
+                                if ss['magpsf'] < 50.)
         jd_array = list(phot['jd'] for phot in s_phot_detection)
         datetime_array = list(Time(jd_array, format='jd').datetime)
         mag_array = list(phot['magpsf'] for phot in s_phot_detection)
         magerr_array = list(phot['sigmamagpsf'] for phot in s_phot_detection)
         filt_array = list(phot['filter'] for phot in s_phot_detection)
         instrument_array = list(
-                                phot['instrument'] for phot in s_phot_detection)
+                                phot['instrument']
+                                for phot in s_phot_detection)
         min_jd = min(jd_array)
 
         creationdate = Time(s['creationdate'], format='iso').datetime
@@ -249,7 +244,9 @@ def update_local_db_growthmarshal(sources):
         except (TypeError, KeyError, ValueError):
             w1mw2 = None
         try:
-            jdstarthist = Time(s['autoannotations_dict']['jdstarthist'], format='jd').datetime
+            jdstarthist =\
+                Time(s['autoannotations_dict']['jdstarthist'],
+                     format='jd').datetime
         except (TypeError, KeyError, ValueError):
             jdstarthist = None
         try:
@@ -277,7 +274,8 @@ def update_local_db_growthmarshal(sources):
         except (TypeError, KeyError, ValueError):
             CLU_mstar = None
         try:
-            CLU_d_to_galaxy_arcsec = float(s['autoannotations_dict']['CLU_d_to_galaxy_arcsec'])
+            CLU_d_to_galaxy_arcsec = float(
+                s['autoannotations_dict']['CLU_d_to_galaxy_arcsec'])
         except (TypeError, KeyError, ValueError):
             CLU_d_to_galaxy_arcsec = None
         try:
@@ -338,10 +336,8 @@ def update_local_db_growthmarshal(sources):
                   'magerr': magerr_array,
                   'fil': filt_array,
                   'instrument': instrument_array,
-                  'first_detection_time_tmp': Time(min_jd,
-                                                   format='jd'
-                                                  ).datetime
-                 }
+                  'first_detection_time_tmp': Time(min_jd, format='jd').datetime
+                  }
         lightcurve = models.Lightcurve.query.filter_by(name=s['name']).all()
         if len(lightcurve) == 0:
             models.db.session.merge(models.Lightcurve(**kwargs))
