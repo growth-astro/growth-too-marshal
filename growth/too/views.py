@@ -251,7 +251,8 @@ def objects(dateobs):
                     models.Candidate
                    ).filter(
                             models.db.cast(
-                                           models.Lightcurve.first_detection_time_tmp,
+                                           models.Lightcurve.
+                                           first_detection_time_tmp,
                                            models.db.Date
                                           ) >= dateobs
                            ).all()
@@ -322,7 +323,8 @@ def comment(dateobs, source_name):
 
     return render_template('comment.html',
                            event=models.Event.query.get_or_404(dateobs),
-                           candidate=models.Candidate.query.get_or_404(source_name))
+                           candidate=models.Candidate.query.
+                           get_or_404(source_name))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])

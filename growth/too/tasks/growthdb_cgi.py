@@ -43,20 +43,22 @@ def prepare_candidates_for_object_table(sources_all):
         if ('ra' in s_dict) and ('dec' in s_dict):
             try:
                 rr, dd = s_dict['ra'].deg, s_dict['dec'].deg
-            except (TypeError, KeyError, ValueError):
+            except (TypeError, KeyError, ValueError, AttributeError):
                 rr, dd = s_dict['ra'], s_dict['dec']
             s_coords = SkyCoord(ra=rr*u.deg, dec=dd*u.deg)
             s_dict["ra"], s_dict["dec"] = s_coords.ra, s_coords.dec
-            s_dict["ra_string"] = f"{'{0:02d}'.format(int(s_coords.ra.hms.h))}:\
-    {'{0:02d}'.format(int(s_coords.ra.hms.m))}:\
-    {'{0:02d}'.format(int(s_coords.ra.hms.s))}.\
-    {'{0:02d}'.format(int(100*(s_coords.ra.hms.s - int(s_coords.ra.hms.s))))}"
-            res = 100 * abs(s_coords.dec.dms.s - int(s_coords.dec.dms.s))
-            s_dict["dec_string"] = \
-                f"{'{0:02d}'.format(int(s_coords.dec.dms.d))}:\
-                {'{0:02d}'.format(abs(int(s_coords.dec.dms.m)))}:\
-                {'{0:02d}'.format(int(abs(s_coords.dec.dms.s)))}.\
-                {'{0:02d}'.format(int(res))}"
+            ra_h = '{0:02d}'.format(int(s_coords.ra.hms.h))
+            ra_m = '{0:02d}'.format(int(s_coords.ra.hms.m))
+            ra_s = '{0:02d}'.format(int(s_coords.ra.hms.s))
+            ra_sd = '{0:02d}'.format(int(100*(s_coords.ra.hms.s -
+                                     int(s_coords.ra.hms.s))))
+            s_dict["ra_string"] = f"{ra_h}:{ra_m}:{ra_s}.{ra_sd}"
+            dec_d = '{0:02d}'.format(int(s_coords.dec.dms.d))
+            dec_m = '{0:02d}'.format(abs(int(s_coords.dec.dms.m)))
+            dec_s = '{0:02d}'.format(int(abs(s_coords.dec.dms.s)))
+            dec_sd = '{0:02d}'.format(int(100 * abs(s_coords.dec.dms.s -
+                                      int(s_coords.dec.dms.s))))
+            s_dict["dec_string"] = f"{dec_d}:{dec_m}:{dec_s}.{dec_sd}"
         else:
             s_dict["ra_string"] = None
             s_dict["dec_string"] = None
@@ -80,8 +82,11 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
                                           if ("ra" in s)
                                           and (hp.ang2pix(
                                                           nside,
-                                                          0.5 * np.pi - np.deg2rad(s["dec"].value),
-                                                          np.deg2rad(s["ra"].value)
+                                                          0.5 * np.pi -
+                                                          np.deg2rad(s["dec"].
+                                                                     value),
+                                                          np.deg2rad(s["ra"].
+                                                                     value)
                                                          ) in ipix_keep
                                                )
                                           )
@@ -220,7 +225,9 @@ def update_local_db_growthmarshal(sources):
         except (TypeError, KeyError, ValueError):
             redshift = None
         try:
-            ps1_dr2_detections = int(s['autoannotations_dict']['ps1_dr2_detections'])
+            ps1_dr2_detections = int(
+                                     s['autoannotations_dict']
+                                     ['ps1_dr2_detections'])
         except (TypeError, KeyError, ValueError):
             ps1_dr2_detections = None
         try:
@@ -336,7 +343,9 @@ def update_local_db_growthmarshal(sources):
                   'magerr': magerr_array,
                   'fil': filt_array,
                   'instrument': instrument_array,
-                  'first_detection_time_tmp': Time(min_jd, format='jd').datetime
+                  'first_detection_time_tmp': Time(
+                                                   min_jd, format='jd'
+                                                  ).datetime
                   }
         lightcurve = models.Lightcurve.query.filter_by(name=s['name']).all()
         if len(lightcurve) == 0:
