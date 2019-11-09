@@ -211,6 +211,9 @@ $('#airmass_limit').on('input', function() {
 $('#mindiff').on('input', function() {
     $("output[for='mindiff']").text(parseFloat($(this).val()));
 });
+$('#max_nb_tiles').on('input', function() {
+    $("output[for='max_nb_tiles']").text(parseFloat($(this).val()));
+});
 $('#telescope').on('input', function() {
     var telescope = $(this).val();
     var available_filters = {
