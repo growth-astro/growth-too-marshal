@@ -945,9 +945,9 @@ class Observation(db.Model):
         comment='subfield (e.g. quadrant/chip as relevant for instrument')
 
     successful = db.Column(
-         db.Boolean,
-         nullable=False,
-         comment='processed successfully?')
+        db.Boolean,
+        nullable=False,
+        comment='processed successfully?')
 
 
 class Candidate(db.Model):
