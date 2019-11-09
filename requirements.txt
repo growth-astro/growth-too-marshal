@@ -21,6 +21,7 @@ lxml
 networkx
 pandas
 passlib
+prettytable
 psycopg2
 pygcn >= 0.1.20
 pytz
