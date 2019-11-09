@@ -51,8 +51,6 @@ def create_all():
     db.create_all(bind=None)
 
     telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
-    telescopes = ["ZTF", "DECam"]
-    telescopes = ["ZTF"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
                          "DECam": ["g", "r", "i", "z"],
@@ -231,8 +229,7 @@ def create_all():
                                        reference_filter_mags=ref_filter_mags,
                                        ipix=ipix.tolist()))
 
-            if False:
-                # if tele == "ZTF":
+            if tele == "ZTF":
                 quadrant_coords = get_ztf_quadrants()
 
                 skyoffset_frames = coordinates.SkyCoord(

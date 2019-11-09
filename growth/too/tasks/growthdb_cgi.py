@@ -22,8 +22,26 @@ to Neutrinos']
 
 
 def prepare_candidates_for_object_table(sources_all):
-    """Prepare a list of disctionaries with relevant info
-    for each source in the marshal"""
+    """
+    Prepare a list of disctionaries with relevant info
+    for each source in the marshal
+
+    Parameters
+    ----------
+    sources_all : list(sqlalchemy.util._collections.result)
+        List of sources queried from the local database.
+
+    Returns
+    -------
+    sources_growth_marshal: list(dict)
+        list of dictionaries with values formatted to be
+        correctly displayed in the objects page.
+
+    Notes
+    -----
+    The main action of this function is the creation of strings
+    including the source coordinates in sexagesimal format.
+    """
 
     sources_growth_marshal = []
     for s, l in sources_all:
@@ -365,7 +383,7 @@ def update_local_db_growthmarshal(sources):
 
 def update_comment(source_name, new_comment):
     """Update the comment for a given source"""
-    source = models.Candidate.query.filter_by(name=source_name).first()
+    source = models.Candidate.query.get(source_name)
     source.comment = new_comment
     models.db.session.merge(source)
     models.db.session.commit()
