@@ -59,7 +59,7 @@ def plan(dateobs, telescope, plan_name):
 
     plan = models.Plan.query.filter_by(dateobs=dateobs, telescope=telescope,
                                        plan_name=plan_name).one()
-    json_data, queue_name = views.get_json_data(plan)
+    json_data, queue_name = views.get_json_data(plan, decam_style=False)
 
     if telescope == "ZTF":
         depth = 20.5
