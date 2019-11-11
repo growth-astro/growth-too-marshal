@@ -225,7 +225,7 @@ def get_decam_dict(data_row, queue_name, cnt, nrows,
     decam_dict["program"] = "GROWTH DECam GW",
     decam_dict["RA"] = data_row["ra"]+ra_diff,
     decam_dict["seqid"] = queue_name,
-    decam_dict["propid"] = "2019A-0205",
+    decam_dict["propid"] = "2019B-0353",
     decam_dict["dec"] = data_row["dec"]+dec_diff,
     decam_dict["exptime"] = data_row["exposure_time"],
     decam_dict["wait"] = "False"
