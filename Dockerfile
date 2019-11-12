@@ -9,6 +9,12 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
     lscsoft-glue \
     ligo-segments \
     python-ligo-lw \
+    # Fixes for flaky IERS servers that are on master but not yet in an astropy release
+    git+https://github.com/astropy/astropy@90db3ade9f5d883fedbe2a2e42b77938d5cc318e \
+    git+https://github.com/astropy/astroplan@fa5fde10aab7b1720a13669bb214783dea8c5abb \
+    git+https://github.com/astropy/astroquery@c96d5f4f306eee44f59de96e77d6f34bc4d784bb \
+    git+https://github.com/astropy/reproject@eea092eb476c8aef95c917e1250b7796923e47f1 \
+    git+https://github.com/astropy/pyvo@33f64f9d4a5ab05dac12339d69c6b7c4bcf660e2 \
     git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286 && \
     # Audit all binary wheels
     ls *.whl | xargs -L 1 auditwheel repair && \
@@ -95,6 +101,7 @@ COPY --from=wheel-deps /wheelhouse /wheelhouse
 RUN pip3 install --no-cache-dir -f /wheelhouse \
     flower \
     -r /requirements.txt
+RUN pip3 install --no-cache-dir /wheelhouse/*.whl
 
 
 #
