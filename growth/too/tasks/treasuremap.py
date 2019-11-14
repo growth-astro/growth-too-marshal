@@ -46,7 +46,7 @@ def observations(dateobs, telescope, observations):
         pointing["depth"] = observation.limmag
         pointing["depth_unit"] = "ab_mag"
         pointing["status"] = "completed"
-        pointing["time"] = obstime.isot.split(".")[0]
+        pointing["time"] = obstime.isot
         pointings.append(pointing)
         observation_ids.append(observation.observation_id)
 
@@ -93,7 +93,7 @@ def plan(dateobs, telescope, plan_name):
         pointing["depth"] = str(depth)
         pointing["depth_unit"] = "ab_mag"
         pointing["status"] = "planned"
-        pointing["time"] = tstart.isot.split(".")[0]
+        pointing["time"] = tstart.isot
         pointings.append(pointing)
 
     data["pointings"] = pointings
