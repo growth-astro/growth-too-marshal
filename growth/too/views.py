@@ -1039,7 +1039,7 @@ def get_json_data_manual(form):
     return json_data, queue_name
 
 
-def get_json_data(plan):
+def get_json_data(plan, decam_style=True):
 
     queue_name, transient_name = get_queue_transient_name(plan)
 
@@ -1100,7 +1100,7 @@ def get_json_data(plan):
             ]
         }
 
-    if telescope == "DECam":
+    if (telescope == "DECam") and decam_style:
         decam_dicts = []
         cnt = 1
         queue_name = json_data['queue_name']
