@@ -406,6 +406,20 @@ class PlanForm(ModelForm):
 
     balance = BooleanField(default=False)
 
+    completed = BooleanField(default=False)
+
+    completed_window_start = DateTimeField(
+        format='%Y-%m-%d %H:%M:%S',
+        default=lambda: datetime.datetime.utcnow() - datetime.timedelta(1),
+        validators=[validators.DataRequired()])
+
+    completed_window_end = DateTimeField(
+        format='%Y-%m-%d %H:%M:%S',
+        default=lambda: datetime.datetime.utcnow(),
+        validators=[validators.DataRequired()])
+
+    planned = BooleanField(default=False)
+
     filterschedule = RadioField(
         choices=[('block', 'block'), ('integrated', 'integrated')],
         default='block')
@@ -476,6 +490,9 @@ class PlanForm(ModelForm):
         timediff1 = start_mjd - event_mjd
         timediff2 = end_mjd - event_mjd
         t_obs = [timediff1, timediff2]
+        completed_start_mjd = time.Time(self.completed_window_start.data).mjd
+        completed_end_mjd = time.Time(self.completed_window_end.data).mjd
+        c_obs = [completed_start_mjd, completed_end_mjd]
         filters = re.split(r'[\s,]+', self.filters.data)
 
         obj.plan_args = dict(
@@ -494,7 +511,10 @@ class PlanForm(ModelForm):
             filterScheduleType=self.filterschedule.data,
             schedule_strategy=self.schedule_strategy.data,
             usePrevious=self.previous.data,
-            previous_plan=self.previous_plan.data
+            previous_plan=self.previous_plan.data,
+            doCompletedObservations=self.completed.data,
+            cobs=c_obs,
+            doPlannedObservations=self.planned.data
         )
 
 
