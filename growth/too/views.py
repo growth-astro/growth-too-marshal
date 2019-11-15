@@ -406,7 +406,6 @@ class PlanForm(ModelForm):
 
     balance = BooleanField(default=False)
 
-<<<<<<< HEAD
     completed = BooleanField(default=False)
 
     completed_window_start = DateTimeField(
