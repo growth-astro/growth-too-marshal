@@ -47,7 +47,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
                   schedule_strategy='tiling',
                   doCompletedObservations=False,
                   cobs=None,
-                  doPlannedObservations=False):
+                  doPlannedObservations=False,
+                  doMaxTiles=False,
+                  max_nb_tiles=1000):
 
     growthpath = os.path.dirname(growth.__file__)
     config_directory = os.path.join(growthpath, 'too', 'config')
@@ -168,6 +170,8 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
         params["doMinimalTiling"] = False
     params["doIterativeTiling"] = False
     params["galaxies_FoV_sep"] = 1.0
+    params["doMaxTiles"] = doMaxTiles
+    params["max_nb_tiles"] = np.array([max_nb_tiles]*len(filt))
 
     if params["doEvent"]:
         params["skymap"], eventinfo = gwemopt.gracedb.get_event(params)
@@ -496,6 +500,7 @@ def tile(localization_name, dateobs, telescope,
 
     planned = plan_args['doPlannedObservations']
     completed = plan_args['doCompletedObservations']
+    maxtiles = plan_args['doMaxTiles']
 
     params = params_struct(dateobs, tobs=np.asarray(plan_args['tobs']),
                            filt=plan_args['filt'],
@@ -510,7 +515,9 @@ def tile(localization_name, dateobs, telescope,
                            mindiff=plan_args['mindiff'],
                            doCompletedObservations=completed,
                            cobs=plan_args['cobs'],
-                           doPlannedObservations=planned)
+                           doPlannedObservations=planned,
+                           doMaxTiles=maxtiles,
+                           max_nb_tiles=plan_args['max_nb_tiles'])
 
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))

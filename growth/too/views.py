@@ -420,6 +420,8 @@ class PlanForm(ModelForm):
 
     planned = BooleanField(default=False)
 
+    maxtiles = BooleanField(default=False)
+
     filterschedule = RadioField(
         choices=[('block', 'block'), ('integrated', 'integrated')],
         default='block')
@@ -431,6 +433,10 @@ class PlanForm(ModelForm):
     exposure_time = FloatField(
         default=300,
         validators=[validators.DataRequired(), validators.NumberRange(min=0)])
+
+    max_nb_tiles = DecimalSliderField(
+        [validators.NumberRange(min=0, max=1000)],
+        default=1000)
 
     probability = DecimalSliderField(
         [validators.NumberRange(min=0, max=100)],
@@ -514,7 +520,9 @@ class PlanForm(ModelForm):
             previous_plan=self.previous_plan.data,
             doCompletedObservations=self.completed.data,
             cobs=c_obs,
-            doPlannedObservations=self.planned.data
+            doPlannedObservations=self.planned.data,
+            doMaxTiles=self.maxtiles.data,
+            max_nb_tiles=int(self.max_nb_tiles.data)
         )
 
 

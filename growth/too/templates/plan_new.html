@@ -79,6 +79,10 @@
                         Avoid observations in planned fields / filters (ZTF only)
                         </small>
                     </div>
+                    <div class="custom-control custom-switch">
+                        {{ render_field(form.maxtiles, class='custom-control-input') }}
+                        <label for=maxtiles class=custom-control-label>Limit number of fields</label>
+                    </div>
                 </div>
             </div>
             <div class=form-row>
@@ -103,6 +107,13 @@
                     <div class="d-flex mt-2">
                         {{ render_field(form.mindiff, min=0, max=180, step=5, class='custom-range') }}
                         <output for=mindiff class=ml-2>{{form.mindiff.data}}</output>
+                    </div>
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for="name">Maximum Number of Tiles</label>
+                    <div class="d-flex mt-2">
+                        {{ render_field(form.max_nb_tiles, min=0, max=1000, step=5, class='custom-range') }}
+                        <output for=max_nb_tiles class=ml-2>{{form.max_nb_tiles.data}}</output>
                     </div>
                 </div>
             </div>
@@ -199,6 +210,9 @@ $('#airmass_limit').on('input', function() {
 });
 $('#mindiff').on('input', function() {
     $("output[for='mindiff']").text(parseFloat($(this).val()));
+});
+$('#max_nb_tiles').on('input', function() {
+    $("output[for='max_nb_tiles']").text(parseFloat($(this).val()));
 });
 $('#telescope').on('input', function() {
     var telescope = $(this).val();
