@@ -1094,64 +1094,67 @@ class Candidate(db.Model):
         nullable=True,
         comment='Comment')
 
-    lightcurve = db.relationship(lambda: Lightcurve)
+    lightcurve = db.relationship('Lightcurve')
 
 
 class Lightcurve(db.Model):
     """Candidate light curve pulled from the GROWTH
     Marshal"""
 
+    lcid = db.Column(
+        db.BigInteger,
+        primary_key=True)
+
     name = db.Column(
         db.ForeignKey(Candidate.name),
-        primary_key=True,
         nullable=False,
         comment='Candidate name')
 
     date_observation = db.Column(
-        db.ARRAY(db.DateTime),
+        db.DateTime,
         nullable=True,
         comment='Observation date')
 
     fil = db.Column(
-        db.ARRAY(db.String),
+        db.String,
         nullable=True,
         comment='Filter')
 
     instrument = db.Column(
-        db.ARRAY(db.String),
+        db.String,
         nullable=True,
         comment='Instruments')
 
     limmag = db.Column(
-        db.ARRAY(db.Float),
+        db.Float,
         nullable=True,
         comment='Limiting magnitude')
 
     mag = db.Column(
-        db.ARRAY(db.Float),
+        db.Float,
         nullable=True,
         comment='Mag PSF')
 
     magerr = db.Column(
-        db.ARRAY(db.Float),
+        db.Float,
         nullable=True,
         comment='Mag uncertainty')
 
     exptime = db.Column(
-        db.ARRAY(db.Float),
+        db.Float,
         nullable=True,
         comment='Exposure time')
 
     programid = db.Column(
-        db.ARRAY(db.Integer),
+        db.Integer,
         nullable=True,
         comment='Program ID number (1,2,3)')
 
-    first_detection_time_tmp = db.Column(
-        db.DateTime,
-        nullable=True,
-        comment='Time first detection')
+    candidate = db.relationship(
+        'Candidate', 
+        back_populates='lightcurve')
 
+    """
     @hybrid_property
     def first_detection_time(self):
         if self.date_observation is None:
@@ -1253,3 +1256,4 @@ class Lightcurve(db.Model):
         fil = self.fil
         idx = np.argmax(jd_array)
         return fil[idx]
+    """

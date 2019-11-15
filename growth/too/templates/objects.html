@@ -79,20 +79,20 @@
                                     <th>{{source.ssmagnr}}</th>
                                     <th>{{source.ssdistnr}}</th>
                                     <th>{{source.CLU_name}}</th>
-                                    <th>{{source.CLU_d_to_galaxy_arcsec}}</th>
+                                    <th>{{'{:.2f}'.format(source.CLU_d_to_galaxy_arcsec) if source.CLU_d_to_galaxy_arcsec}}</th>
                                     <th>{{source.CLU_z}}</th>
                                     <td>{{source.ps1_dr2_detections}}</td>
                                     <th>{{source.gaia_match}}</th>
                                     <th>{{source.gaia_parallax}}</th>
-                                    <th>{{source.w1mw2}}</th>
-                                    <th>{{source.w2mw3}}</th>
-                                    <th>{{source.w4}}</th>
+                                    <th>{{'{:.2f}'.format(source.w1mw2) if source.w1mw2}}</th>
+                                    <th>{{'{:.2f}'.format(source.w2mw3) if source.w2mw3}}</th>
+                                    <th>{{'{:.2f}'.format(source.w4) if source.w4}}</th>
                                     <th>{{source.first_detection_time}}</th>
                                     <th>{{source.latest_detection_time}}</th>
-                                    <th>{{source.latest_detection_mag}}</th>
-                                    <th>{{source.latest_detection_magerr}}</th>
-                                    <td>{{source.ra_string}}</td>
-                                    <td>{{source.dec_string}}</td>
+                                    <th>{{'{:.2f}'.format(source.latest_detection_mag) if source.latest_detection_mag}}</th>
+                                    <th>{{'{:.2f}'.format(source.latest_detection_magerr) if source.latest_detection_magerr}}</th>
+                                    <td>{{source.ra.to_string(u.hour,precision=2, sep=':', pad=True)}}</td>
+                                    <td>{{source.dec.to_string(precision=2, sep=':', pad=True)}}</td>
                                     <td>{{telescope_name}}</td>
                                 </tr>
                             {% endfor %}

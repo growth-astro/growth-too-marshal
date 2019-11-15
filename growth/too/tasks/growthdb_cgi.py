@@ -20,72 +20,6 @@ neutrino_programidx=program_dict['Electromagnetic Counterparts
 to Neutrinos']
 """
 
-
-def prepare_candidates_for_object_table(sources_all):
-    """
-    Prepare a list of disctionaries with relevant info
-    for each source in the marshal
-
-    Parameters
-    ----------
-    sources_all : list(sqlalchemy.util._collections.result)
-        List of sources queried from the local database.
-
-    Returns
-    -------
-    sources_growth_marshal: list(dict)
-        list of dictionaries with values formatted to be
-        correctly displayed in the objects page.
-
-    Notes
-    -----
-    The main action of this function is the creation of strings
-    including the source coordinates in sexagesimal format.
-    """
-
-    sources_growth_marshal = []
-    for s, l in sources_all:
-        s_dict = s.__dict__
-        s_dict.update(l.__dict__)
-        s_dict["first_detection_time"] = l.first_detection_time
-        s_dict["first_detection_mag"] = l.first_detection_mag
-        s_dict["first_detection_magerr"] = l.first_detection_magerr
-        s_dict["first_detection_instrument"] = l.first_detection_instrument
-        s_dict["first_detection_filter"] = l.first_detection_filter
-        s_dict["latest_detection_time"] = l.latest_detection_time
-        s_dict["latest_detection_mag"] = l.latest_detection_mag
-        s_dict["latest_detection_magerr"] = l.latest_detection_magerr
-        s_dict["latest_detection_instrument"] = l.latest_detection_instrument
-        s_dict["latest_detection_filter"] = l.latest_detection_filter
-
-        if ('ra' in s_dict) and ('dec' in s_dict):
-            try:
-                rr, dd = s_dict['ra'].deg, s_dict['dec'].deg
-            except (TypeError, KeyError, ValueError, AttributeError):
-                rr, dd = s_dict['ra'], s_dict['dec']
-            s_coords = SkyCoord(ra=rr*u.deg, dec=dd*u.deg)
-            s_dict["ra"], s_dict["dec"] = s_coords.ra, s_coords.dec
-            ra_h = '{0:02d}'.format(int(s_coords.ra.hms.h))
-            ra_m = '{0:02d}'.format(int(s_coords.ra.hms.m))
-            ra_s = '{0:02d}'.format(int(s_coords.ra.hms.s))
-            ra_sd = '{0:02d}'.format(int(100*(s_coords.ra.hms.s -
-                                     int(s_coords.ra.hms.s))))
-            s_dict["ra_string"] = f"{ra_h}:{ra_m}:{ra_s}.{ra_sd}"
-            dec_d = '{0:02d}'.format(int(s_coords.dec.dms.d))
-            dec_m = '{0:02d}'.format(abs(int(s_coords.dec.dms.m)))
-            dec_s = '{0:02d}'.format(int(abs(s_coords.dec.dms.s)))
-            dec_sd = '{0:02d}'.format(int(100 * abs(s_coords.dec.dms.s -
-                                      int(s_coords.dec.dms.s))))
-            s_dict["dec_string"] = f"{dec_d}:{dec_m}:{dec_s}.{dec_sd}"
-        else:
-            s_dict["ra_string"] = None
-            s_dict["dec_string"] = None
-
-        sources_growth_marshal.append(s_dict)
-
-    return sources_growth_marshal
-
-
 def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     """Select only those sources within a given contour
     level of the skymap"""
@@ -97,16 +31,13 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
     nside = hp.pixelfunc.get_nside(skymap_prob)
     sources_growth_marshal_contour = list(s for s in sources_growth_marshal
-                                          if ("ra" in s)
-                                          and (hp.ang2pix(
-                                                          nside,
-                                                          0.5 * np.pi -
-                                                          np.deg2rad(s["dec"].
-                                                                     value),
-                                                          np.deg2rad(s["ra"].
-                                                                     value)
-                                                         ) in ipix_keep
-                                               )
+                                          if (hp.ang2pix(
+                                                         nside,
+                                                         0.5 * np.pi -
+                                                         np.deg2rad(s["dec"]),
+                                                         np.deg2rad(s["ra"])
+                                                        ) in ipix_keep
+                                              )
                                           )
 
     return sources_growth_marshal_contour
@@ -119,7 +50,7 @@ def get_programidx(program_name):
         'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
     r.raise_for_status()
     programs = r.json()
-    program_dict = {p['name']: p['programidx'] for i, p in enumerate(programs)}
+    program_dict = {p['name']: p['programidx'] for p in programs}
 
     try:
         return program_dict[program_name]
@@ -195,8 +126,9 @@ _program_sources.cgi',
             s_phot_detection = list(ss for ss in photometry_marshal
                                     if ss['magpsf'] < 50.)
             jd_array = np.array(list(phot['jd'] for phot in s_phot_detection))
-            if jd_min > np.min(jd_array):
-                continue
+            if len(jd_array) != 0:
+                if jd_min > np.min(jd_array):
+                    continue
 
         yield dict(
             source,
@@ -209,7 +141,18 @@ def update_local_db_growthmarshal(sources):
     """Takes the candidates fetched from the GROWTH marshal and
     updates the local database using SQLAlchemy."""
 
-    for s in sources:
+    sources_list = list(s for s in sources)
+    name_list = list(s['name'] for s in sources_list)
+    candidates = models.Candidate.query.filter(models.Candidate.name.in_(name_list)).all()
+    lightcurves = models.Lightcurve.query.filter(models.Lightcurve.name.in_(name_list)).all()
+
+    candidate_list = list(candidate for candidate in candidates)
+    candidate_name_list = list(candidate.name for candidate in candidate_list)
+
+    lightcurve_list = list(lc for lc in lightcurves)
+    lightcurve_name_list = list(lc.name for lc in lightcurve_list)
+
+    for s in sources_list:
         # Photometry
         s_phot_detection = list(ss for ss in s['uploaded_photometry']
                                 if ss['magpsf'] < 50.)
@@ -221,7 +164,10 @@ def update_local_db_growthmarshal(sources):
         instrument_array = list(
                                 phot['instrument']
                                 for phot in s_phot_detection)
-        min_jd = min(jd_array)
+        try:
+            min_jd = min(jd_array)
+        except (TypeError, KeyError, ValueError):
+            print(f"No detections: {s['name']}")
 
         creationdate = Time(s['creationdate'], format='iso').datetime
         lastmodified = Time(s['lastmodified'], format='iso').datetime
@@ -311,7 +257,6 @@ def update_local_db_growthmarshal(sources):
             CLU_id = int(s['autoannotations_dict']['CLU_id'])
         except (TypeError, KeyError, ValueError):
             CLU_id = None
-
         kwargs = {'name': s['name'],
                   'subfield_id': rcid,
                   'creationdate': creationdate,
@@ -341,11 +286,10 @@ def update_local_db_growthmarshal(sources):
                   'CLU_id': CLU_id,
                   'CLU_d_to_galaxy_arcsec': CLU_d_to_galaxy_arcsec
                   }
-        candidate = models.Candidate.query.filter_by(name=s['name']).all()
-        if len(candidate) == 0:
+        if not (s['name'] in candidate_name_list):
             models.db.session.merge(models.Candidate(**kwargs))
         else:
-            candidate = candidate[0]
+            candidate = candidate_list[candidate_name_list.index(s['name'])]
             merge = False
             for key in kwargs.keys():
                 if kwargs[key] == getattr(candidate, key):
@@ -354,30 +298,26 @@ def update_local_db_growthmarshal(sources):
                 merge = True
             if merge:
                 models.db.session.merge(candidate)
-
-        kwargs = {'name': s['name'],
-                  'date_observation': datetime_array,
-                  'mag': mag_array,
-                  'magerr': magerr_array,
-                  'fil': filt_array,
-                  'instrument': instrument_array,
-                  'first_detection_time_tmp': Time(
-                                                   min_jd, format='jd'
-                                                  ).datetime
-                  }
-        lightcurve = models.Lightcurve.query.filter_by(name=s['name']).all()
-        if len(lightcurve) == 0:
-            models.db.session.merge(models.Lightcurve(**kwargs))
-        else:
-            lightcurve = lightcurve[0]
-            merge = False
-            for key in kwargs.keys():
-                if kwargs[key] == getattr(lightcurve, key):
-                    continue
-                merge = True
-                setattr(lightcurve, key, kwargs[key])
-            if merge:
-                models.db.session.merge(lightcurve)
+        for date, mag, magerr, filt, instrument in zip(datetime_array, mag_array, magerr_array, filt_array, instrument_array): 
+            kwargs = {'name': s['name'],
+                      'date_observation': date,
+                      'mag': mag,
+                      'magerr': magerr,
+                      'fil': filt,
+                      'instrument': instrument
+                      }
+            if not (s['name'] in lightcurve_name_list):
+                models.db.session.merge(models.Lightcurve(**kwargs))
+            else:
+                lightcurve = lightcurve_list[lightcurve_name_list.index(s['name'])]
+                merge = False
+                for key in kwargs.keys():
+                    if kwargs[key] == getattr(lightcurve, key):
+                        continue
+                    merge = True
+                    setattr(lightcurve, key, kwargs[key])
+                if merge:
+                    models.db.session.merge(lightcurve)
     models.db.session.commit()
 
 
@@ -389,7 +329,7 @@ def update_comment(source_name, new_comment):
     models.db.session.commit()
 
 
-@celery.task(shared=False)
+###############@celery.task(shared=False)
 def fetch_candidates_growthmarshal(new=False, dateobs=None, skymap=None):
     """Fetch the candidates present in the GROWTH marshal
     for the MMA science programs and store them in the local db."""
