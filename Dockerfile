@@ -133,11 +133,11 @@ RUN useradd -mr growth-too-marshal && \
     mkdir -p /usr/var/growth.too.flask-instance/input && \
     ln -s /run/secrets/application.cfg.d /usr/var/growth.too.flask-instance/application.cfg.d && \
     ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
-    ln -s /run/secrets/netrc /root/netrc && \
     ln -s /run/secrets/GROWTH-India.tess /usr/var/growth.too.flask-instance/input/GROWTH-India.tess && \
     ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
 COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
+COPY docker/entrypoint.sh /entrypoint.sh
 
 USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
@@ -145,4 +145,4 @@ WORKDIR /home/growth-too-marshal
 # Prime some cached Astropy data.
 RUN growth-too iers
 
-ENTRYPOINT ["growth-too"]
+ENTRYPOINT ["/entrypoint.sh"]
