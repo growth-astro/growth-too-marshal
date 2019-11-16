@@ -4,8 +4,6 @@ import logging
 import numpy as np
 import celery
 from astropy.time import Time
-from astropy.coordinates import SkyCoord
-import astropy.units as u
 import healpy as hp
 
 from .. import models
@@ -19,6 +17,7 @@ fermi_programidx=program_dict['Afterglows of Fermi Gamma Ray Bursts']
 neutrino_programidx=program_dict['Electromagnetic Counterparts
 to Neutrinos']
 """
+
 
 def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     """Select only those sources within a given contour
@@ -81,26 +80,31 @@ def get_source_autoannotations_and_photometry(sourceid):
 
 
 def get_candidates_growth_marshal(program_name, new=False, dateobs=None,
-                                  skymap=None, level=90):
-    """Query the GROWTH db for the science programs"""
-
+                                  skymap=None, level=90,
+                                  sources_to_update=None):
+    """Query the GROWTH marshal for a specific science program"""
+    # Get the programidx
     programidx = get_programidx(program_name)
     if programidx is None:
         return
+
+    # Query the GROWTH Marshal
     r = requests.post(
         'http://skipper.caltech.edu:8080/cgi-bin/growth/list\
 _program_sources.cgi',
         data={'programidx': str(programidx)})
     r.raise_for_status()
     sources = r.json()
+    # Query the local db
+    candidates = models.db.session().query(models.Candidate.name).all()
+    names_all = list(candidate.name for candidate in candidates)
 
-    candidates = models.Candidate.query.all()
-    names = [candidate.name for candidate in candidates]
+    if sources_to_update is not None:
+        names_to_update = list(s["name"] for s in sources_to_update)
+    else:
+        names_to_update = []
 
-    if dateobs is not None:
-        jd_min = Time(dateobs, format='datetime').jd
-
-    if skymap is not None:
+    if new and skymap is not None:
         skymap_prob = skymap.flat_2d
         sort_idx = np.argsort(skymap_prob)[::-1]
         csm = np.empty(len(skymap_prob))
@@ -110,25 +114,19 @@ _program_sources.cgi',
 
     # Add autoannotations
     for source in sources:
-        if new and (source["name"] in names):
+        if new and (source["name"] in names_all):
             continue
-        if (not new) and (source["name"] not in names):
+        if (not new) and (source["name"] not in names_to_update):
             continue
-        if skymap is not None:
+        # Skymap filter for new sources (those to update are already filtered)
+        if new and skymap is not None:
             if hp.ang2pix(nside,
                           0.5 * np.pi - np.deg2rad(source["dec"]),
                           np.deg2rad(source["ra"])) not in ipix_keep:
                 continue
 
-        if dateobs is not None:
-            autoannotations_string, autoannotations_dict, photometry_marshal =\
-                get_source_autoannotations_and_photometry(source["id"])
-            s_phot_detection = list(ss for ss in photometry_marshal
-                                    if ss['magpsf'] < 50.)
-            jd_array = np.array(list(phot['jd'] for phot in s_phot_detection))
-            if len(jd_array) != 0:
-                if jd_min > np.min(jd_array):
-                    continue
+        autoannotations_string, autoannotations_dict, photometry_marshal =\
+            get_source_autoannotations_and_photometry(source["id"])
 
         yield dict(
             source,
@@ -143,12 +141,14 @@ def update_local_db_growthmarshal(sources):
 
     sources_list = list(s for s in sources)
     name_list = list(s['name'] for s in sources_list)
-    candidates = models.Candidate.query.filter(models.Candidate.name.in_(name_list)).all()
-    lightcurves = models.Lightcurve.query.filter(models.Lightcurve.name.in_(name_list)).all()
+
+    candidates = models.Candidate.query.\
+        filter(models.Candidate.name.in_(name_list)).all()
+    lightcurves = models.Lightcurve.query.\
+        filter(models.Lightcurve.name.in_(name_list)).all()
 
     candidate_list = list(candidate for candidate in candidates)
     candidate_name_list = list(candidate.name for candidate in candidate_list)
-
     lightcurve_list = list(lc for lc in lightcurves)
     lightcurve_name_list = list(lc.name for lc in lightcurve_list)
 
@@ -164,10 +164,6 @@ def update_local_db_growthmarshal(sources):
         instrument_array = list(
                                 phot['instrument']
                                 for phot in s_phot_detection)
-        try:
-            min_jd = min(jd_array)
-        except (TypeError, KeyError, ValueError):
-            print(f"No detections: {s['name']}")
 
         creationdate = Time(s['creationdate'], format='iso').datetime
         lastmodified = Time(s['lastmodified'], format='iso').datetime
@@ -298,7 +294,12 @@ def update_local_db_growthmarshal(sources):
                 merge = True
             if merge:
                 models.db.session.merge(candidate)
-        for date, mag, magerr, filt, instrument in zip(datetime_array, mag_array, magerr_array, filt_array, instrument_array): 
+        for date, mag, magerr, filt, instrument in zip(
+                                                       datetime_array,
+                                                       mag_array,
+                                                       magerr_array,
+                                                       filt_array,
+                                                       instrument_array):
             kwargs = {'name': s['name'],
                       'date_observation': date,
                       'mag': mag,
@@ -309,7 +310,8 @@ def update_local_db_growthmarshal(sources):
             if not (s['name'] in lightcurve_name_list):
                 models.db.session.merge(models.Lightcurve(**kwargs))
             else:
-                lightcurve = lightcurve_list[lightcurve_name_list.index(s['name'])]
+                lightcurve = lightcurve_list[lightcurve_name_list.
+                                             index(s['name'])]
                 merge = False
                 for key in kwargs.keys():
                     if kwargs[key] == getattr(lightcurve, key):
@@ -329,8 +331,9 @@ def update_comment(source_name, new_comment):
     models.db.session.commit()
 
 
-###############@celery.task(shared=False)
-def fetch_candidates_growthmarshal(new=False, dateobs=None, skymap=None):
+@celery.task(shared=False)
+def fetch_candidates_growthmarshal(new=False, dateobs=None, skymap=None,
+                                   to_update=None):
     """Fetch the candidates present in the GROWTH marshal
     for the MMA science programs and store them in the local db."""
 
@@ -343,5 +346,6 @@ def fetch_candidates_growthmarshal(new=False, dateobs=None, skymap=None):
     for program_name in program_names:
         sources = get_candidates_growth_marshal(program_name, new=new,
                                                 dateobs=dateobs,
-                                                skymap=skymap)
+                                                skymap=skymap,
+                                                sources_to_update=to_update)
         update_local_db_growthmarshal(sources)

@@ -48,6 +48,7 @@
                             <th>w4</th>
                             <th>First detection</th>
                             <th>Last detection</th>
+                            <th>Filter</th>
                             <th>mag</th>
                             <th>magerr</th>
                             <th>RA</th> 
@@ -87,8 +88,9 @@
                                     <th>{{'{:.2f}'.format(source.w1mw2) if source.w1mw2}}</th>
                                     <th>{{'{:.2f}'.format(source.w2mw3) if source.w2mw3}}</th>
                                     <th>{{'{:.2f}'.format(source.w4) if source.w4}}</th>
-                                    <th>{{source.first_detection_time}}</th>
-                                    <th>{{source.latest_detection_time}}</th>
+                                    <th>{{source.first_detection_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]}}</th>
+                                    <th>{{source.latest_detection_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]}}</th>
+                                    <th>{{source.latest_detection_filter}}</th>
                                     <th>{{'{:.2f}'.format(source.latest_detection_mag) if source.latest_detection_mag}}</th>
                                     <th>{{'{:.2f}'.format(source.latest_detection_magerr) if source.latest_detection_magerr}}</th>
                                     <td>{{source.ra.to_string(u.hour,precision=2, sep=':', pad=True)}}</td>
@@ -123,7 +125,7 @@
             order: [[ 8, "desc" ]],
             lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
         rowGroup: {
-                dataSrc: 24
+                dataSrc: 25
             }
         });
         $('#candidates tbody').on('click', 'tr', function () {

@@ -12,7 +12,6 @@ import gwemopt.ztf_tiling
 from astropy import table
 from astropy import coordinates
 from astropy import units as u
-from astropy import time
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -24,7 +23,6 @@ import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
-from sqlalchemy import func
 from tqdm import tqdm
 
 from .flask import app
@@ -1151,7 +1149,7 @@ class Lightcurve(db.Model):
         comment='Program ID number (1,2,3)')
 
     candidate = db.relationship(
-        'Candidate', 
+        'Candidate',
         back_populates='lightcurve')
 
     """

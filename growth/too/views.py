@@ -35,6 +35,8 @@ from wtforms_components.fields import (
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from .flask import app
 from .jinja import atob
@@ -243,18 +245,14 @@ def event(dateobs):
 @login_required
 def objects(dateobs):
     """Objects page"""
-    ###
-    #skymap = models.Localization.query.filter_by(dateobs=dateobs).all()[-1]
-    #tasks.growthdb_cgi.fetch_candidates_growthmarshal\
-    #            (new=True, dateobs=dateobs, skymap=skymap)
-
-    from sqlalchemy import func
-    from sqlalchemy.orm import joinedload
 
     subquery_time = models.db.session().query(
         models.Lightcurve.name
-        ).group_by(models.Lightcurve.name).having(func.min(models.Lightcurve.date_observation) > dateobs).subquery()
-    candidates_all = models.db.session().query(models.Candidate).join(subquery_time).options(joinedload('lightcurve')).all()
+        ).group_by(models.Lightcurve.name).\
+        having(func.min(models.Lightcurve.date_observation) > dateobs).\
+        subquery()
+    candidates_all = models.db.session().query(models.Candidate).\
+        join(subquery_time).options(joinedload('lightcurve')).all()
 
     sources_growth_marshal = list(s.__dict__ for s in candidates_all)
 
@@ -266,16 +264,28 @@ def objects(dateobs):
                                                      skymap, level=90
                                                     )
     # Convert the coordinates in SkyCoord objects
-    sources_coords = SkyCoord(ra=list(s["ra"] for s in sources_growth_marshal_contour)*u.deg, 
-                              dec=list(s["dec"] for s in sources_growth_marshal_contour)*u.deg)
+    sources_coords = SkyCoord(ra=list(s["ra"] for s in
+                                      sources_growth_marshal_contour
+                                      )*u.deg,
+                              dec=list(s["dec"] for s in
+                                       sources_growth_marshal_contour
+                                       )*u.deg
+                              )
     for source, coords in zip(sources_growth_marshal_contour, sources_coords):
         source["ra"], source["dec"] = coords.ra, coords.dec
         date_list = list(s.date_observation for s in source['lightcurve'])
-        source["first_detection_time"] = min(date_list)      
-        source["latest_detection_time"] =  max(date_list)
+        source["first_detection_time"] = min(date_list)
+        source["latest_detection_time"] = max(date_list)
         index_max = date_list.index(max(date_list))
-        source["latest_detection_mag"] = list(s.mag for s in source['lightcurve'])[index_max]
-        source["latest_detection_magerr"] = list(s.magerr for s in source['lightcurve'])[index_max]
+        source["latest_detection_mag"] = list(s.mag for s in
+                                              source['lightcurve']
+                                              )[index_max]
+        source["latest_detection_magerr"] = list(s.magerr for s in
+                                                 source['lightcurve']
+                                                 )[index_max]
+        source["latest_detection_filter"] = list(s.fil for s in
+                                                 source['lightcurve']
+                                                 )[index_max]
 
     if request.method == 'POST':
         if 'btngcn' in request.form:
@@ -304,13 +314,14 @@ def objects(dateobs):
                                    table=table_string)
 
         elif 'btnnew' in request.form:
-            tasks.growthdb_cgi.fetch_candidates_growthmarshal\
-                (new=True, dateobs=dateobs, skymap=skymap)
+            tasks.growthdb_cgi.fetch_candidates_growthmarshal.\
+                delay(new=True, dateobs=dateobs, skymap=skymap)
             flash('Getting new objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btnupdate' in request.form:
-            tasks.growthdb_cgi.fetch_candidates_growthmarshal\
-                (new=False, dateobs=dateobs, skymap=skymap)
+            tasks.growthdb_cgi.fetch_candidates_growthmarshal.\
+                delay(new=False, dateobs=dateobs, skymap=skymap,
+                      to_update=sources_growth_marshal_contour)
             flash('Updating existing objects.', 'success')
             return redirect(url_for('objects', dateobs=dateobs))
         elif 'btncomment' in request.form:
