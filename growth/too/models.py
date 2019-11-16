@@ -775,10 +775,15 @@ class Plan(db.Model):
         else:
             return None
 
-    @property
+    @hybrid_property
     def num_observations(self):
         """Number of planned observation."""
         return len(self.planned_observations)
+
+    @num_observations.expression
+    def num_observations(cls):
+        """Number of planned observation."""
+        return cls.planned_observations.count()
 
     @property
     def num_observations_per_filter(self):
