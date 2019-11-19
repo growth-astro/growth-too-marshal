@@ -21,6 +21,7 @@ from ligo.skymap.tool.ligo_skymap_plot_observability import main \
     as plot_observability
 import matplotlib.style
 import pkg_resources
+from prettytable import PrettyTable
 
 from flask import (
     abort, flash, jsonify, make_response, redirect, render_template, request,
@@ -34,6 +35,8 @@ from wtforms_components.fields import (
 from wtforms import validators
 from passlib.apache import HtpasswdFile
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from .flask import app
 from .jinja import atob
@@ -238,11 +241,114 @@ def event(dateobs):
         'event.html', event=models.Event.query.get_or_404(dateobs))
 
 
-@app.route('/event/<datetime:dateobs>/objects')
+@app.route('/event/<datetime:dateobs>/objects', methods=['GET', 'POST'])
 @login_required
 def objects(dateobs):
+    """Objects page"""
+
+    subquery_time = models.db.session().query(
+        models.Lightcurve.name
+        ).group_by(models.Lightcurve.name).\
+        having(func.min(models.Lightcurve.date_observation) > dateobs).\
+        subquery()
+    candidates_all = models.db.session().query(models.Candidate).\
+        join(subquery_time).options(joinedload('lightcurve')).all()
+
+    sources_growth_marshal = list(s.__dict__ for s in candidates_all)
+
+    # Spatial filtering
+    skymap = models.Localization.query.filter_by(dateobs=dateobs).all()[-1]
+    sources_growth_marshal_contour = \
+        tasks.growthdb_cgi.select_sources_in_contour(
+                                                     sources_growth_marshal,
+                                                     skymap, level=90
+                                                    )
+    # Convert the coordinates in SkyCoord objects
+    sources_coords = SkyCoord(ra=list(s["ra"] for s in
+                                      sources_growth_marshal_contour
+                                      )*u.deg,
+                              dec=list(s["dec"] for s in
+                                       sources_growth_marshal_contour
+                                       )*u.deg
+                              )
+    for source, coords in zip(sources_growth_marshal_contour, sources_coords):
+        source["ra"], source["dec"] = coords.ra, coords.dec
+        date_list = list(s.date_observation for s in source['lightcurve'])
+        source["first_detection_time"] = min(date_list)
+        source["latest_detection_time"] = max(date_list)
+        index_max = date_list.index(max(date_list))
+        source["latest_detection_mag"] = list(s.mag for s in
+                                              source['lightcurve']
+                                              )[index_max]
+        source["latest_detection_magerr"] = list(s.magerr for s in
+                                                 source['lightcurve']
+                                                 )[index_max]
+        source["latest_detection_filter"] = list(s.fil for s in
+                                                 source['lightcurve']
+                                                 )[index_max]
+
+    if request.method == 'POST':
+        if 'btngcn' in request.form:
+            x = PrettyTable()
+            x.field_names = ["Name", "RA", "Dec", "filter", "mag",
+                             "MJD", "IAU Name", "Notes"]
+            checked = request.form.getlist('check')
+            for source_dict in sources_growth_marshal_contour:
+                if source_dict["name"] in checked:
+                    obstime = time.Time(source_dict["latest_detection_time"],
+                                        format="datetime")
+                    iauname = "--"
+                    if source_dict["iauname"]:
+                        iauname = source_dict["iauname"]
+                    notes = ""
+                    x.add_row([source_dict["name"],
+                               "%.6f" % source_dict["ra"].deg,
+                               "%.6f" % source_dict["dec"].deg,
+                               source_dict["latest_detection_filter"],
+                               "%.1f" % source_dict["latest_detection_mag"],
+                               "%.2f" % obstime.mjd,
+                               iauname, notes])
+            table_string = x.get_string()
+
+            return render_template('candidates.jinja2',
+                                   table=table_string)
+
+        elif 'btnnew' in request.form:
+            tasks.growthdb_cgi.fetch_candidates_growthmarshal.\
+                delay(new=True, dateobs=dateobs, skymap=skymap)
+            flash('Getting new objects.', 'success')
+            return redirect(url_for('objects', dateobs=dateobs))
+        elif 'btnupdate' in request.form:
+            tasks.growthdb_cgi.fetch_candidates_growthmarshal.\
+                delay(new=False, dateobs=dateobs, skymap=skymap,
+                      to_update=sources_growth_marshal_contour)
+            flash('Updating existing objects.', 'success')
+            return redirect(url_for('objects', dateobs=dateobs))
+        elif 'btncomment' in request.form:
+            source_name = request.form.getlist('btncomment')[0]
+            return redirect(url_for(
+                'comment', dateobs=dateobs, source_name=source_name))
+
     return render_template(
-        'objects.html', event=models.Event.query.get_or_404(dateobs))
+        'objects.html', event=models.Event.query.get_or_404(dateobs),
+        sources_growth_marshal=sources_growth_marshal_contour,
+        u=u)
+
+@app.route('/event/<datetime:dateobs>/objects/<source_name>',
+           methods=['GET', 'POST'])
+@login_required
+def comment(dateobs, source_name):
+    if request.method == 'POST':
+        new_comment = request.form.get('newcomment')
+        if new_comment is not None:
+            tasks.growthdb_cgi.update_comment(source_name, new_comment)
+        flash(f'Updating comment for {source_name}', 'success')
+        return redirect(url_for('objects', dateobs=dateobs))
+
+    return render_template('comment.html',
+                           event=models.Event.query.get_or_404(dateobs),
+                           candidate=models.Candidate.query.
+                           get_or_404(source_name))
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])
