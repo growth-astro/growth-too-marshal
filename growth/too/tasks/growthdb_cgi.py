@@ -1,10 +1,10 @@
-import requests
 import datetime
 import logging
 
 from astropy.time import Time
 from celery.task import PeriodicTask
 import celery
+import requests
 
 from .. import models
 
