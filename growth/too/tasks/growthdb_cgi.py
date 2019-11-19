@@ -26,7 +26,7 @@ def _get_json(path, **kwargs):
 def get_program_ids():
     """Get program IDs from the GROWTH marshal."""
     json = _get_json('list_programs.cgi')
-    programs =  {p['name']: p['programidx'] for p in json}
+    programs = {p['name']: p['programidx'] for p in json}
     for key in PROGRAM_NAMES:
         try:
             yield programs[key]
