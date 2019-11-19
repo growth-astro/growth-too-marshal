@@ -11,6 +11,7 @@ from .. import models
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
+BASE_URL = 'http://skipper.caltech.edu:8080/cgi-bin/growth/'
 """
 Reminder for the relevant program names:
 decam_programidx=program_dict['DECAM GW Followup']
@@ -25,8 +26,7 @@ to Neutrinos']
 def get_programidx(program_name):
     """Given a program name, it returns the programidx"""
 
-    r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
+    r = requests.post(BASE_URL + 'list_programs.cgi')
     r.raise_for_status()
     programs = r.json()
     program_dict = {p['name']: p['programidx'] for p in programs}
@@ -42,7 +42,7 @@ def get_source_autoannotations(sourceid):
     """Fetch a specific source's autoannotations from the GROWTH marshal and
     create a string with the autoannotations available."""
     r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/source_summary.cgi',
+        BASE_URL + 'source_summary.cgi',
         data={'sourceid': str(sourceid)})
     r.raise_for_status()
     summary = r.json()
@@ -61,8 +61,7 @@ def get_candidates_growth_marshal(program_name):
     if programidx is None:
         return
     r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/list\
-        _program_sources.cgi',
+        BASE_URL + 'list_program_sources.cgi',
         data={'programidx': str(programidx)})
     r.raise_for_status()
     sources = r.json()
