@@ -26,7 +26,7 @@ def get_programidx(program_name):
         'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
     r.raise_for_status()
     programs = r.json()
-    program_dict = {p['name']: p['programidx'] for p in enumerate(programs)}
+    program_dict = {p['name']: p['programidx'] for p in programs}
 
     try:
         return program_dict[program_name]
