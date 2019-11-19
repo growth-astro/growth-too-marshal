@@ -8,6 +8,9 @@ import requests
 
 from .. import models
 
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
+
 """
 Reminder for the relevant program names:
 decam_programidx=program_dict['DECAM GW Followup']
@@ -31,8 +34,8 @@ def get_programidx(program_name):
     try:
         return program_dict[program_name]
     except KeyError:
-        logging.error(f"The user does not have access to \
-            the GROWTH Marshal program '{program_name}'")
+        log.error("The user does not have access to the GROWTH Marshal "
+                  "program '%s'", program_name)
 
 
 def get_source_autoannotations(sourceid):
