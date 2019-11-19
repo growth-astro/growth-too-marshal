@@ -27,7 +27,7 @@ def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
     sort_idx = np.argsort(skymap_prob)[::-1]
     csm = np.empty(len(skymap_prob))
     csm[sort_idx] = np.cumsum(skymap_prob[sort_idx])
-    ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
+    ipix_keep = np.where(csm <= level/100.)[0]
     nside = hp.pixelfunc.get_nside(skymap_prob)
     sources_growth_marshal_contour = list(s for s in sources_growth_marshal
                                           if (hp.ang2pix(
@@ -109,7 +109,7 @@ _program_sources.cgi',
         sort_idx = np.argsort(skymap_prob)[::-1]
         csm = np.empty(len(skymap_prob))
         csm[sort_idx] = np.cumsum(skymap_prob[sort_idx])
-        ipix_keep = sort_idx[np.where(csm <= level/100.)[0]]
+        ipix_keep = np.where(csm <= level/100.)[0]
         nside = hp.pixelfunc.get_nside(skymap_prob)
 
     # Add autoannotations
