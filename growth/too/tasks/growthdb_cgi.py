@@ -12,15 +12,12 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 BASE_URL = 'http://skipper.caltech.edu:8080/cgi-bin/growth/'
-"""
-Reminder for the relevant program names:
-decam_programidx=program_dict['DECAM GW Followup']
-em_gw_programidx=program_dict['Electromagnetic Counterparts
-to Gravitational Waves']
-fermi_programidx=program_dict['Afterglows of Fermi Gamma Ray Bursts']
-neutrino_programidx=program_dict['Electromagnetic Counterparts
-to Neutrinos']
-"""
+
+PROGRAM_NAMES = [
+    'DECAM GW Followup',
+    'Afterglows of Fermi Gamma Ray Bursts',
+    'Electromagnetic Counterparts to Neutrinos',
+    'Electromagnetic Counterparts to Gravitational Waves']
 
 
 def get_programidx(program_name):
@@ -122,14 +119,6 @@ def update_local_db_growthmarshal(sources, program_name):
 def fetch_candidates_growthmarshal():
     """Fetch the candidates present in the GROWTH marshal
     for the MMA science programs and store them in the local db."""
-
-    program_names = [
-        'DECAM GW Followup',
-        'Afterglows of Fermi Gamma Ray Bursts',
-        'Electromagnetic Counterparts to Neutrinos',
-        'Electromagnetic Counterparts to Gravitational Waves'
-        ]
-
-    for program_name in program_names:
+    for program_name in PROGRAM_NAMES:
         sources = get_candidates_growth_marshal(program_name)
         update_local_db_growthmarshal(sources, program_name)
