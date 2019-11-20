@@ -987,6 +987,11 @@ class Candidate(db.Model):
         primary_key=True,
         comment='Candidate name')
 
+    growth_marshal_id = db.Column(
+        db.String,
+        unique=True, nullable=False,
+        comment='GROWTH marshal ID')
+
     subfield_id = db.Column(
         db.Integer,
         nullable=True,
@@ -1029,11 +1034,68 @@ class Candidate(db.Model):
         nullable=False,
         comment='Dec of the candidate')
 
-    lastmodified = db.Column(
+    last_updated = db.Column(
         db.DateTime,
-        comment='Date of last modification')
+        nullable=False,
+        comment='Date of last update')
 
     autoannotations = db.Column(
         db.String,
         nullable=True,
         comment='Autoannotations from the GROWTH marshal')
+
+    photometry = db.relationship('CandidatePhotometry')
+
+
+class CandidatePhotometry(db.Model):
+    """Candidate light curve pulled from the GROWTH
+    Marshal"""
+
+    lcid = db.Column(
+        db.BigInteger,
+        primary_key=True)
+
+    name = db.Column(
+        db.ForeignKey(Candidate.name),
+        nullable=False,
+        comment='Candidate name')
+
+    dateobs = db.Column(
+        db.DateTime,
+        nullable=True,
+        comment='Observation date')
+
+    fil = db.Column(
+        db.String,
+        nullable=True,
+        comment='Filter')
+
+    instrument = db.Column(
+        db.String,
+        nullable=True,
+        comment='Instruments')
+
+    limmag = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Limiting magnitude')
+
+    mag = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Mag PSF')
+
+    magerr = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Mag uncertainty')
+
+    exptime = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Exposure time')
+
+    programid = db.Column(
+        db.Integer,
+        nullable=True,
+        comment='Program ID number (1,2,3)')

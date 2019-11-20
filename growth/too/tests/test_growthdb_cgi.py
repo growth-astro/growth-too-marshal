@@ -37,6 +37,7 @@ def test_update_candidates(httpserver, monkeypatch):
         'lastmodified': '2019-05-01',
         'release_auth': None,
         'dec': -30.22812438404631,
+        'last_updated': '2019-11-17 15:21:33',
         'id': 3600
     }])
 
@@ -59,6 +60,7 @@ def test_update_candidates(httpserver, monkeypatch):
         'lastmodified': '2018-05-24',
         'release_auth': None,
         'dec': -48.134372914826464,
+        'last_updated': '2019-11-17 16:24:11',
         'id': 9846
     }])
 
@@ -81,6 +83,39 @@ def test_update_candidates(httpserver, monkeypatch):
                 'username': 'foo',
                 'datatype': 'STRING',
                 'comment': 'Bar!'
+            }
+        ],
+        'uploaded_photometry': [
+            {
+                'observer': None,
+                'sigmaflux': None,
+                'ranr': 236.0300398,
+                'limmag': 21.2875,
+                'sigmamagpsf': 0.192568,
+                'sigmamagap': 99.0,
+                'obsdate': '2018-07-16 05:04:43',
+                'uploadedby': None,
+                'instrument': 'ZTF',
+                'ra': 236.0295344,
+                'rb': None,
+                'perinc': None,
+                'issub': True,
+                'distnr': 0.908012986183,
+                'magnr': 17.6940002441,
+                'lastmodified': '2018-07-16 15:15:29',
+                'deltajd': 0.0,
+                'refsys': None,
+                'reducedby': None,
+                'jd': 2458315.71161,
+                'isdiffpos': True,
+                'exptime': 30.0,
+                'decnr': 68.6009563,
+                'magap': 99.0,
+                'filter': 'g',
+                'flux': None,
+                'programid': 2,
+                'magpsf': 21.0462,
+                'dec': 68.6011396
             }
         ]
     })
