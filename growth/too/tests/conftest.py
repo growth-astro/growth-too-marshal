@@ -50,4 +50,4 @@ def slackclient(monkeypatch):
 
 
 def pytest_runtest_setup():
-    socket_allow_hosts(['127.0.0.1'])
+    socket_allow_hosts(['127.0.0.1', '::1'])
