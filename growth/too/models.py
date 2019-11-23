@@ -1044,7 +1044,7 @@ class Candidate(db.Model):
         nullable=True,
         comment='Autoannotations from the GROWTH marshal')
 
-    photometry = db.relationship('CandidatePhotometry')
+    photometry = db.relationship('CandidatePhotometry', backref='candidate')
 
 
 class CandidatePhotometry(db.Model):
