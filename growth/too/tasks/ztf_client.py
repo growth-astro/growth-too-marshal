@@ -75,11 +75,14 @@ def ztf_obs(start_time=None, end_time=None):
 
 @celery.task(base=PeriodicTask, shared=False, run_every=3600)
 def ztf_references():
-    refstable = client.search("""
-    SELECT field, fid, maglimit FROM ztf.ztf_current_meta_ref
-    WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
-    AND (field < 2000)
-    """).to_table()
+    # refstable = client.search("""
+    # SELECT field, fid, maglimit FROM ztf.ztf_current_meta_ref
+    # WHERE (nframes >= 15) AND (startobsdate >= '2018-02-05T00:00:00Z')
+    # AND (field < 2000)
+    # """).to_table()
+    url = 'https://ztfweb.ipac.caltech.edu/ztf/depot/adhoc/' +\
+          'specialrefs/SpecialRefImages.txt'
+    refstable = get_ztf_depot_table(url)
 
     refs = refstable.group_by(['field', 'fid']).groups.aggregate(np.mean)
     refs = refs.filled()
@@ -90,7 +93,8 @@ def ztf_references():
         models.db.session.merge(
             models.Field(telescope='ZTF', field_id=int(field_id[0]),
                          reference_filter_ids=rows['fid'].tolist(),
-                         reference_filter_mags=rows['maglimit'].tolist()))
+                         reference_filter_mags=rows['maglimcat'].tolist()))
+        #                 reference_filter_mags=rows['maglimit'].tolist()))
     models.db.session.commit()
 
 

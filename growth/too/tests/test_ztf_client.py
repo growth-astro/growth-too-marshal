@@ -24,7 +24,15 @@ def mock_refclient(monkeypatch, mock_refstable):
     return client
 
 
-def test_refs(mock_refclient):
+@pytest.fixture
+def mock_get_ztf_depot_table_ref(monkeypatch, mock_refstable):
+    get_ztf_depot_table = MagicMock(**{'return_value': mock_refstable})
+    monkeypatch.setattr('growth.too.tasks.ztf_client.get_ztf_depot_table',
+                        get_ztf_depot_table)
+    return get_ztf_depot_table
+
+
+def test_refs(mock_get_ztf_depot_table_ref):
     ztf_client.ztf_references()
     field = models.Field.query.filter_by(telescope='ZTF', field_id=324).one()
     assert field.reference_filter_ids == [1]
