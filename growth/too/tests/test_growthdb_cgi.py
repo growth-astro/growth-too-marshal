@@ -2,7 +2,7 @@ from ..tasks import growthdb_cgi
 from .. import models
 
 
-def test_update_candidates(httpserver, monkeypatch):
+def test_update_candidates(httpserver, monkeypatch, celery):
     monkeypatch.setattr(growthdb_cgi, 'BASE_URL', httpserver.url_for('/'))
 
     httpserver.expect_oneshot_request(
@@ -130,7 +130,8 @@ def test_update_candidates(httpserver, monkeypatch):
                 'datatype': 'STRING',
                 'comment': 'Baz!'
             }
-        ]
+        ],
+        'uploaded_photometry': []
     })
 
     growthdb_cgi.update_candidates()
