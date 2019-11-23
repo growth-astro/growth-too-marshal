@@ -1044,7 +1044,22 @@ class Candidate(db.Model):
         nullable=True,
         comment='Autoannotations from the GROWTH marshal')
 
-    photometry = db.relationship('CandidatePhotometry', backref='candidate')
+    photometry = db.relationship(
+        lambda: CandidatePhotometry,
+        backref='candidate',
+        order_by=lambda: CandidatePhotometry.dateobs)
+
+    @hybrid_property
+    def first_detection_time(self):
+        return self.photometry[0].dateobs
+
+    @first_detection_time.expression
+    def first_detection_time(cls):
+        return db.select(
+            [db.func.min(cls.dateobs)]
+        ).where(
+            CandidatePhotometry.name == cls.name
+        ).label(__name__)
 
 
 class CandidatePhotometry(db.Model):
