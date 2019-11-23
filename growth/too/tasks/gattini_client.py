@@ -7,9 +7,6 @@ from ..flask import app
 from . import celery
 from .. import models
 
-import psycopg2
-import psycopg2.extras
-
 log = get_task_logger(__name__)
 
 __all__ = ('gattini_obs')
@@ -17,23 +14,17 @@ __all__ = ('gattini_obs')
 
 def get_obs(start_time, end_time):
 
-    conn = psycopg2.connect(host=app.config["GATTINI_HOST"],
-                            dbname=app.config["GATTINI_DBNAME"],
-                            user=app.config["GATTINI_USER"],
-                            password=app.config["GATTINI_PASSWORD"])
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-    query = 'SELECT ss.field, ss.fieldseq, min(ss.datebeg) AS utstart, ' +\
-            'avg(sp.limmagpsf) AS limmag FROM splitstacks ss INNER JOIN ' +\
-            'squadphoto sp ON sp.stackquadid = ss.stackquadid WHERE jd ' +\
-            '> %.5f AND jd < %.5f ' % (start_time.jd, end_time.jd) +\
-            'GROUP BY field, fieldseq ORDER BY utstart;'
-
-    cur.execute(query)
-    result = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    engine = models.db.get_engine(app, 'GATTINI')
+    result = engine.execute("""
+                            SELECT ss.field, ss.fieldseq,
+                            min(ss.datebeg) AS utstart,
+                            avg(sp.limmagpsf) AS limmag
+                            FROM splitstacks ss
+                            INNER JOIN squadphoto sp ON
+                            sp.stackquadid = ss.stackquadid WHERE jd
+                            > %s AND jd < %s GROUP BY field, fieldseq
+                            ORDER BY utstart;
+                            """, (start_time.jd, end_time.jd)).fetchall()
 
     return result
 
