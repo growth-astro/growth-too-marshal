@@ -54,7 +54,7 @@ else:
         app.config.from_pyfile(os.path.join('application.cfg.d', dropin_file))
 
 
-if not 'SQLALCHEMY_BINDS' in app.config:
+if 'SQLALCHEMY_BINDS' not in app.config:
     app.config['SQLALCHEMY_BINDS'] = {}
 url = decam_db.url_db()
 app.config['SQLALCHEMY_BINDS']['DECam'] = url

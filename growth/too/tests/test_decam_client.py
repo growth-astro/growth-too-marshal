@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import numpy as np
-from astropy import time
 import pkg_resources
 import pytest
 
