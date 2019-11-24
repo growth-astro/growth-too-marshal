@@ -39,7 +39,7 @@ def gattini_obs(start_time=None, end_time=None):
 
     obstable = get_obs(start_time, end_time)
 
-    for ii, row in enumerate(obstable):
+    for row in obstable:
         field_id, obsid, obstime, limmag = row
         models.db.session.merge(
             models.Observation(telescope='Gattini',
