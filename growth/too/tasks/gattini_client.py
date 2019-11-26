@@ -9,7 +9,7 @@ from .. import models
 
 log = get_task_logger(__name__)
 
-__all__ = ('gattini_obs')
+__all__ = ('gattini_obs',)
 
 
 def get_obs(start_time, end_time):
