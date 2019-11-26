@@ -51,14 +51,6 @@ else:
     for dropin_file in dropin_files:
         app.config.from_pyfile(os.path.join('application.cfg.d', dropin_file))
 
-if "GATTINI_USER" in app.config:
-    app.config['SQLALCHEMY_BINDS'] = {'GATTINI':
-                                      'postgresql+psycopg2://%s:%s@%s/%s'
-                                      % (app.config["GATTINI_USER"],
-                                         app.config["GATTINI_PASSWORD"],
-                                         app.config["GATTINI_HOST"],
-                                         app.config["GATTINI_DBNAME"])}
-
 
 class DateTimeConverter(BaseConverter):
 
