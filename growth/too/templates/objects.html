@@ -18,92 +18,100 @@
             {% include 'event_header.html' %}
             {% include 'nav_bar.html' %}
         </div>
+        <form class=card-body method=post>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-                <div class="alert alert-warning">
-                    <h4 class=alert-heading>Mock up</h4>
-                    <p>This tab is a mock-up using fake data.</p>
-                </div>
-            </li>
             <li class=list-group-item>
                 <h3>Candidates</h3>
+                <div class="card mb-3"> 
+                    <button type=submit id=gcn class="btn btn-primary" name="btngcn">Create GCN</button> 
+                </div> 
                 <table id="candidates" class="table">
                     <thead>
                         <tr>
+                            <th>GCN</th>
                             <th>ID</th> 
+                            <th>TNS</th>
+                            <th></th> 
+                            <th>Comment</th>
+                            <th>z</th>
+                            <th>Class</th>
+                            <th>SS mag</th>
+                            <th>SS dist</th>
+                            <th>CLU name</th>
+                            <th>CLU separ</th>
+                            <th>CLU z</th>
+                            <th>PS1 DR2</th>
+                            <th>Gaia match</th>
+                            <th>Gaia parallax</th>
+                            <th>w1mw2</th>
+                            <th>w2mw3</th>
+                            <th>w4</th>
+                            <th>First detection</th>
+                            <th>Last detection</th>
+                            <th>Filter</th>
+                            <th>mag</th>
+                            <th>magerr</th>
+                            <th>RA</th> 
+                            <th>Dec</th>
                             <th>Telescope</th> 
-                            <th>RA</th> 
-                            <th>DEC</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>ZTF19awesome</td>
-                            <td>ZTF</td>
-                            <td>7:08:03.2592</td>
-                            <td>56:02:02.892</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19ab</td>
-                            <td>DECam</td>
-                            <td>23:18:03.2592</td>
-                            <td>-36:00:00.8</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19bt</td>
-                            <td>DECam</td>
-                            <td>18:10:33.231</td>
-                            <td>-40:43:23.12</td>
-                        </tr>
+                        {% if sources_growth_marshal | length > 0 %}
+                            {% for source in sources_growth_marshal %}
+                                {% set telescope_name='?' %}
+                                {% if source.name[0:3] == 'ZTF' %} {% set telescope_name = 'ZTF' %} {% endif %}
+                                {% if source.name[0:2] == 'DG' %} {% set telescope_name = 'DECam' %} {% endif %}
+                                {% if source.name[0:2] == 'KP' %} {% set telescope_name = 'KPED' %} {% endif %}
+                                {% if source.name[0:4] == 'PGIR' %} {% set telescope_name = 'Gattini' %} {% endif %}
+                                {% if source.name[0:3] == 'GIT' %} {% set telescope_name = 'GROWTH-India ' %} {% endif %}
+                                <tr>
+                                    <td><div class="checkbox"><input type="checkbox" value="{{source.name}}" name='check'></td>
+                                    <td>
+                                        <a href="http://skipper.caltech.edu:8080/cgi-bin/growth/view_source.cgi?name={{source.name}}">
+                                        {{source.name}}
+                                    </a>
+                                    </td>
+                                    <td>{{source.iauname}}</td>
+                                    <td><button type=submit id=comment class="btn btn-primary" name="btncomment" value="{{source.name}}"> </button></td>
+                                    <td>{{source.comment}}</td>
+                                    <td>{{source.redshift}}</td>
+                                    <td>{{source.classification}}</td>
+                                    <th>{{source.ssmagnr}}</th>
+                                    <th>{{source.ssdistnr}}</th>
+                                    <th>{{source.CLU_name}}</th>
+                                    <th>{{'{:.2f}'.format(source.CLU_d_to_galaxy_arcsec) if source.CLU_d_to_galaxy_arcsec}}</th>
+                                    <th>{{source.CLU_z}}</th>
+                                    <td>{{source.ps1_dr2_detections}}</td>
+                                    <th>{{source.gaia_match}}</th>
+                                    <th>{{source.gaia_parallax}}</th>
+                                    <th>{{'{:.2f}'.format(source.w1mw2) if source.w1mw2}}</th>
+                                    <th>{{'{:.2f}'.format(source.w2mw3) if source.w2mw3}}</th>
+                                    <th>{{'{:.2f}'.format(source.w4) if source.w4}}</th>
+                                    <th>{{source.first_detection_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]}}</th>
+                                    <th>{{source.latest_detection_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-4]}}</th>
+                                    <th>{{source.latest_detection_filter}}</th>
+                                    <th>{{'{:.2f}'.format(source.latest_detection_mag) if source.latest_detection_mag}}</th>
+                                    <th>{{'{:.2f}'.format(source.latest_detection_magerr) if source.latest_detection_magerr}}</th>
+                                    <td>{{source.ra.to_string(u.hour,precision=2, sep=':', pad=True)}}</td>
+                                    <td>{{source.dec.to_string(precision=2, sep=':', pad=True)}}</td>
+                                    <td>{{telescope_name}}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
-            </li>
-            <li class=list-group-item>
-                <h3>Galaxies</h3>
-                <table id="galaxies" class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th> 
-                            <th>NAME</th> 
-                            <th>RA</th> 
-                            <th>DEC</th>
-                            <th>SFR FUV</th>
-                            <th>Mstar</th> 
-                            <th>DIST (Mpc)</th>
-                            <th>MAG</th>
-                            <th>PROB</th> 
-                            <th>PRIORITY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>2MASX J07070325+5601031</td>
-                            <td>7:07:03.2592</td>
-                            <td>56:01:02.892</td>
-                            <td>2.887e-01</td>
-                            <td>1.140e+10</td>
-                            <td>111.0</td>
-                            <td>nan</td>
-                            <td>1.081e-22</td>
-                            <td>5.112e-06</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>2MASX J06292278-2831060</td>
-                            <td>6:29:22.7904</td>
-                            <td>-28:31:06.204</td>
-                            <td>nan</td>
-                            <td>3.105e+10</td>
-                            <td>101.6</td>
-                            <td>15.3</td>
-                            <td>2.131e-19</td>
-                            <td>1.646e-05</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="card mb-3">
+                    <button type=submit id=new class="btn btn-primary" name="btnnew">Get new objects</button>
+                </div>
+                <div class="card mb-3">
+                    <button type=submit id=update class="btn btn-primary" name="btnupdate">Update existing objects</button>
+                </div> 
             </li>
         </ul>
+        </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -111,26 +119,13 @@
     <script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
     <script>
     (function() {
-        $('#galaxies').DataTable({
-	    scrollX: true,
-            searching: true,
-            orderFixed: [0, 'asc'],
-            columnDefs: [
-                {
-                    'targets': [0],
-                    'visible': false
-                }
-            ],       	
-        });
-        $('#galaxies tbody').on('click', 'tr', function () {
-            $(this).toggleClass('table-primary');
-        });
-
         $('#candidates').DataTable({
 	    scrollX: true,
             searching: true,
+            order: [[ 8, "desc" ]],
+            lengthMenu: [[25, 50, 100, -1], [25, 50, 100, "All"]],
         rowGroup: {
-                dataSrc: 1
+                dataSrc: 25
             }
         });
         $('#candidates tbody').on('click', 'tr', function () {
