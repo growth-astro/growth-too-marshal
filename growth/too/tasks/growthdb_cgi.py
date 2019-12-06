@@ -1,133 +1,105 @@
-import requests
-import datetime
-import logging
+from datetime import datetime, timedelta
 
-from astropy.time import Time
 from celery.task import PeriodicTask
-import celery
+from celery.utils.log import get_task_logger
+import requests
 
+from . import celery
 from .. import models
 
-"""
-Reminder for the relevant program names:
-decam_programidx=program_dict['DECAM GW Followup']
-em_gw_programidx=program_dict['Electromagnetic Counterparts
-to Gravitational Waves']
-fermi_programidx=program_dict['Afterglows of Fermi Gamma Ray Bursts']
-neutrino_programidx=program_dict['Electromagnetic Counterparts
-to Neutrinos']
-"""
+log = get_task_logger(__name__)
+
+BASE_URL = 'http://skipper.caltech.edu:8080/cgi-bin/growth/'
+PROGRAM_NAMES = [
+    'DECAM GW Followup',
+    'Afterglows of Fermi Gamma Ray Bursts',
+    'Electromagnetic Counterparts to Neutrinos',
+    'Electromagnetic Counterparts to Gravitational Waves']
 
 
-def get_programidx(program_name):
-    """Given a program name, it returns the programidx"""
-
-    r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/list_programs.cgi')
-    r.raise_for_status()
-    programs = r.json()
-    program_dict = {p['name']: p['programidx'] for p in enumerate(programs)}
-
-    try:
-        return program_dict[program_name]
-    except KeyError:
-        logging.error(f"The user does not have access to \
-            the GROWTH Marshal program '{program_name}'")
+def _get_json(path, **kwargs):
+    response = requests.get(BASE_URL + path, params=kwargs)
+    response.raise_for_status()
+    return response.json()
 
 
-def get_source_autoannotations(sourceid):
+def get_program_ids():
+    """Get program IDs from the GROWTH marshal."""
+    json = _get_json('list_programs.cgi')
+    programs = {p['name']: p['programidx'] for p in json}
+    for key in PROGRAM_NAMES:
+        try:
+            yield programs[key]
+        except KeyError:
+            log.error("The user does not have access to the GROWTH Marshal "
+                      "program '%s'", key)
+
+
+def get_candidates(program_ids):
+    """Get sources for a list of program IDs from the GROWTH marshal."""
+    result = {}
+    for program_id in program_ids:
+        json = _get_json('list_program_sources.cgi', programidx=program_id)
+        result.update({s['name']: s for s in json})
+    return list(result.values())
+
+
+@celery.task(ignore_result=True, shared=False)
+def update_candidate_details(name, growth_marshal_id):
     """Fetch a specific source's autoannotations from the GROWTH marshal and
     create a string with the autoannotations available."""
-    r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/source_summary.cgi',
-        data={'sourceid': str(sourceid)})
-    r.raise_for_status()
-    summary = r.json()
-    autoannotations = summary['autoannotations']
-    autoannotations_string = '; '.join(
-        f"{auto['username']}, {auto['type']}, {auto['comment']}"
-        for auto in autoannotations)
+    json = _get_json('source_summary.cgi', sourceid=growth_marshal_id)
 
-    return autoannotations_string
+    annotations = '; '.join(
+        f"{auto['username']}, {auto['datatype']}, {auto['comment']}"
+        for auto in json['autoannotations'])
 
+    photometry = [
+        models.CandidatePhotometry(
+            dateobs=datetime.fromisoformat(s['obsdate']),
+            fil=s['filter'],
+            instrument=s['instrument'],
+            limmag=s['limmag'],
+            mag=s['magpsf'],
+            magerr=s['sigmamagpsf'],
+            exptime=s['exptime'],
+            programid=s['programid']
+        ) for s in json['uploaded_photometry']]
 
-def get_candidates_growth_marshal(program_name):
-    """Query the GROWTH db for the science programs"""
-
-    programidx = get_programidx(program_name)
-    if programidx is None:
-        return
-    r = requests.post(
-        'http://skipper.caltech.edu:8080/cgi-bin/growth/list\
-        _program_sources.cgi',
-        data={'programidx': str(programidx)})
-    r.raise_for_status()
-    sources = r.json()
-    # Add autoannotations
-    for source in sources:
-        yield dict(
-            source,
-            annotations=get_source_autoannotations(source["id"]))
-
-
-def update_local_db_growthmarshal(sources, program_name):
-    """Takes the candidates fetched from the GROWTH marshal and
-    updates the local database using SQLAlchemy."""
-
-    for s in sources:
-        creationdate = Time(s['creationdate'], fromat='iso').datetime
-        lastmodified = Time(s['lastmodified'], fromat='iso').datetime
-
-        try:
-            rcid = int(s['rcid'])
-        except (KeyError, ValueError):
-            rcid = None
-        try:
-            field = int(s['field'])
-        except (KeyError, ValueError):
-            field = None
-        try:
-            candid = int(s['candid'])
-        except (KeyError, ValueError):
-            candid = None
-        try:
-            redshift = float(s['redshift'])
-        except (KeyError, ValueError):
-            redshift = None
-
-        models.db.session.merge(
-            models.Candidate(
-                name=s['name'],
-                subfield_id=rcid,
-                creationdate=creationdate,
-                classification=s['classification'],
-                redshift=redshift,
-                iauname=s['iauname'],
-                field_id=field,
-                candid=candid,
-                ra=float(s['ra']),
-                dec=float(s['dec']),
-                lastmodified=lastmodified,
-                autoannotations=s['autoannotations']
-                )
-        )
+    models.db.session.merge(models.Candidate(
+        name=name, photometry=photometry, autoannotations=annotations))
     models.db.session.commit()
 
 
-@celery.task(
-    base=PeriodicTask,
-    shared=False, run_every=datetime.timedelta(seconds=180))
-def fetch_candidates_growthmarshal():
+@celery.task(base=PeriodicTask, shared=False, run_every=1200)
+def update_candidates():
     """Fetch the candidates present in the GROWTH marshal
     for the MMA science programs and store them in the local db."""
+    for s in get_candidates(get_program_ids()):
+        # Find old row, if any
+        old = models.Candidate.query.get(s['name'])
 
-    program_names = [
-        'DECAM GW Followup',
-        'Afterglows of Fermi Gamma Ray Bursts',
-        'Electromagnetic Counterparts to Neutrinos',
-        'Electromagnetic Counterparts to Gravitational Waves'
-        ]
+        # Create or update row
+        last_updated = datetime.fromisoformat(s['last_updated'])
+        name = s['name']
+        growth_marshal_id = s['id']
+        models.db.session.merge(models.Candidate(
+            name=name,
+            growth_marshal_id=growth_marshal_id,
+            subfield_id=s.get('rcid'),
+            creationdate=datetime.fromisoformat(s['creationdate']),
+            classification=s['classification'],
+            redshift=s.get('redshift'),
+            iauname=s['iauname'],
+            field_id=s.get('field'),
+            candid=s.get('candid'),
+            ra=s['ra'],
+            dec=s['dec'],
+            last_updated=last_updated))
+        models.db.session.commit()
 
-    for program_name in program_names:
-        sources = get_candidates_growth_marshal(program_name)
-        update_local_db_growthmarshal(sources, program_name)
+        # If this is a new row, or if it has been recently updated in
+        # the GROWTH marshal, then fetch new photometry and annotations
+        dt = timedelta(seconds=60)
+        if old is None or last_updated - old['last_updated'] > dt:
+            update_candidate_details.delay(name, growth_marshal_id)

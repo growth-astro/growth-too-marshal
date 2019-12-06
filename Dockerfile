@@ -9,6 +9,12 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
     lscsoft-glue \
     ligo-segments \
     python-ligo-lw \
+    # Fixes for flaky IERS servers that are on master but not yet in an astropy release
+    git+https://github.com/astropy/astropy@90db3ade9f5d883fedbe2a2e42b77938d5cc318e \
+    git+https://github.com/astropy/astroplan@fa5fde10aab7b1720a13669bb214783dea8c5abb \
+    git+https://github.com/astropy/astroquery@c96d5f4f306eee44f59de96e77d6f34bc4d784bb \
+    git+https://github.com/astropy/reproject@eea092eb476c8aef95c917e1250b7796923e47f1 \
+    git+https://github.com/astropy/pyvo@33f64f9d4a5ab05dac12339d69c6b7c4bcf660e2 \
     git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286 && \
     # Audit all binary wheels
     ls *.whl | xargs -L 1 auditwheel repair && \
@@ -95,6 +101,7 @@ COPY --from=wheel-deps /wheelhouse /wheelhouse
 RUN pip3 install --no-cache-dir -f /wheelhouse \
     flower \
     -r /requirements.txt
+RUN pip3 install --no-cache-dir /wheelhouse/*.whl
 
 
 #
@@ -126,11 +133,11 @@ RUN useradd -mr growth-too-marshal && \
     mkdir -p /usr/var/growth.too.flask-instance/input && \
     ln -s /run/secrets/application.cfg.d /usr/var/growth.too.flask-instance/application.cfg.d && \
     ln -s /run/secrets/htpasswd /usr/var/growth.too.flask-instance/htpasswd && \
-    ln -s /run/secrets/netrc /root/netrc && \
     ln -s /run/secrets/GROWTH-India.tess /usr/var/growth.too.flask-instance/input/GROWTH-India.tess && \
     ln -s /run/secrets/CLU.hdf5 /usr/var/growth.too.flask-instance/catalog/CLU.hdf5
 COPY docker/etc/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts
 COPY docker/usr/var/growth.too.flask-instance/application.cfg /usr/var/growth.too.flask-instance/application.cfg
+COPY docker/entrypoint.sh /entrypoint.sh
 
 USER growth-too-marshal:growth-too-marshal
 WORKDIR /home/growth-too-marshal
@@ -138,4 +145,4 @@ WORKDIR /home/growth-too-marshal
 # Prime some cached Astropy data.
 RUN growth-too iers
 
-ENTRYPOINT ["growth-too"]
+ENTRYPOINT ["/entrypoint.sh"]

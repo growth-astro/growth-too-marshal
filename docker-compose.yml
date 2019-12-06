@@ -102,6 +102,7 @@ services:
       - id_rsa
       - id_rsa.pub
       - CLU.hdf5
+      - netrc
   celery_beat:
     build: .
     image: growthastro/growth-too-marshal

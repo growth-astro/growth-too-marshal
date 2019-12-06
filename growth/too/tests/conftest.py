@@ -16,6 +16,8 @@ def database(postgresql_proc):
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
         proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+    for key in app.config['SQLALCHEMY_BINDS']:
+         app.config['SQLALCHEMY_BINDS'][key] = database_uri
     from .. import models
     models.create_all()
     models.db.session.commit()
@@ -50,4 +52,4 @@ def slackclient(monkeypatch):
 
 
 def pytest_runtest_setup():
-    socket_allow_hosts(['127.0.0.1'])
+    socket_allow_hosts(['127.0.0.1', '::1'])

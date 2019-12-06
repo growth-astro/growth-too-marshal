@@ -406,6 +406,22 @@ class PlanForm(ModelForm):
 
     balance = BooleanField(default=False)
 
+    completed = BooleanField(default=False)
+
+    completed_window_start = DateTimeField(
+        format='%Y-%m-%d %H:%M:%S',
+        default=lambda: datetime.datetime.utcnow() - datetime.timedelta(1),
+        validators=[validators.DataRequired()])
+
+    completed_window_end = DateTimeField(
+        format='%Y-%m-%d %H:%M:%S',
+        default=lambda: datetime.datetime.utcnow(),
+        validators=[validators.DataRequired()])
+
+    planned = BooleanField(default=False)
+
+    maxtiles = BooleanField(default=False)
+
     filterschedule = RadioField(
         choices=[('block', 'block'), ('integrated', 'integrated')],
         default='block')
@@ -417,6 +433,10 @@ class PlanForm(ModelForm):
     exposure_time = FloatField(
         default=300,
         validators=[validators.DataRequired(), validators.NumberRange(min=0)])
+
+    max_nb_tiles = DecimalSliderField(
+        [validators.NumberRange(min=0, max=1000)],
+        default=1000)
 
     probability = DecimalSliderField(
         [validators.NumberRange(min=0, max=100)],
@@ -476,6 +496,9 @@ class PlanForm(ModelForm):
         timediff1 = start_mjd - event_mjd
         timediff2 = end_mjd - event_mjd
         t_obs = [timediff1, timediff2]
+        completed_start_mjd = time.Time(self.completed_window_start.data).mjd
+        completed_end_mjd = time.Time(self.completed_window_end.data).mjd
+        c_obs = [completed_start_mjd, completed_end_mjd]
         filters = re.split(r'[\s,]+', self.filters.data)
 
         obj.plan_args = dict(
@@ -494,7 +517,12 @@ class PlanForm(ModelForm):
             filterScheduleType=self.filterschedule.data,
             schedule_strategy=self.schedule_strategy.data,
             usePrevious=self.previous.data,
-            previous_plan=self.previous_plan.data
+            previous_plan=self.previous_plan.data,
+            doCompletedObservations=self.completed.data,
+            cobs=c_obs,
+            doPlannedObservations=self.planned.data,
+            doMaxTiles=self.maxtiles.data,
+            max_nb_tiles=int(self.max_nb_tiles.data)
         )
 
 
@@ -1040,7 +1068,7 @@ def get_json_data_manual(form):
     return json_data, queue_name
 
 
-def get_json_data(plan):
+def get_json_data(plan, decam_style=True):
 
     queue_name, transient_name = get_queue_transient_name(plan)
 
@@ -1101,7 +1129,7 @@ def get_json_data(plan):
             ]
         }
 
-    if telescope == "DECam":
+    if (telescope == "DECam") and decam_style:
         decam_dicts = []
         cnt = 1
         queue_name = json_data['queue_name']
