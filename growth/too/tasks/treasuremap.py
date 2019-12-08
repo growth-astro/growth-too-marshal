@@ -1,5 +1,6 @@
 from astropy import time
 import requests
+import urllib
 
 from ..flask import app
 from . import celery
@@ -7,12 +8,13 @@ from .. import models
 from .. import views
 
 BASE = 'http://treasuremap.space/api/v0/'
-TARGET = 'pointings'
 bands = {1: 'g', 2: 'r', 3: 'i', 4: 'z', 5: 'J'}
 
 
 @celery.task(shared=False)
 def observations(dateobs, telescope, observations):
+
+    TARGET = 'pointings'
 
     if telescope == "ZTF":
         telescope_id = 47
@@ -57,6 +59,8 @@ def observations(dateobs, telescope, observations):
 @celery.task(shared=False)
 def plan(dateobs, telescope, plan_name):
 
+    TARGET = 'pointings'
+
     plan = models.Plan.query.filter_by(dateobs=dateobs, telescope=telescope,
                                        plan_name=plan_name).one()
     json_data, queue_name = views.get_json_data(plan, decam_style=False)
@@ -98,3 +102,29 @@ def plan(dateobs, telescope, plan_name):
 
     data["pointings"] = pointings
     requests.post(url=BASE+TARGET, json=data)
+
+
+@celery.task(shared=False)
+def delete_plans(dateobs, telescope):
+
+    TARGET = 'cancel_all'
+
+    event = models.Event.query.get_or_404(dateobs)
+
+    if telescope == "ZTF":
+        telescope_id = 47
+    elif telescope == "Gattini":
+        telescope_id = 44
+    elif telescope == "DECam":
+        telescope_id = 38
+    elif telescope == "KPED":
+        telescope_id = 45
+    elif telescope == "GROWTH-India":
+        telescope_id = 46
+
+    data = {"graceid": event.graceid,
+            "api_token": app.config['TREASUREMAP_API_TOKEN'],
+            "instrumentid": telescope_id}
+
+    url = "{}/{}?{}".format(BASE, TARGET, urllib.parse.urlencode(data))
+    requests.post(url=url)
