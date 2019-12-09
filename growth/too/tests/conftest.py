@@ -17,7 +17,7 @@ def database(postgresql_proc):
         proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
     for key in app.config['SQLALCHEMY_BINDS']:
-         app.config['SQLALCHEMY_BINDS'][key] = database_uri
+        app.config['SQLALCHEMY_BINDS'][key] = database_uri
     from .. import models
     models.create_all()
     models.db.session.commit()
