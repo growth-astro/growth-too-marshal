@@ -5,6 +5,7 @@ from flask import Flask
 from flask_humanize import Humanize
 from werkzeug.routing import BaseConverter
 
+from . import decam_db
 
 # Application object
 app = Flask(__name__, instance_relative_config=True)
@@ -51,6 +52,12 @@ except (FileNotFoundError, NotADirectoryError):
 else:
     for dropin_file in dropin_files:
         app.config.from_pyfile(os.path.join('application.cfg.d', dropin_file))
+
+
+if 'SQLALCHEMY_BINDS' not in app.config:
+    app.config['SQLALCHEMY_BINDS'] = {}
+url = decam_db.url_db()
+app.config['SQLALCHEMY_BINDS']['DECam'] = url
 
 
 class DateTimeConverter(BaseConverter):
