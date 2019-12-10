@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% from 'forms.html' import render_field %}
+
+{% block head %}
+    <title>ToO Marshal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/css/dataTables.bootstrap4.min.css" integrity="sha256-F+DaKAClQut87heMIC6oThARMuWne8+WzxIDT7jXuPA=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" integrity="sha256-mfb+mieZDwLASMlQTUNXrZQr8OXvQyEDfV3Xz3E7DSU=" crossorigin="anonymous">
+{% endblock %}
+
+{% block body %}
+    <div class="card">
+        <div class="card-header">
+            {% include 'event_header.html' %}
+            {% include 'nav_bar.html' %}
+        </div>
+        <form class=card-body method=post>
+            {{form.hidden_tag()}}
+            <div class=form-row>
+                <div class="form-group col-sm-6">
+                    <label for=telescope class=form-label>Telescope</label>
+                    {{ render_field(form.telescope, class='custom-select') }}
+                </div>
+                <div class="form-group col-sm-6">
+                    <label for="localization" class=form-label>Localization</label>
+                    {{ render_field(form.localization, class='custom-select') }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-4">
+                    <label for=start_time>Start time [days]</label>
+                    {{ render_field(form.start_time) }}
+                </div>
+                <div class="form-group col-sm-4">
+                    <label for=end_time>End time [days]</label>
+                    {{ render_field(form.end_time) }}
+                </div>
+            </div>
+            <div class=form-row>
+                <div class="form-group col-sm-3">
+                    <button type=submit id=create class="btn btn-primary" name="btnform">Generate Table</button>
+                </div>
+            </div>
+        <table id=observations class="table">
+            <thead>
+                <tr>
+                    <th rowspan=2>Filter</th>
+                    <th rowspan=2>Start</th>
+                    <th rowspan=2>Number of exposures</th>
+                    <th rowspan=2>Time (min)</th>
+                    <th rowspan=2>Area (deg<sup>2</sup>)</th>
+                    <th rowspan=2>Probability</th>
+                    <th rowspan=2>Limiting Magnitude [median]</th>
+                </tr>
+              </thead>
+              <tbody>
+                    {% for filt in telescope.filters %} 
+                        <tr>
+                            <td>{{filt}}</td>
+                            <td>{{ observation_list.starttime(filt,start_time,end_time)  }}</td>
+                            <td>{{ observation_list.nexp(filt,start_time,end_time) }}</td>
+                            <td>{{ observation_list.totaltime(filt,start_time,end_time) }}</td>
+                            <td>{{ "%.1f"|format(observation_list.area(filt,start_time,end_time)) }}</td>
+                            <td>{{ "%.5f"|format(100*observation_list.get_probability(filt,start_time,end_time)) }}</td>
+                            <td>{{ "%.1f"|format(observation_list.limmag(filt,start_time,end_time)) }}</td>
+                        </tr>
+                        {% endfor %}
+                    <tr>
+                        <td>All</td>
+                        <td>{{ observation_list.starttime("a",start_time,end_time)  }}</td>
+                        <td>{{ observation_list.nexp("a",start_time,end_time) }}</td>
+                        <td>{{ observation_list.totaltime("a",start_time,end_time) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.area("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.5f"|format(100*observation_list.get_probability("a",start_time,end_time)) }}</td>
+                        <td>{{ "%.1f"|format(observation_list.limmag("a",start_time,end_time)) }}</td>
+                        <td>All</td>
+                    </tr>
+            </tbody>
+        </table>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/js/jquery.dataTables.min.js" integrity="sha256-t5ZQTZsbQi8NxszC10CseKjJ5QeMw5NINtOXQrESGSU=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js" integrity="sha256-hYXbQJK4qdJiAeDVjjQ9G0D6A0xLnDQ4eJI9dkm7Fpk=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-geo/1.9.1/d3-geo.min.js" integrity="sha256-ujoopDSgXv5+tOiVuGRi+I6JoUNBTqAmNAeyhOtbgYw=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-drag/1.2.1/d3-drag.min.js" integrity="sha256-z4hJglIzarwrV3VkxfLntjyQ8CXStVQr/ICkosUWHrs=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/d3-geo-zoom" integrity="sha256-aB3PfIrVSVDY1ZQb/ELYPUOxejsP8rY5FSwv2KTgsbY=" crossorigin="anonymous"></script>
+{% endblock %}
