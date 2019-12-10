@@ -24,7 +24,7 @@ def get_obs(start_time, end_time):
                             sp.stackquadid = ss.stackquadid WHERE jd
                             > %s AND jd < %s GROUP BY field, fieldseq
                             ORDER BY utstart;
-                            """, (start_time.jd, end_time.jd)).fetchall()
+                            """, (start_time.jd, end_time.jd))
 
     return result
 
