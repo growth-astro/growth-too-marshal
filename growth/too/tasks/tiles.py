@@ -49,7 +49,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
                   cobs=None,
                   doPlannedObservations=False,
                   doMaxTiles=False,
-                  max_nb_tiles=1000):
+                  max_nb_tiles=1000,
+                  doRASlice=False,
+                  raslice=[0, 24]):
 
     growthpath = os.path.dirname(growth.__file__)
     config_directory = os.path.join(growthpath, 'too', 'config')
@@ -209,6 +211,9 @@ def params_struct(dateobs, tobs=None, filt=['r'], exposuretimes=[60.0],
     params["filters"] = filt
     params["exposuretimes"] = exposuretimes
     params["mindiff"] = mindiff
+
+    params["doRASlice"] = doRASlice
+    params["raslice"] = raslice
 
     params = gwemopt.segments.get_telescope_segments(params)
     params = gwemopt.utils.params_checker(params)
@@ -517,7 +522,9 @@ def tile(localization_name, dateobs, telescope,
                            cobs=plan_args['cobs'],
                            doPlannedObservations=planned,
                            doMaxTiles=maxtiles,
-                           max_nb_tiles=plan_args['max_nb_tiles'])
+                           max_nb_tiles=plan_args['max_nb_tiles'],
+                           doRASlice=plan_args['doRASlice'],
+                           raslice=plan_args['raslice'])
 
     params['map_struct'] = dict(
         zip(['prob', 'distmu', 'distsigma', 'distnorm'], localization.flat))
