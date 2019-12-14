@@ -11,7 +11,7 @@ flask_sqlalchemy
 flask_twilio >= 0.0.6
 flask_wtf
 kombu == 4.5.0  # FIXME: https://github.com/celery/celery/issues/5261
-gwemopt == 0.0.61  # must be '==', since gwemopt does not have a stable API
+gwemopt == 0.0.65  # must be '==', since gwemopt does not have a stable API
 healpy
 h5py
 ligo-gracedb
