@@ -1,6 +1,6 @@
 astropy >= 3.2.3
 astropy-healpix>=0.3
-celery[redis] >= 4.3.0  # https://github.com/celery/celery/pull/4852
+celery[redis] >= 4.4.0
 flask
 flask_caching
 flask_celeryext
@@ -10,7 +10,6 @@ flask_mail
 flask_sqlalchemy
 flask_twilio >= 0.0.6
 flask_wtf
-kombu == 4.5.0  # FIXME: https://github.com/celery/celery/issues/5261
 gwemopt == 0.0.65  # must be '==', since gwemopt does not have a stable API
 healpy
 h5py
