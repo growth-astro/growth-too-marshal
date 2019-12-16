@@ -20,12 +20,6 @@ jobs:
             - postgresql-server-dev-11
         postgresql: "11"
       install:
-        # Fixes for flaky IERS servers that are on master but not yet in an astropy release
-        - pip install git+https://github.com/astropy/astropy@90db3ade9f5d883fedbe2a2e42b77938d5cc318e
-        - pip install git+https://github.com/astropy/astroplan@fa5fde10aab7b1720a13669bb214783dea8c5abb
-        - pip install git+https://github.com/astropy/astroquery@c96d5f4f306eee44f59de96e77d6f34bc4d784bb
-        - pip install git+https://github.com/astropy/reproject@eea092eb476c8aef95c917e1250b7796923e47f1
-        - pip install git+https://github.com/astropy/pyvo@33f64f9d4a5ab05dac12339d69c6b7c4bcf660e2
         - pip install pytest-cov coveralls -r requirements.txt -r test-requirements.txt
         - pip install -e .
         - growth-too iers
