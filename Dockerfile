@@ -28,7 +28,7 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
 # Stage 2: wheel-self
 # Build a Python wheel for this package itself.
 #
-FROM quay.io/pypa/manylinux1_x86_64 AS wheel-self
+FROM quay.io/pypa/manylinux2010_x86_64 AS wheel-self
 COPY . /src
 RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir -w /wheelhouse /src
 
