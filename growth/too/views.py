@@ -458,6 +458,16 @@ class PlanForm(ModelForm):
 
     previous_plan = SelectField()
 
+    raslice = BooleanField(default=False)
+
+    ramin = DecimalSliderField(
+        [validators.NumberRange(min=0, max=24)],
+        default=0)
+
+    ramax = DecimalSliderField(
+        [validators.NumberRange(min=0, max=24)],
+        default=0)
+
     def _previous_plan_query(self):
         return models.Plan.query.filter_by(dateobs=self.dateobs.data)
 
@@ -500,6 +510,7 @@ class PlanForm(ModelForm):
         completed_end_mjd = time.Time(self.completed_window_end.data).mjd
         c_obs = [completed_start_mjd, completed_end_mjd]
         filters = re.split(r'[\s,]+', self.filters.data)
+        raslice = [float(self.ramin.data), float(self.ramax.data)]
 
         obj.plan_args = dict(
             localization_name=self.localization.data,
@@ -522,7 +533,9 @@ class PlanForm(ModelForm):
             cobs=c_obs,
             doPlannedObservations=self.planned.data,
             doMaxTiles=self.maxtiles.data,
-            max_nb_tiles=int(self.max_nb_tiles.data)
+            max_nb_tiles=int(self.max_nb_tiles.data),
+            doRASlice=self.raslice.data,
+            raslice=raslice
         )
 
 

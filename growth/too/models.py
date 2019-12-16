@@ -73,7 +73,9 @@ def create_all():
             'schedule_strategy': 'tiling',
             'mindiff': 30.*60.,
             'doMaxTiles': False,
-            'max_nb_tiles': 1000
+            'max_nb_tiles': 1000,
+            'doRASlice': True,
+            'raslice': [0.0, 24.0],
         },
         'DECam': {
             'filt': ['g', 'z'],
@@ -92,7 +94,9 @@ def create_all():
             'schedule_strategy': 'tiling',
             'mindiff': 30.*60.,
             'doMaxTiles': False,
-            'max_nb_tiles': 1000
+            'max_nb_tiles': 1000,
+            'doRASlice': True,
+            'raslice': [0.0, 24.0],
         },
         'Gattini': {
             'filt': ['J'],
@@ -111,7 +115,9 @@ def create_all():
             'schedule_strategy': 'tiling',
             'mindiff': 30.*60.,
             'doMaxTiles': False,
-            'max_nb_tiles': 1000
+            'max_nb_tiles': 1000,
+            'doRASlice': True,
+            'raslice': [0.0, 24.0]
         },
         'KPED': {
             'filt': ['r'],
@@ -130,7 +136,9 @@ def create_all():
             'schedule_strategy': 'catalog',
             'mindiff': 30.*60.,
             'doMaxTiles': False,
-            'max_nb_tiles': 1000
+            'max_nb_tiles': 1000,
+            'doRASlice': True,
+            'raslice': [0.0, 24.0]
         },
         'GROWTH-India': {
             'filt': ['r'],
@@ -149,7 +157,9 @@ def create_all():
             'schedule_strategy': 'catalog',
             'mindiff': 30.*60.,
             'doMaxTiles': False,
-            'max_nb_tiles': 1000
+            'max_nb_tiles': 1000,
+            'doRASlice': True,
+            'raslice': [0.0, 24.0]
         }
     }
 
