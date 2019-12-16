@@ -3,7 +3,7 @@
 # Build Python wheels for dependencies that are not in apt or PyPI.
 #
 
-FROM quay.io/pypa/manylinux1_x86_64 AS wheel-deps
+FROM quay.io/pypa/manylinux2010_x86_64 AS wheel-deps
 
 RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
     lscsoft-glue \
@@ -13,7 +13,7 @@ RUN /opt/python/cp37-cp37m/bin/pip wheel --no-deps --no-cache-dir \
     git+https://github.com/astropy/astropy@90db3ade9f5d883fedbe2a2e42b77938d5cc318e \
     git+https://github.com/astropy/astroplan@fa5fde10aab7b1720a13669bb214783dea8c5abb \
     git+https://github.com/astropy/astroquery@c96d5f4f306eee44f59de96e77d6f34bc4d784bb \
-    git+https://github.com/astropy/reproject@eea092eb476c8aef95c917e1250b7796923e47f1 \
+    git+https://github.com/astropy/reprojectmanylinux201076c8aef95c917e1250b7796923e47f1 \
     git+https://github.com/astropy/pyvo@33f64f9d4a5ab05dac12339d69c6b7c4bcf660e2 \
     git+https://github.com/mher/flower@1a291b31423faa19450a272c6ef4ef6fe8daa286 && \
     # Audit all binary wheels
