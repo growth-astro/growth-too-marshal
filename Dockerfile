@@ -41,7 +41,6 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     gunicorn3 \
     openssh-client \
     python3-astropy \
-    python3-astroquery \
     python3-celery \
     python3-dateutil \
     python3-ephem \
