@@ -277,6 +277,7 @@ def plan(dateobs):
             flash('Deleted plans.', 'success')
 
         if command == 'go':
+
             group(
                 group(
                     tasks.scheduler.submit.s(telescope, plan_name),
@@ -1084,8 +1085,6 @@ def get_json_data(plan, decam_style=True):
 
     queue_name, transient_name = get_queue_transient_name(plan)
 
-    start_mjd = time.Time(plan.validity_window_start).mjd
-    end_mjd = time.Time(plan.validity_window_end).mjd
     exposures = plan.planned_observations
     telescope = plan.telescope
     doReferences = plan.plan_args["doReferences"]
@@ -1099,6 +1098,17 @@ def get_json_data(plan, decam_style=True):
         ditherNorm = 2.0
     else:
         ditherNorm = 1.0
+
+    start_mjd, end_mjd = np.inf, -np.inf
+    for ii, exposure in enumerate(exposures):
+        ttstart = time.Time(exposure.obstime, format="datetime").mjd
+        ttend = ttstart + exposure.exposure_time/86400.0
+        if ttstart < start_mjd:
+            start_mjd = ttstart
+        if ttend > end_mjd:
+            end_mjd = ttend
+    # add a little buffer
+    end_mjd = end_mjd + 30.0*60.0/86400.0
 
     if doReferences:
         json_data = {
