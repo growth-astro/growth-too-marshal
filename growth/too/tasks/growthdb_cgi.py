@@ -101,5 +101,5 @@ def update_candidates():
         # If this is a new row, or if it has been recently updated in
         # the GROWTH marshal, then fetch new photometry and annotations
         dt = timedelta(seconds=60)
-        if old is None or last_updated - old['last_updated'] > dt:
+        if old is None or last_updated - old.last_updated > dt:
             update_candidate_details.delay(name, growth_marshal_id)
