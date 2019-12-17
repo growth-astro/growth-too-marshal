@@ -65,7 +65,6 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-pip \
     python3-psycopg2 \
     python3-redis \
-    python3-reproject \
     python3-scipy \
     python3-seaborn \
     python3-setuptools \
