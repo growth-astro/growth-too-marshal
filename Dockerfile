@@ -73,8 +73,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     python3-tornado \
     python3-twilio \
     python3-tz \
-    python3-wtforms \
-    python3-pyvo && \
+    python3-wtforms && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install --upgrade --no-cache-dir pip
 
