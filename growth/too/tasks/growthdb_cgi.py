@@ -11,7 +11,7 @@ log = get_task_logger(__name__)
 
 BASE_URL = 'http://skipper.caltech.edu:8080/cgi-bin/growth/'
 PROGRAM_NAMES = [
-    'DECAM GW Followup',
+    # 'DECAM GW Followup',  # Duplicate record issues
     'Afterglows of Fermi Gamma Ray Bursts',
     'Electromagnetic Counterparts to Neutrinos',
     'Electromagnetic Counterparts to Gravitational Waves']
