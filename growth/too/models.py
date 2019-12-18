@@ -1066,7 +1066,7 @@ class Candidate(db.Model):
     @first_detection_time.expression
     def first_detection_time(cls):
         return db.select(
-            [db.func.min(cls.dateobs)]
+            [db.func.min(CandidatePhotometry.dateobs)]
         ).where(
             CandidatePhotometry.name == cls.name
         ).label(__name__)
