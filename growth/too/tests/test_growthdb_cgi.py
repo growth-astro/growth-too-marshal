@@ -44,6 +44,11 @@ def test_update_candidates(httpserver, monkeypatch, celery):
     httpserver.expect_oneshot_request(
         '/list_program_sources.cgi',
         method='GET', query_string={'programidx': '1'}
+    ).respond_with_json([])
+
+    httpserver.expect_oneshot_request(
+        '/list_program_sources.cgi',
+        method='GET', query_string={'programidx': '2'}
     ).respond_with_json([{
         'mag_obsdate': '2018-06-15',
         'rcid': 5,
@@ -63,11 +68,6 @@ def test_update_candidates(httpserver, monkeypatch, celery):
         'last_updated': '2019-11-17 16:24:11',
         'id': 9846
     }])
-
-    httpserver.expect_oneshot_request(
-        '/list_program_sources.cgi',
-        method='GET', query_string={'programidx': '2'}
-    ).respond_with_json([])
 
     httpserver.expect_oneshot_request(
         '/list_program_sources.cgi',
