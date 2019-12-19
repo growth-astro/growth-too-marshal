@@ -40,6 +40,8 @@
     <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js" integrity="sha256-f8vzaivfrU6QB/g8PztdVJaS1vB58RVqZf6pmlfvmvA=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.bootstrap4.min.js" integrity="sha256-+aMa2B5YIXIHaMVzFOhJ3+uwhmpdf0AEBV7ASS/nMWo=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/scroller/2.0.0/js/dataTables.scroller.min.js" integrity="sha256-/fBo2uoL1zuza/5G6UrbxbjkSJbJyWIzgx17Zz/aPJE=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" integrity="sha256-FPJJt8nA+xL4RU6/gsriA8p8xAeLGatoyTjldvQKGdE=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='markdown-table.min.js') }}"></script>
     <script>
     (function() {
         var table = $('#objects').DataTable({
@@ -74,7 +76,28 @@
                         {% endfor %}
                     ]
                 },
-                'csv'
+                'csv',
+                {
+                    name: 'markdown',
+                    text: 'Markdown',
+                    action: function ( e, dt, button, config ) {
+                        this.processing(true);
+                        let exported = dt.buttons.exportData(dt, config);
+                        let output = markdownTable([
+                            ...[exported.header],
+                            ...exported.body.map(row => row.map(item => (item == null || item == NaN || item == 'nan') ? null : item))
+                        ]);
+                        let info = dt.buttons.exportInfo(config);
+                        saveAs(
+                            new Blob([output], {type: 'text/markdown'}),
+                            info.filename,
+                            true
+                        );
+                        this.processing(false);
+                    },
+                    filename: '*',
+                    extension: '.md'
+                }
             ],
             deferRender: true,
             lengthChange: false,
