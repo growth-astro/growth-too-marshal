@@ -13,6 +13,7 @@ import numpy as np
 from astropy import time
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 import pandas as pd
 from ligo.skymap import io
 from ligo.skymap.postprocess import find_injection_moc
@@ -238,11 +239,148 @@ def event(dateobs):
         'event.html', event=models.Event.query.get_or_404(dateobs))
 
 
+OBJECTS_COLUMNS = ['name', 'ra', 'dec', 'classification', 'redshift',
+                   'iauname', 'first_detection_time', '2D CL', '2D pdf']
+
+
+def _getattr_or_masked(collection, key):
+    value = getattr(collection, key)
+    if value is None:
+        value = np.ma.masked
+    return value
+
+
+@app.route('/event/<datetime:dateobs>/objects/json')
+@login_required
+def objects_data(dateobs):
+    app.logger.info('querying')
+    event = models.Event.query.get_or_404(dateobs)
+    table = Table(rows=[(*(_getattr_or_masked(row, key)
+                           for key in OBJECTS_COLUMNS[:-2]),
+                         np.ma.masked, np.ma.masked)
+                        for row in models.Candidate.query],
+                  names=OBJECTS_COLUMNS)
+
+    app.logger.info('getting localization')
+    # Populate 2D and 3D credible levels.
+    localization_name = request.args.get('search[value]')
+    localization = (
+        models.Localization.query.filter_by(
+            dateobs=event.dateobs,
+            localization_name=localization_name
+        ).one_or_none() or event.localizations[-1])
+    results = find_injection_moc(
+        localization.table,
+        np.deg2rad(table['ra']),
+        np.deg2rad(table['dec']))
+    app.logger.info('adding localization info')
+    table['2D CL'] = np.ma.masked_invalid(results.searched_prob) * 100
+    table['2D pdf'] = np.ma.masked_invalid(results.probdensity)
+
+    app.logger.info('preparing')
+    result = {}
+
+    # Populate total number of records.
+    result['recordsTotal'] = len(table)
+
+    # Populate draw counter.
+    try:
+        value = int(request.args['draw'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        result['draw'] = value
+
+    for i in range(len(table.columns)):
+        try:
+            value = json.loads(
+                request.args['columns[{}][search][value]'.format(i)] or '{}'
+            )
+        except (KeyError, ValueError):
+            pass
+        else:
+            try:
+                value2, = np.asarray(
+                    [value['min']], dtype=table[table.colnames[i]].dtype)
+            except KeyError:
+                pass
+            except ValueError:
+                abort(400)
+            else:
+                table = table[table[table.colnames[i]] >= value2]
+
+            try:
+                value2, = np.asarray(
+                    [value['max']], dtype=table[table.colnames[i]].dtype)
+            except (KeyError, ValueError):
+                pass
+            else:
+                table = table[table[table.colnames[i]] <= value2]
+
+        try:
+            value = int(request.args['order[{}][column]'.format(i)])
+        except (KeyError, ValueError):
+            pass
+        else:
+            table.sort(table.colnames[value])
+
+        try:
+            value = request.args['order[{}][dir]'.format(i)]
+        except (KeyError, ValueError):
+            pass
+        else:
+            if value == 'desc':
+                table.reverse()
+
+    # Populate total number of filtered records.
+    result['recordsFiltered'] = len(table)
+
+    # Trim results by requested start index.
+    try:
+        value = int(request.args['start'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        table = table[value:]
+
+    # Trim results by requested length.
+    try:
+        value = int(request.args['length'])
+    except KeyError:
+        pass
+    except ValueError:
+        abort(400)
+    else:
+        table = table[:value]
+
+    result['data'] = list(
+        zip(
+            *(
+                (
+                    None if item == '--' else item
+                    for item in table.formatter._pformat_col_iter(
+                        column, max_lines=-1, show_name=False,
+                        show_unit=False, outs={}
+                    )
+                )
+                for column in table.columns.values()
+            )
+        )
+    )
+
+    return jsonify(result)
+
+
 @app.route('/event/<datetime:dateobs>/objects')
 @login_required
 def objects(dateobs):
     return render_template(
-        'objects.html', event=models.Event.query.get_or_404(dateobs))
+        'objects.html', event=models.Event.query.get_or_404(dateobs),
+        columns=OBJECTS_COLUMNS)
 
 
 @app.route('/event/<datetime:dateobs>/plan', methods=['GET', 'POST'])

@@ -3,7 +3,8 @@
 
 {% block head %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/css/dataTables.bootstrap4.min.css" integrity="sha256-F+DaKAClQut87heMIC6oThARMuWne8+WzxIDT7jXuPA=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.0/css/rowGroup.dataTables.min.css" integrity="sha256-mfb+mieZDwLASMlQTUNXrZQr8OXvQyEDfV3Xz3E7DSU=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/scroller/2.0.0/css/scroller.bootstrap4.min.css" integrity="sha256-zpzFevgoGF8+AgRqqEClayPeL+KT/Vbs5sd2FsInVLw=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.bootstrap4.min.css" integrity="sha256-njo807dUiyYW575DjLvTj8dyXb4MOOVe7rR+png6FBw=" crossorigin="anonymous">
     <title>ToO Marshal</title>
     <style>
         .table {
@@ -18,123 +19,107 @@
             {% include 'event_header.html' %}
             {% include 'nav_bar.html' %}
         </div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-                <div class="alert alert-warning">
-                    <h4 class=alert-heading>Mock up</h4>
-                    <p>This tab is a mock-up using fake data.</p>
-                </div>
-            </li>
-            <li class=list-group-item>
-                <h3>Candidates</h3>
-                <table id="candidates" class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th> 
-                            <th>Telescope</th> 
-                            <th>RA</th> 
-                            <th>DEC</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>ZTF19awesome</td>
-                            <td>ZTF</td>
-                            <td>7:08:03.2592</td>
-                            <td>56:02:02.892</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19ab</td>
-                            <td>DECam</td>
-                            <td>23:18:03.2592</td>
-                            <td>-36:00:00.8</td>
-                        </tr>
-                        <tr>
-                            <td>GROWTH19bt</td>
-                            <td>DECam</td>
-                            <td>18:10:33.231</td>
-                            <td>-40:43:23.12</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </li>
-            <li class=list-group-item>
-                <h3>Galaxies</h3>
-                <table id="galaxies" class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th> 
-                            <th>NAME</th> 
-                            <th>RA</th> 
-                            <th>DEC</th>
-                            <th>SFR FUV</th>
-                            <th>Mstar</th> 
-                            <th>DIST (Mpc)</th>
-                            <th>MAG</th>
-                            <th>PROB</th> 
-                            <th>PRIORITY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>2MASX J07070325+5601031</td>
-                            <td>7:07:03.2592</td>
-                            <td>56:01:02.892</td>
-                            <td>2.887e-01</td>
-                            <td>1.140e+10</td>
-                            <td>111.0</td>
-                            <td>nan</td>
-                            <td>1.081e-22</td>
-                            <td>5.112e-06</td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>2MASX J06292278-2831060</td>
-                            <td>6:29:22.7904</td>
-                            <td>-28:31:06.204</td>
-                            <td>nan</td>
-                            <td>3.105e+10</td>
-                            <td>101.6</td>
-                            <td>15.3</td>
-                            <td>2.131e-19</td>
-                            <td>1.646e-05</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </li>
-        </ul>
+        <table id="objects" class="table">
+            <thead>
+                <tr>
+                    {% for column in columns %}
+                        <th title="{{column}}">
+                            {{column}}
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+        </table>
 {% endblock %}
 
 {% block scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.19/js/jquery.dataTables.min.js" integrity="sha256-t5ZQTZsbQi8NxszC10CseKjJ5QeMw5NINtOXQrESGSU=" crossorigin="anonymous"></script>
-    <script src="https://cdn.datatables.net/rowgroup/1.1.0/js/dataTables.rowGroup.min.js" integrity="M2p7tlgI2XLaZRLg5AN5mqtij0kAWJ1B1s9h0SCRTNU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js" integrity="sha256-hJ44ymhBmRPJKIaKRf3DSX5uiFEZ9xB/qx8cNbJvIMU=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js" integrity="sha256-aAAJ5Q79w0Kb+8A8tNAR/c+YJUEkqfN2xpKUgbTs/fk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.colVis.min.js" integrity="sha256-o9yNSWG+cFpa57JuPXjKOL7CPQQpEUrqjkFQ6fOiouQ=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js" integrity="sha256-f8vzaivfrU6QB/g8PztdVJaS1vB58RVqZf6pmlfvmvA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.bootstrap4.min.js" integrity="sha256-+aMa2B5YIXIHaMVzFOhJ3+uwhmpdf0AEBV7ASS/nMWo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/scroller/2.0.0/js/dataTables.scroller.min.js" integrity="sha256-/fBo2uoL1zuza/5G6UrbxbjkSJbJyWIzgx17Zz/aPJE=" crossorigin="anonymous"></script>
     <script>
     (function() {
-        $('#galaxies').DataTable({
-	    scrollX: true,
-            searching: true,
-            orderFixed: [0, 'asc'],
+        var table = $('#objects').DataTable({
+            ajax: '{{url_for('objects_data', dateobs=event.dateobs)}}',
+            dom: 'Brtip',
             columnDefs: [
                 {
-                    'targets': [0],
-                    'visible': false
+                    targets: '_all',
+                    className: 'text-right'
                 }
-            ],       	
-        });
-        $('#galaxies tbody').on('click', 'tr', function () {
-            $(this).toggleClass('table-primary');
+            ],
+            buttons: [
+                {
+                    name: 'filter',
+                    text: 'Filter',
+                },
+                'colvis',
+                {
+                    extend: 'collection',
+                    name: 'localization',
+                    text: 'Localization',
+                    autoClose: true,
+                    buttons: [
+                        {% for localization in event.localizations %}
+                        {
+                            name: '{{localization.localization_name}}',
+                            text: '{{localization.localization_name}}',
+                            action: function() {
+                                table.search('{{localization.localization_name}}').draw();
+                            }
+                        },
+                        {% endfor %}
+                    ]
+                },
+                'csv'
+            ],
+            deferRender: true,
+            lengthChange: false,
+            processing: true,
+            scroller: {
+                loadingIndicator: true
+            },
+            scrollX: true,
+            scrollY: 400,
+            searching: true,
+            serverSide: true
         });
 
-        $('#candidates').DataTable({
-	    scrollX: true,
-            searching: true,
-        rowGroup: {
-                dataSrc: 1
-            }
+        var button = $(table.button(undefined, 'filter:name').nodes());
+        var dropdown = $('<div class="dropdown-menu p-3" style="min-width: 30rem; overflow-y: auto; max-height: 20rem"></div>');
+        button
+            .addClass('btn btn-secondary dropdown-toggle')
+            .attr({
+                'aria-haspopup': 'true',
+                'aria-expanded': 'false',
+                'data-toggle': 'dropdown'
+            })
+            .wrap($('<div class=dropdown></div>'))
+            .after(dropdown);
+
+        table.columns().every(function() {
+            var text = $(this.header()).text();
+            dropdown.append(
+                $('<div class="form-row form-group">\
+                    <input class="min col-4 form-control" placeholder=min>\
+                    <input class="max col-4 form-control" placeholder=max>\
+                </div>').data(this).prepend($('<label class=col-4></label>').append(text))
+            );
         });
-        $('#candidates tbody').on('click', 'tr', function () {
-            $(this).toggleClass('table-primary');
+        dropdown.find('input').on('keyup change clear', function() {
+            var parent = $(this).parent();
+            var search = {};
+            var value;
+            value = parent.find('.min').val();
+            if (value != '')
+                search.min = value;
+            value = parent.find('.max').val();
+            if (value != '')
+                search.max = value;
+            parent.data().search(JSON.stringify(search)).draw();
         });
     })();
     </script>
