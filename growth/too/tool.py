@@ -95,13 +95,14 @@ def create(sample):
         models.db.session.merge(models.User(name='fritz'))
         models.db.session.commit()
 
-        filenames = ['GRB180116A_Fermi_GBM_Alert.xml',
-                     'GRB180116A_Fermi_GBM_Flt_Pos.xml',
-                     'GRB180116A_Fermi_GBM_Gnd_Pos.xml',
-                     'GRB180116A_Fermi_GBM_Fin_Pos.xml',
-                     'MS181101ab-1-Preliminary.xml',
-                     'MS181101ab-4-Retraction.xml',
-                     'AMON_151115.xml']
+        filenames = ['S191216ap-2-Initial.xml']
+                     #'GRB180116A_Fermi_GBM_Alert.xml',
+                     #'GRB180116A_Fermi_GBM_Flt_Pos.xml',
+                     #'GRB180116A_Fermi_GBM_Gnd_Pos.xml',
+                     #'GRB180116A_Fermi_GBM_Fin_Pos.xml',
+                     #'MS181101ab-1-Preliminary.xml',
+                     #'MS181101ab-4-Retraction.xml',
+                     #'AMON_151115.xml']
 
         with tqdm(filenames) as progress:
             for filename in progress:

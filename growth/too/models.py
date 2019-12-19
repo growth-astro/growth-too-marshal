@@ -979,18 +979,12 @@ class Observation(db.Model):
         nullable=False,
         comment='processed successfully?')
 
-
 class Candidate(db.Model):
 
     name = db.Column(
         db.String,
         primary_key=True,
         comment='Candidate name')
-
-    growth_marshal_id = db.Column(
-        db.String,
-        unique=True, nullable=False,
-        comment='GROWTH marshal ID')
 
     subfield_id = db.Column(
         db.Integer,
@@ -1034,35 +1028,103 @@ class Candidate(db.Model):
         nullable=False,
         comment='Dec of the candidate')
 
-    last_updated = db.Column(
+    lastmodified = db.Column(
         db.DateTime,
-        nullable=False,
-        comment='Date of last update')
+        comment='Date of last modification')
 
     autoannotations = db.Column(
         db.String,
         nullable=True,
         comment='Autoannotations from the GROWTH marshal')
 
-    photometry = db.relationship(
-        lambda: CandidatePhotometry,
-        backref='candidate',
-        order_by=lambda: CandidatePhotometry.dateobs)
+    ps1_dr2_detections = db.Column(
+        db.Integer,
+        nullable=True,
+        comment='Number of detections in PS1 DR2')
 
-    @hybrid_property
-    def first_detection_time(self):
-        return self.photometry[0].dateobs
+    gaia_match = db.Column(
+        db.String,
+        nullable=True,
+        comment='Match with Gaia source')
 
-    @first_detection_time.expression
-    def first_detection_time(cls):
-        return db.select(
-            [db.func.min(cls.dateobs)]
-        ).where(
-            CandidatePhotometry.name == cls.name
-        ).label(__name__)
+    gaia_parallax = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Gaia parallax')
+
+    w4 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W4')
+
+    w2mw3 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W2-W3')
+
+    w1mw2 = db.Column(
+        db.Float,
+        nullable=True,
+        comment='WISE W1-W2')
+
+    jdstarthist = db.Column(
+        db.DateTime,
+        comment='Date (JD) of first detection')
+
+    ssmagnr = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Nearest solar system object mag')
+
+    ssdistnr = db.Column(
+        db.Float,
+        nullable=True,
+        comment='Nearest solar system object distance')
+
+    CLU_sfr_ha = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU star formation rate Halpha')
+
+    CLU_mstar = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU stellar mass')
+
+    CLU_sfr_fuv = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU star formation rate fuv')
+
+    CLU_z = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU redshift')
+
+    CLU_name = db.Column(
+        db.String,
+        nullable=True,
+        comment='CLU name')
+
+    CLU_id = db.Column(
+        db.Integer,
+        nullable=True,
+        comment='CLU ID')
+
+    CLU_d_to_galaxy_arcsec = db.Column(
+        db.Float,
+        nullable=True,
+        comment='CLU distance arcsec')
+
+    comment = db.Column(
+        db.String,
+        nullable=True,
+        comment='Comment')
+
+    lightcurve = db.relationship('Lightcurve')
 
 
-class CandidatePhotometry(db.Model):
+class Lightcurve(db.Model):
     """Candidate light curve pulled from the GROWTH
     Marshal"""
 
@@ -1075,7 +1137,7 @@ class CandidatePhotometry(db.Model):
         nullable=False,
         comment='Candidate name')
 
-    dateobs = db.Column(
+    date_observation = db.Column(
         db.DateTime,
         nullable=True,
         comment='Observation date')
@@ -1114,3 +1176,7 @@ class CandidatePhotometry(db.Model):
         db.Integer,
         nullable=True,
         comment='Program ID number (1,2,3)')
+
+    candidate = db.relationship(
+        'Candidate',
+        back_populates='lightcurve')
