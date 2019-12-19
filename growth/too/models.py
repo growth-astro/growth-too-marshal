@@ -1071,6 +1071,74 @@ class Candidate(db.Model):
             CandidatePhotometry.name == cls.name
         ).label(__name__)
 
+    @property
+    def first_detection_mag(self):
+        try:
+            return self.photometry[0].mag
+        except IndexError:
+            return None
+
+    @property
+    def first_detection_magerr(self):
+        try:
+            return self.photometry[0].magerr
+        except IndexError:
+            return None
+
+    @property
+    def first_detection_instrument(self):
+        try:
+            return self.photometry[0].instrument
+        except IndexError:
+            return None
+
+    @property
+    def first_detection_filter(self):
+        try:
+            return self.photometry[0].fil
+        except IndexError:
+            return None
+
+    @hybrid_property
+    def last_detection_time(self):
+        return self.photometry[-1].dateobs
+
+    @last_detection_time.expression
+    def last_detection_time(cls):
+        return db.select(
+            [db.func.max(CandidatePhotometry.dateobs)]
+        ).where(
+            CandidatePhotometry.name == cls.name
+        ).label(__name__)
+
+    @property
+    def last_detection_mag(self):
+        try:
+            return self.photometry[-1].mag
+        except IndexError:
+            return None
+
+    @property
+    def last_detection_magerr(self):
+        try:
+            return self.photometry[-1].magerr
+        except IndexError:
+            return None
+
+    @property
+    def last_detection_instrument(self):
+        try:
+            return self.photometry[-1].instrument
+        except IndexError:
+            return None
+
+    @property
+    def last_detection_filter(self):
+        try:
+            return self.photometry[-1].fil
+        except IndexError:
+            return None
+
 
 class CandidatePhotometry(db.Model):
     """Candidate light curve pulled from the GROWTH
