@@ -253,7 +253,6 @@ def _getattr_or_masked(collection, key):
 @app.route('/event/<datetime:dateobs>/objects/json')
 @login_required
 def objects_data(dateobs):
-    app.logger.info('querying')
     event = models.Event.query.get_or_404(dateobs)
     table = Table(rows=[(*(_getattr_or_masked(row, key)
                            for key in OBJECTS_COLUMNS[:-2]),
@@ -261,7 +260,6 @@ def objects_data(dateobs):
                         for row in models.Candidate.query],
                   names=OBJECTS_COLUMNS)
 
-    app.logger.info('getting localization')
     # Populate 2D and 3D credible levels.
     localization_name = request.args.get('search[value]')
     localization = (
@@ -273,11 +271,9 @@ def objects_data(dateobs):
         localization.table,
         np.deg2rad(table['ra']),
         np.deg2rad(table['dec']))
-    app.logger.info('adding localization info')
     table['2D CL'] = np.ma.masked_invalid(results.searched_prob) * 100
     table['2D pdf'] = np.ma.masked_invalid(results.probdensity)
 
-    app.logger.info('preparing')
     result = {}
 
     # Populate total number of records.

@@ -22,7 +22,6 @@ import pkg_resources
 import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
 from tqdm import tqdm
 
@@ -1060,20 +1059,12 @@ class Candidate(db.Model):
         backref='candidate',
         order_by=lambda: CandidatePhotometry.dateobs)
 
-    @hybrid_property
+    @property
     def first_detection_time(self):
         try:
             return self.photometry[0].dateobs
         except IndexError:
             return None
-
-    @first_detection_time.expression
-    def first_detection_time(cls):
-        return db.select(
-            [db.func.min(CandidatePhotometry.dateobs)]
-        ).where(
-            CandidatePhotometry.name == cls.name
-        ).label(__name__)
 
     @property
     def first_detection_mag(self):
@@ -1103,20 +1094,12 @@ class Candidate(db.Model):
         except IndexError:
             return None
 
-    @hybrid_property
-    def last_detection_time(self):
+    @property
+    def first_detection_time(self):
         try:
             return self.photometry[-1].dateobs
         except IndexError:
             return None
-
-    @last_detection_time.expression
-    def last_detection_time(cls):
-        return db.select(
-            [db.func.max(CandidatePhotometry.dateobs)]
-        ).where(
-            CandidatePhotometry.name == cls.name
-        ).label(__name__)
 
     @property
     def last_detection_mag(self):
