@@ -526,7 +526,6 @@ def tile(localization_name, dateobs, telescope,
                            doRASlice=plan_args['doRASlice'],
                            raslice=plan_args['raslice'],
                            doBalanceExposure=plan_args['doBalanceExposure'],
-                           doDither=plan_args['doDither'],
                            airmass=plan_args['airmass'])
 
     params['map_struct'] = dict(
