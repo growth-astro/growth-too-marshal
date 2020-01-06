@@ -1095,7 +1095,7 @@ class Candidate(db.Model):
             return None
 
     @property
-    def first_detection_time(self):
+    def last_detection_time(self):
         try:
             return self.photometry[-1].dateobs
         except IndexError:
