@@ -71,8 +71,8 @@
                         {
                             name: '{{localization.localization_name}}',
                             text: '{{localization.localization_name}}',
-                            action: function() {
-                                table.search('{{localization.localization_name}}').draw();
+                            action: function(e, dt, node, config) {
+                                table.search(config.name).draw();
                             }
                         },
                         {% endfor %}
