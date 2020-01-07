@@ -240,7 +240,8 @@ def event(dateobs):
 
 
 OBJECTS_COLUMNS = ['name', 'ra', 'dec', 'classification', 'redshift',
-                   'iauname', 'first_detection_time', '2D CL', '2D pdf']
+                   'iauname', 'first_detection_time', 'first_detection_mag',
+                   'first_detection_magerr', '2D CL', '2D pdf']
 
 
 def _getattr_or_masked(collection, key):
