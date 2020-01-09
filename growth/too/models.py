@@ -12,6 +12,7 @@ import gwemopt.ztf_tiling
 from astropy import table
 from astropy import coordinates
 from astropy import units as u
+from astropy.time import Time
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -47,7 +48,6 @@ def get_ztf_quadrants():
 
 def create_all():
     db.create_all(bind=None)
-
     telescopes = ["ZTF", "Gattini", "DECam", "KPED", "GROWTH-India"]
     available_filters = {"ZTF": ["g", "r", "i"],
                          "Gattini": ["J"],
@@ -784,6 +784,15 @@ class Plan(db.Model):
         """Time of the first planned observation."""
         if self.planned_observations:
             return self.planned_observations[0].obstime
+        else:
+            return None
+
+    @property
+    def end_observation(self):
+        """Time of the end of planned observations."""
+        if self.planned_observations:
+            end = Time(self.start_observation).jd + self.tot_time_with_overheads/86400
+            return Time(end, format='jd').datetime
         else:
             return None
 
