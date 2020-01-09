@@ -791,7 +791,7 @@ class Plan(db.Model):
     def end_observation(self):
         """Time of the end of planned observations."""
         if self.planned_observations:
-            end = Time(self.start_observation).jd + self.tot_time_with_overheads/86400
+            end = Time(self.start_observation).jd + self.tot_time_with_overheads/86400.0
             return Time(end, format='jd').datetime
         else:
             return None
