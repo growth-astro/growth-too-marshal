@@ -1234,14 +1234,9 @@ def get_json_data(plan, decam_style=True):
     else:
         ditherNorm = 1.0
 
-    start_mjd, end_mjd = np.inf, -np.inf
-    for ii, exposure in enumerate(exposures):
-        ttstart = time.Time(exposure.obstime, format="datetime").mjd
-        ttend = ttstart + exposure.exposure_time/86400.0
-        if ttstart < start_mjd:
-            start_mjd = ttstart
-        if ttend > end_mjd:
-            end_mjd = ttend
+    start_mjd = min(time.Time(e.obstime, format='datetime').mjd for e in exposures)
+    end_mjd = max(time.Time(e.obstime, format='datetime').mjd + e.exposure_time/86400.0 for e in exposures)
+
     # add a little buffer
     end_mjd = end_mjd + 30.0*60.0/86400.0
 
