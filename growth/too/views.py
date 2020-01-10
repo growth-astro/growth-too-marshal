@@ -1234,11 +1234,11 @@ def get_json_data(plan, decam_style=True):
     else:
         ditherNorm = 1.0
 
-    start_mjd = min(time.Time(e.obstime, format='datetime').mjd for e in exposures)
-    end_mjd = max(time.Time(e.obstime, format='datetime').mjd + e.exposure_time/86400.0 for e in exposures)
+    start_mjd = min(time.Time(e.obstime, format='datetime') for e in exposures).mjd
+    end_mjd = max(time.Time(e.obstime, format='datetime') + e.exposure_time*u.s for e in exposures)
 
     # add a little buffer
-    end_mjd = end_mjd + 30.0*60.0/86400.0
+    end_mjd = (end_mjd + 30.0 * u.min).mjd
 
     if doReferences:
         json_data = {

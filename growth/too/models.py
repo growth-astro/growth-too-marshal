@@ -25,6 +25,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
 from tqdm import tqdm
+import sys
 
 from .flask import app
 
@@ -791,8 +792,9 @@ class Plan(db.Model):
     def end_observation(self):
         """Time of the end of planned observations."""
         if self.planned_observations:
-            end = Time(self.start_observation).jd + self.tot_time_with_overheads/86400.0
-            return Time(end, format='jd').datetime
+            lastexp = self.planned_observations[-1]
+            end = Time(lastexp.obstime) + (lastexp.exposure_time + lastexp.overhead_per_exposure) * u.s
+            return end.datetime
         else:
             return None
 
