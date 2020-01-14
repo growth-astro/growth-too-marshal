@@ -587,6 +587,8 @@ class GcnNotice(db.Model):
         root = lxml.etree.fromstring(self.content)
         path = ".//Param[@name='{}']".format(property_name)
         elem = root.find(path)
+        if elem is None:
+            return None
         value = float(elem.attrib.get('value', '')) * 100
         return value
 

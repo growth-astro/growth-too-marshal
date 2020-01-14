@@ -29,11 +29,11 @@
                             </a>
                             {% if 'GW' in event.tags and not event.retracted %}
                             <ul>
-                                <li> Classification: BNS = {{ '%.1f' |format(gcn_notice.bns) }}%, BBH = {{ '%.1f' |format(gcn_notice.bbh) }}%, NSBH = {{ '%.1f' |format(gcn_notice.nsbh) }}%
+                                <li> Classification: BNS = {{ '%.1f' |format(gcn_notice.bns) if gcn_notice.bns is not none }}%, BBH = {{ '%.1f' |format(gcn_notice.bbh) if gcn_notice.bbh is not none }}%, NSBH = {{ '%.1f' |format(gcn_notice.nsbh) if gcn_notice.nsbh is not none }}%
                                 </li>
-                                <li> Classification: MassGap = {{ '%.1f' |format(gcn_notice.mass_gap) }}%, Noise = {{ '%.1f' |format(gcn_notice.noise) }}%
+                                <li> Classification: MassGap = {{ '%.1f' |format(gcn_notice.mass_gap) if gcn_notice.mass_gap is not none }}%, Noise = {{ '%.1f' |format(gcn_notice.noise) if gcn_notice.noise is not none }}%
                                 </li>
-                                <li> Properties: HasNS = {{ '%.1f' |format(gcn_notice.has_ns) }}%, HasRemnant = {{ '%.1f' |format(gcn_notice.has_remnant) }}%, FAR = {{ '%.3f' |format(gcn_notice.far) }}%
+                                <li> Properties: HasNS = {{ '%.1f' |format(gcn_notice.has_ns) if gcn_notice.has_ns is not none }}%, HasRemnant = {{ '%.1f' |format(gcn_notice.has_remnant) if gcn_notice.has_remnant is not none }}%, FAR = {{ '%.3f' |format(gcn_notice.far) if gcn_notice.far is not none }}%
                                 </li>
                             </ul>
                             {% endif %}
