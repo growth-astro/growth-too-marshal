@@ -40,7 +40,6 @@ from .flask import app
 from .jinja import atob
 from . import catalogs, models, tasks
 from ._version import get_versions
-
 #
 #
 # From http://wtforms-alchemy.readthedocs.io/en/latest/advanced.html#using-wtforms-alchemy-with-flask-wtf  # noqa: E501
@@ -1234,8 +1233,8 @@ def get_json_data(plan, decam_style=True):
     else:
         ditherNorm = 1.0
 
-    start_mjd = min(time.Time(e.obstime, format='datetime') for e in exposures).mjd
-    end_mjd = max(time.Time(e.obstime, format='datetime') + e.exposure_time*u.s for e in exposures)
+    start_mjd = time.Time(plan.start_observation, format='datetime').mjd
+    end_mjd = time.Time(plan.end_observation, format='datetime')
 
     # add a little buffer
     end_mjd = (end_mjd + 30.0 * u.min).mjd
