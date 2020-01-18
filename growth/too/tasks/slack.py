@@ -53,6 +53,21 @@ def slack_too(telescope, queue_name):
 
 
 @celery.task(ignore_result=True, shared=False)
+def delete_too(queue_name):
+    body = render_template('delete_too.email', queue_name=queue_name)
+
+    response = client.chat_postMessage(
+        channel='#general',
+        username='Grobot',
+        as_user=False,
+        icon_url='https://vignette.wikia.nocookie.net/mario/images/9/99/Grobot.png/revision/latest?cb=20130903151824',  # noqa: E501
+        text=body)
+
+    if not response["ok"]:
+        raise RuntimeError('Slack ToO message failed...', response)
+
+
+@celery.task(ignore_result=True, shared=False)
 def slack_everyone(dateobs):
     event = models.Event.query.get(dateobs)
 

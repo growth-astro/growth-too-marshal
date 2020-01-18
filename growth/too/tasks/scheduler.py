@@ -151,13 +151,21 @@ def ping_decam():
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_ztf(json_data):
-    r = requests.put(urllib.parse.urljoin(ZTF_URL, 'queues'),
-                     json={'targets': json_data["targets"],
-                           'queue_name': json_data["queue_name"],
-                           'validity_window_mjd':
-                               json_data["validity_window_mjd"],
-                           'queue_type': 'list'})
-    r.raise_for_status()
+
+    r = requests.get(urllib.parse.urljoin(ZTF_URL, 'queues'), json={})
+    data_all = r.json()
+    queue_names_list = []
+    for data in data_all:
+        queue_names_list.append(data['queue_name'])
+
+    if not json_data["queue_name"] in queue_names_list:
+        r = requests.put(urllib.parse.urljoin(ZTF_URL, 'queues'),
+                         json={'targets': json_data["targets"],
+                               'queue_name': json_data["queue_name"],
+                               'validity_window_mjd':
+                                   json_data["validity_window_mjd"],
+                               'queue_type': 'list'})
+        r.raise_for_status()
 
 
 @celery.task(ignore_result=True, shared=False)

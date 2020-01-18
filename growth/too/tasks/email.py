@@ -96,6 +96,21 @@ def compose_too(telescope, queue_name):
 
 
 @celery.task(ignore_result=True, shared=False)
+def delete_too(queue_name):
+    body = render_template('delete_too.email', queue_name=queue_name)
+
+    message = Message(
+        subject='Re: {0}'.format(queue_name),
+        recipients=[app.config['EMAIL_TOO']],
+        cc=[app.config.get('REPLY_TO') or app.config['MAIL_DEFAULT_SENDER']],
+        body=body,
+        sender=app.config['EMAIL_TOO']
+    )
+
+    send(message)
+
+
+@celery.task(ignore_result=True, shared=False)
 def email_everyone(dateobs):
     event = models.Event.query.get(dateobs)
     now = now_utc()
