@@ -792,8 +792,8 @@ class Plan(db.Model):
         """Time of the end of planned observations."""
         if self.planned_observations:
             lastexp = self.planned_observations[-1]
-            end = Time(lastexp.obstime) + (lastexp.exposure_time
-                + lastexp.overhead_per_exposure) * u.s
+            end = Time(lastexp.obstime) + 
+                (lastexp.exposure_time + lastexp.overhead_per_exposure) * u.s
             return end.datetime
         else:
             return None
