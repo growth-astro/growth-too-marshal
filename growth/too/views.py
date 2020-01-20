@@ -1215,7 +1215,7 @@ def get_json_data_manual(form):
     return json_data, queue_name
 
 
-def get_json_data(plan, decam_style=True):
+def get_json_data(plan, decam_style=True, dtmax=1800.0):
 
     queue_name, transient_name = get_queue_transient_name(plan)
 
@@ -1235,46 +1235,97 @@ def get_json_data(plan, decam_style=True):
     else:
         ditherNorm = 1.0
 
-    if doReferences:
-        json_data = {
-            'queue_name': "ToO_"+queue_name,
-            'validity_window_mjd': [start_mjd, end_mjd],
-            'targets': [
-                {
-                    'request_id': ii,
-                    'program_id': plan.program_id,
-                    'field_id': exposure.field_id,
-                    'ra': exposure.field.ra,
-                    'dec': exposure.field.dec,
-                    'filter_id': exposure.filter_id,
-                    'exposure_time': exposure.exposure_time/ditherNorm,
-                    'program_pi': program_pis[telescope],
-                    'subprogram_name': "ToO_"+transient_name
-                }
-                for ii, exposure in enumerate(exposures)
-                if exposure.filter_id in
-                exposure.field.reference_filter_ids
-            ]
-        }
+    if telescope == "ZTF":
+        json_data = []
+        json_data_tmp, targets = {}, []
+
+        for ii, exposure in enumerate(exposures):
+            if doReferences:
+                filtid = exposure.filter_id
+                if filtid not in exposure.field.reference_filter_ids:
+                    continue
+            start_time = time.Time(exposure.obstime)
+            if ii == 0:
+                start_time_0 = start_time
+                end_time = start_time + exposure.exposure_time * u.s
+            else:
+                dt = (start_time - end_time).sec
+                if dt > dtmax:
+                    end_time = end_time + 30.0 * u.min
+                    cnt = len(json_data)
+                    json_data_tmp['queue_name'] = "ToO_"+queue_name+"_%s" % cnt
+                    json_data_tmp['validity_window_mjd'] = [start_time_0.mjd,
+                                                            end_time.mjd]
+                    json_data_tmp['targets'] = targets
+
+                    json_data.append(json_data_tmp)
+                    json_data_tmp, targets = {}, []
+
+            if len(targets) == 0:
+                start_time_0 = start_time
+
+            end_time = start_time + exposure.exposure_time * u.s
+            target = {'request_id': len(targets),
+                      'program_id': plan.program_id,
+                      'field_id': exposure.field_id,
+                      'ra': exposure.field.ra,
+                      'dec': exposure.field.dec,
+                      'filter_id': exposure.filter_id,
+                      'exposure_time': exposure.exposure_time/ditherNorm,
+                      'program_pi': program_pis[telescope],
+                      'subprogram_name': "ToO_"+transient_name}
+            targets.append(target)
+
+            if (ii == len(exposures)-1):
+                end_time = end_time + 30.0 * u.min
+                cnt = len(json_data)
+                json_data_tmp['queue_name'] = "ToO_"+queue_name+"_%s" % cnt
+                json_data_tmp['validity_window_mjd'] = [start_time_0.mjd,
+                                                        end_time.mjd]
+                json_data_tmp['targets'] = targets
+
+                json_data.append(json_data_tmp)
     else:
-        json_data = {
-            'queue_name': "ToO_"+queue_name,
-            'validity_window_mjd': [start_mjd, end_mjd],
-            'targets': [
-                {
-                    'request_id': ii,
-                    'program_id': plan.program_id,
-                    'field_id': exposure.field_id,
-                    'ra': exposure.field.ra,
-                    'dec': exposure.field.dec,
-                    'filter_id': exposure.filter_id,
-                    'exposure_time': exposure.exposure_time/ditherNorm,
-                    'program_pi': program_pis[telescope],
-                    'subprogram_name': "ToO_"+transient_name
-                }
-                for ii, exposure in enumerate(exposures)
-            ]
-        }
+        if doReferences:
+            json_data = {
+                'queue_name': "ToO_"+queue_name,
+                'validity_window_mjd': [start_mjd, end_mjd],
+                'targets': [
+                    {
+                        'request_id': ii,
+                        'program_id': plan.program_id,
+                        'field_id': exposure.field_id,
+                        'ra': exposure.field.ra,
+                        'dec': exposure.field.dec,
+                        'filter_id': exposure.filter_id,
+                        'exposure_time': exposure.exposure_time/ditherNorm,
+                        'program_pi': program_pis[telescope],
+                        'subprogram_name': "ToO_"+transient_name
+                    }
+                    for ii, exposure in enumerate(exposures)
+                    if exposure.filter_id in
+                    exposure.field.reference_filter_ids
+                ]
+            }
+        else:
+            json_data = {
+                'queue_name': "ToO_"+queue_name,
+                'validity_window_mjd': [start_mjd, end_mjd],
+                'targets': [
+                    {
+                        'request_id': ii,
+                        'program_id': plan.program_id,
+                        'field_id': exposure.field_id,
+                        'ra': exposure.field.ra,
+                        'dec': exposure.field.dec,
+                        'filter_id': exposure.filter_id,
+                        'exposure_time': exposure.exposure_time/ditherNorm,
+                        'program_pi': program_pis[telescope],
+                        'subprogram_name': "ToO_"+transient_name
+                    }
+                    for ii, exposure in enumerate(exposures)
+                ]
+            }
 
     if (telescope == "DECam") and decam_style:
         decam_dicts = []
