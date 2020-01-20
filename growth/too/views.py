@@ -40,7 +40,6 @@ from .flask import app
 from .jinja import atob
 from . import catalogs, models, tasks
 from ._version import get_versions
-
 #
 #
 # From http://wtforms-alchemy.readthedocs.io/en/latest/advanced.html#using-wtforms-alchemy-with-flask-wtf  # noqa: E501
@@ -412,6 +411,7 @@ def plan(dateobs):
             flash('Deleted plans.', 'success')
 
         if command == 'go':
+
             group(
                 group(
                     tasks.scheduler.submit.s(telescope, plan_name),
@@ -1219,8 +1219,6 @@ def get_json_data(plan, decam_style=True):
 
     queue_name, transient_name = get_queue_transient_name(plan)
 
-    start_mjd = time.Time(plan.validity_window_start).mjd
-    end_mjd = time.Time(plan.validity_window_end).mjd
     exposures = plan.planned_observations
     telescope = plan.telescope
     doReferences = plan.plan_args["doReferences"]
@@ -1234,6 +1232,12 @@ def get_json_data(plan, decam_style=True):
         ditherNorm = 2.0
     else:
         ditherNorm = 1.0
+
+    start_mjd = time.Time(plan.start_observation, format='datetime').mjd
+    end_mjd = time.Time(plan.end_observation, format='datetime')
+
+    # add a little buffer
+    end_mjd = (end_mjd + 30.0 * u.min).mjd
 
     if doReferences:
         json_data = {
