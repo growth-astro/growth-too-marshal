@@ -206,8 +206,8 @@ def queue():
             urllib.parse.urljoin(tasks.scheduler.ZTF_URL, 'queues'),
             json={'queue_name': queue_name})
 
-        tasks.email.delete_too(queue_name)
-        tasks.slack.delete_too(queue_name)
+        tasks.email.delete_too.delay(queue_name)
+        tasks.slack.delete_too.delay(queue_name)
 
         flash('Deleted observing plan "{}".'.format(queue_name),
               'success')

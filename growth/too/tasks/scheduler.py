@@ -153,10 +153,10 @@ def ping_decam():
 def schedule_ztf(json_data):
 
     r = requests.get(urllib.parse.urljoin(ZTF_URL, 'queues'), json={})
+    r.raise_for_status()
+
     data_all = r.json()
-    queue_names_list = []
-    for data in data_all:
-        queue_names_list.append(data['queue_name'])
+    queue_names_list = [d['queue_name'] for d in data_all]
 
     if not json_data["queue_name"] in queue_names_list:
         r = requests.put(urllib.parse.urljoin(ZTF_URL, 'queues'),
