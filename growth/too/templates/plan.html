@@ -34,6 +34,7 @@
                         <th rowspan=2>Name</th>
                         <th rowspan=2>Status</th>
                         <th rowspan=2>Start</th>
+                        <th rowspan=2>End</th>
                         <th rowspan=2>Number of exposures</th>
                         <th rowspan=2>Number of exposures (per filter)</th>
                         <th colspan=2>Time (min)</th>
@@ -57,6 +58,7 @@
                         <td>{{plan.plan_name}}</td>
                         <td>{{plan.status.name}}</td>
                         <td>{% if plan.start_observation is not none %}{{plan.start_observation.isoformat(sep=' ', timespec='minutes').replace('-', '‑')}}{% endif %}</td>
+                        <td>{% if plan.end_observation is not none %}{{plan.end_observation.isoformat(sep=' ', timespec='minutes').replace('-', '‑')}}{% endif %}</td>
                         <td>{{plan.num_observations}}</td>
                         <td>{{plan.num_observations_per_filter}}</td>
                         <td>{{ "%.1f"|format(plan.total_time / 60)}}</td>
