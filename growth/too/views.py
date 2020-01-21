@@ -1288,8 +1288,8 @@ def get_json_data(plan, decam_style=True, dtmax=1800.0):
         end_mjd = time.Time(plan.end_observation, format='datetime')
 
         # add a little buffer
-        end_mjd = (end_mjd + 30.0 * u.min).mjd                      
-                      
+        end_mjd = (end_mjd + 30.0 * u.min).mjd
+
         if doReferences:
             json_data = {
                 'queue_name': "ToO_"+queue_name,
