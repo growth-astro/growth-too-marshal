@@ -507,7 +507,7 @@ class Field(db.Model):
     reference_filter_mags = db.Column(
         db.ARRAY(db.Float),
         nullable=False,
-        comment='Reference filter magss')
+        comment='Reference filter mags')
 
     ipix = db.Column(
         db.ARRAY(db.Integer),
