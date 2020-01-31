@@ -1252,38 +1252,6 @@ def get_json_data(plan, decam_style=True):
     return json_data, queue_name
 
 
-def get_total_probability(telescope, exposures):
-
-    total_probability = 0.0
-    field_ids = []
-    for ii, exposure in enumerate(exposures):
-        field_id = exposure.field.field_id
-        if field_id in field_ids:
-            continue
-        field_ids.append(field_id)
-
-        if telescope in ["ZTF", "DECam"]:
-            if exposure.filter_id in exposure.field.reference_filter_ids:
-                total_probability = total_probability + exposure.weight
-        else:
-            total_probability = total_probability + exposure.weight
-
-    return total_probability
-
-
-def get_filt_probs(tiles):
-
-    filt_probs = np.array([0.0, 0.0, 0.0, 0.0])
-    for tile in tiles:
-        for ii, filter_id in enumerate([1, 2, 3, 4]):
-            if filter_id in tile.field.reference_filter_ids:
-                filt_probs[ii] = filt_probs[ii] + tile.probability
-    filt_probs_string = "g: %.2f r: %.2f i: %.2f z: %.2f" %\
-        (filt_probs[0], filt_probs[1], filt_probs[2], filt_probs[3])
-
-    return filt_probs_string
-
-
 def get_filters_string(telescopes):
 
     filters_string = []
