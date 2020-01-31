@@ -17,6 +17,7 @@ from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
 import healpy as hp
+from ligo.skymap.postprocess import find_greedy_credible_levels
 from ligo.skymap.bayestar import rasterize
 import lxml.etree
 import pkg_resources
@@ -709,6 +710,10 @@ class Localization(db.Model):
         order = hp.nside2order(Localization.nside)
         result = rasterize(self.table_2d, order)['PROB']
         return hp.reorder(result, 'NESTED', 'RING')
+
+    @property
+    def credible_levels_2d(self):
+        return find_greedy_credible_levels(self.flat_2d)
 
     @property
     def flat(self):
