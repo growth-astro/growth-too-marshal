@@ -910,66 +910,6 @@ def localization_airmass_for_date(dateobs, telescope, localization_name, date):
     return Response(contents, mimetype='image/png')
 
 
-def get_ztf_cand(url_report_page, username, password):
-
-    '''
-    Query the HTML ZTF report page to get the name & coord of the candidates
-    params:
-        url_report_page: can modify the date to get more specific results.
-            tip: copy/paste url from ztf
-        username, password : marshal GROWTH user and password
-    returns:
-        name_,coord: names and coordinates for the candidates
-    '''
-
-    # create a password manager
-    password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-
-    # Add the username and password.
-    # If we knew the realm, we could use it instead of None.
-    top_level_url = "http://skipper.caltech.edu:8080/"
-    password_mgr.add_password(None, top_level_url, username, password)
-
-    handler = urllib.request.HTTPBasicAuthHandler(password_mgr)
-
-    # create "opener" (OpenerDirector instance)
-    opener = urllib.request.build_opener(handler)
-
-    # use the opener to fetch a URL
-    opener.open(url_report_page)
-
-    # Install the opener.
-    # Now all calls to urllib.request.urlopen use our opener.
-    urllib.request.install_opener(opener)
-
-    with urllib.request.urlopen(url_report_page) as url:
-        data = url.read().decode()
-
-    print('Loaded :', len(data), 'ZTF objects')
-
-    df_list = pd.read_html(data, header=0)
-
-    coord = []
-    name_ = []
-    for i in range(len(df_list[1]['Name (age)'])):
-        if pd.notna(df_list[1]['Name (age)'][i]):
-            name_.append(df_list[1]['Name (age)'][i][:12])
-            coord.append(df_list[1]['RA  Dec'][i])
-
-    coord = np.array(coord)
-    name_ = np.array(name_)
-
-    ra_transient, dec_transient = [], []
-
-    for i in range(len(coord)):
-        c = SkyCoord(coord[i].split('+')[0], '+'+coord[i].split('+')[1],
-                     unit=(u.hourangle, u.deg))
-        ra_transient.append(c.ra.deg)
-        dec_transient.append(c.dec.deg)
-
-    return name_, ra_transient, dec_transient
-
-
 @app.route('/event/<datetime:dateobs>/localization/<localization_name>/json')
 @login_required
 @cache.cached()
