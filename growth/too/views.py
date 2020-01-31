@@ -12,7 +12,6 @@ from celery import group
 import numpy as np
 from astropy import time
 import astropy.units as u
-from astropy.coordinates import SkyCoord
 from astropy.table import Table
 import pandas as pd
 from ligo.skymap import io
