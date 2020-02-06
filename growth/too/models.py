@@ -729,19 +729,22 @@ class Localization(db.Model):
         else:
             return self.flat_2d,
 
-    def observation_ipix(self, filt, start_time, end_time):
+    def observation_ipix(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         return {
             i for observation in observation_list
             if observation.field.ipix is not None
             for i in observation.field.ipix}
+        # change ipix also so that only selects the union of the pixels
+        # found in observation.field.ipix
 
-    def observation_area(self, filt, start_time, end_time):
+
+    def observation_area(self, telescope, filt, start_time, end_time):
         nside = self.nside
         ipix = self.observation_ipix(filt, start_time, end_time)
         return hp.nside2pixarea(nside, degrees=True) * len(ipix)
 
-    def observation_nexp(self, filt, start_time, end_time):
+    def observation_nexp(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         observation_ids = []
         for ii, observation in enumerate(observation_list):
@@ -749,7 +752,7 @@ class Localization(db.Model):
                 observation_ids.append(observation.observation_id)
         return len(observation_ids)
 
-    def observation_starttime(self, filt, start_time, end_time):
+    def observation_starttime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         if len(observation_list) == 0:
             return -1
@@ -762,7 +765,7 @@ class Localization(db.Model):
             cnt = cnt + 1
         return tt
 
-    def observation_totaltime(self, filt, start_time, end_time):
+    def observation_totaltime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         tot = 0
         observation_ids = []
@@ -772,7 +775,7 @@ class Localization(db.Model):
                 observation_ids.append(observation.observation_id)
         return tot
 
-    def observation_limmag(self, filt, start_time, end_time):
+    def observation_limmag(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         limmags = []
         for ii, observation in enumerate(observation_list):
@@ -781,59 +784,78 @@ class Localization(db.Model):
         return np.median(limmags)
 
 
-    def observation_probability(self, filt, start_time, end_time):
+    def observation_probability(self, telescope, filt, start_time, end_time):
         # localization = Localization.query.filter_by(
         #     dateobs=self.dateobs,
         #     localization_name=Localization.localization_name).one()
 
-        ipix = np.asarray(list(self.ipix(filt, start_time, end_time)))
+        ipix = np.asarray(list(self.observation_ipix(filt, start_time, end_time)))
         if len(ipix) > 0:
             return self.flat_2d[ipix].sum()
         else:
             return 0.0
 
-    def get_observations(self, filt, start_time, end_time):
+    def get_observations(self, telescope, filt, start_time, end_time):
 
         # localization = Localization.query.filter_by(
         #     dateobs=self.dateobs,
         #     localization_name=self.localization_name).one()
         prob = self.flat_2d
 
-        fields = Field.query.filter_by(telescope=self.telescope).all()
-        field_prob_1, field_ids_1 = [], []
-        field_prob_2, field_ids_2 = [], []
-        for field in fields:
-            if field.field_id > 800 and self.telescope == 'ZTF':
-                field_ids_2.append(field.field_id)
-                field_prob_2.append(np.sum(prob[field.ipix]))
-            else:
-                field_ids_1.append(field.field_id)
-                field_prob_1.append(np.sum(prob[field.ipix]))
+        # fields = Field.query.filter_by(telescope=telescope).all()
+        # field_prob_1, field_ids_1 = [], []
+        # field_prob_2, field_ids_2 = [], []
+        # for field in fields:
+        #     if field.field_id > 800 and telescope == 'ZTF':
+        #         field_ids_2.append(field.field_id)
+        #         field_prob_2.append(np.sum(prob[field.ipix]))
+        #     else:
+        #         field_ids_1.append(field.field_id)
+        #         field_prob_1.append(np.sum(prob[field.ipix]))
 
-        if field.field_id > 800 and self.telescope == 'ZTF': 
+        fields = Field.query.filter_by(telescope=telescope)
 
-            field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
-            field_prob_1 = np.array(field_prob_1)
-            field_prob_2 = np.array(field_prob_2)
-
-            field_ids_1 = field_ids_1[np.argsort(field_prob_1)[::-1]]
-            field_prob_1 = np.sort(field_prob_1)[::-1]
-
-            field_ids_2 = field_ids_2[np.argsort(field_prob_2)[::-1]]
-            field_prob_2 = np.sort(field_prob_2)[::-1]
-            cumsum = np.cumsum(field_prob_2)
-            idx2 = np.argmin(np.abs(cumsum-0.90))
-            field_ids_2 = field_ids_2[:idx2]
-            field_prob_2 = field_prob_2[:idx2]
-
-            cumsum = np.cumsum(field_prob_1)
-            idx2 = np.argmin(np.abs(cumsum-0.90))
-            field_ids_1 = field_ids_1[:idx2]
-            field_prob_1 = field_prob_1[:idx2]
-
-            field_ids = np.hstack((field_ids_1,field_ids_2))
+        # calculate the overlap between the field ipix and the ipix corresponding to the prob in the 90 %
         
-        else: field_ids = field_ids_1
+        # a list containing the credible level corresponding to each ipix
+        levels = self.credible_levels_2d()
+        idx = levels <= 0.90
+        # all of the ipix corresponding to the 90% region
+        localization_ipix = range(len(prob))[idx]
+        # select the fields that overlap with the ipix array; select fields where ipix && 90% ipix; && indicates overlap between tables
+
+        # now perform a 
+
+        for field in fields:
+            overlap = field.overlap(ipix=localization.ipix)
+            if overlap == True: field_ids.append(field_id)
+
+
+        # if the field ids2 is not empty
+        # if field.field_id > 800 and self.telescope == 'ZTF': 
+
+        #     field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
+        #     field_prob_1 = np.array(field_prob_1)
+        #     field_prob_2 = np.array(field_prob_2)
+
+        #     field_ids_1 = field_ids_1[np.argsort(field_prob_1)[::-1]]
+        #     field_prob_1 = np.sort(field_prob_1)[::-1]
+
+        #     field_ids_2 = field_ids_2[np.argsort(field_prob_2)[::-1]]
+        #     field_prob_2 = np.sort(field_prob_2)[::-1]
+        #     cumsum = np.cumsum(field_prob_2)
+        #     idx2 = np.argmin(np.abs(cumsum-0.90))
+        #     field_ids_2 = field_ids_2[:idx2]
+        #     field_prob_2 = field_prob_2[:idx2]
+
+        #     cumsum = np.cumsum(field_prob_1)
+        #     idx2 = np.argmin(np.abs(cumsum-0.90))
+        #     field_ids_1 = field_ids_1[:idx2]
+        #     field_prob_1 = field_prob_1[:idx2]
+
+        #     field_ids = np.hstack((field_ids_1,field_ids_2))
+        
+        # else: field_ids = field_ids_1
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
         filts = list(telescope.filters)
@@ -842,6 +864,7 @@ class Localization(db.Model):
         bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6, 'a': 7}
         filter_id = bands[filt]
         if filt == "a":
+            # FIXME: if the filt argument is not None, then don't filter by filter id
             observations = Observation.query.filter(
                 (Observation.telescope == telescope.telescope) &
                 (Observation.obstime >=
@@ -862,6 +885,8 @@ class Localization(db.Model):
             if observation.field_id not in field_ids:
                 continue
             observation_list.append(observation)
+
+        # once more, check for the overlap between observation.field_id and field_id
 
         return observation_list
 
