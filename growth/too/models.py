@@ -731,12 +731,13 @@ class Localization(db.Model):
 
     def observation_ipix(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
+        observation_list.ipix.union()
         return {
             i for observation in observation_list
             if observation.field.ipix is not None
             for i in observation.field.ipix}
         # change ipix also so that only selects the union of the pixels
-        # found in observation.field.ipix
+        # found in observation.field.ipix so as not to double count the prob
 
 
     def observation_area(self, telescope, filt, start_time, end_time):
@@ -827,7 +828,7 @@ class Localization(db.Model):
         # now perform a 
 
         for field in fields:
-            overlap = field.overlap(ipix=localization.ipix)
+            overlap = field.overlap(ipix=localization_ipix)
             if overlap == True: field_ids.append(field_id)
 
 
