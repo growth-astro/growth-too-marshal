@@ -56,7 +56,6 @@ def create_all():
                          "KPED": ["U", "g", "r", "i"],
                          "GROWTH-India": ["g", "r", "i", "z"]}
 
-
     plan_args = {
         'ZTF': {
             'filt': ['g', 'r', 'g'],
@@ -730,18 +729,11 @@ class Localization(db.Model):
             return self.flat_2d,
 
     def observation_ipix(self, telescope, filt, start_time, end_time):
+        
         observation_list = self.get_observations(filt, start_time, end_time)
-        # need a union between the observation field ipix for all observations
-        # to avoid double-counting primary vs secondary grid
         field_ipix = {observation.field.ipix for observation in observation_list
                         if observation.field.ipix is not None}
-        field_ipix = field_ipix.union() # ??
         return field_ipix
-        # return {
-        #     i for observation in observation_list
-        #     if observation.field.ipix is not None
-        #     for i in observation.field.ipix}
-
 
     def observation_area(self, telescope, filt, start_time, end_time):
         nside = self.nside
@@ -750,24 +742,13 @@ class Localization(db.Model):
 
     def observation_nexp(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        observation_ids = []
-        for ii, observation in enumerate(observation_list):
-            if observation.observation_id not in observation_ids:
-                observation_ids.append(observation.observation_id)
-        return len(observation_ids)
+        return len({observation.observation_id for observation in observation_list})
 
     def observation_starttime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         if len(observation_list) == 0:
-            return -1
-        cnt = 0
-        for ii, observation in enumerate(observation_list):
-            if cnt == 0:
-                tt = observation.obstime
-            else:
-                tt = min(observation.obstime, tt)
-            cnt = cnt + 1
-        return tt
+            return None
+        return min(observation.obstime for observation in observation_list)
 
     def observation_totaltime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
@@ -789,10 +770,6 @@ class Localization(db.Model):
 
 
     def observation_probability(self, telescope, filt, start_time, end_time):
-        # localization = Localization.query.filter_by(
-        #     dateobs=self.dateobs,
-        #     localization_name=Localization.localization_name).one()
-
         ipix = np.asarray(list(self.observation_ipix(filt, start_time, end_time)))
         if len(ipix) > 0:
             return self.flat_2d[ipix].sum()
@@ -800,97 +777,29 @@ class Localization(db.Model):
             return 0.0
 
     def get_observations(self, telescope, filt, start_time, end_time):
-
-        # localization = Localization.query.filter_by(
-        #     dateobs=self.dateobs,
-        #     localization_name=self.localization_name).one()
-        prob = self.flat_2d
-
-        # fields = Field.query.filter_by(telescope=telescope).all()
-        # field_prob_1, field_ids_1 = [], []
-        # field_prob_2, field_ids_2 = [], []
-        # for field in fields:
-        #     if field.field_id > 800 and telescope == 'ZTF':
-        #         field_ids_2.append(field.field_id)
-        #         field_prob_2.append(np.sum(prob[field.ipix]))
-        #     else:
-        #         field_ids_1.append(field.field_id)
-        #         field_prob_1.append(np.sum(prob[field.ipix]))
-
-        fields = Field.query.filter_by(telescope=telescope)
-
-        # calculate the overlap between the field ipix and the ipix corresponding to the prob in the 90 %
-        
-        # a list containing the credible level corresponding to each ipix
+        fields = Field.query.filter_by(telescope=telescope)        
         levels = self.credible_levels_2d()
-        idx = levels <= 0.90
-        # all of the ipix corresponding to the 90% region
-        localization_ipix = range(len(prob))[idx]
-        # select the fields that overlap with the ipix array; select fields where ipix && 90% ipix; && indicates overlap between tables
+        localization_ipix = np.flatnonzero(levels <= 0.90)
 
-        for field in fields:
-            overlap = field.overlap(ipix=localization_ipix)
-            if overlap == True: field_ids.append(field_id)
+        query = models.Field.query.filter_by(telescope=telescope).filter(
+            models.Field.ipix.overlaps(localization_ipix))
 
-
-        # if field.field_id > 800 and self.telescope == 'ZTF': 
-
-        #     field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
-        #     field_prob_1 = np.array(field_prob_1)
-        #     field_prob_2 = np.array(field_prob_2)
-
-        #     field_ids_1 = field_ids_1[np.argsort(field_prob_1)[::-1]]
-        #     field_prob_1 = np.sort(field_prob_1)[::-1]
-
-        #     field_ids_2 = field_ids_2[np.argsort(field_prob_2)[::-1]]
-        #     field_prob_2 = np.sort(field_prob_2)[::-1]
-        #     cumsum = np.cumsum(field_prob_2)
-        #     idx2 = np.argmin(np.abs(cumsum-0.90))
-        #     field_ids_2 = field_ids_2[:idx2]
-        #     field_prob_2 = field_prob_2[:idx2]
-
-        #     cumsum = np.cumsum(field_prob_1)
-        #     idx2 = np.argmin(np.abs(cumsum-0.90))
-        #     field_ids_1 = field_ids_1[:idx2]
-        #     field_prob_1 = field_prob_1[:idx2]
-
-        #     field_ids = np.hstack((field_ids_1,field_ids_2))
-        
-        # else: field_ids = field_ids_1
+        field_ids = {field.field_id for field in query}
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
         filts = list(telescope.filters)
-        # filts.append('a')
 
         bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
-        filter_id = bands[filt]
-        if filt is not None:
-            # if the filt argument is not None, then don't filter by filter id
-            observations = Observation.query.filter(
-                (Observation.telescope == telescope.telescope) &
-                (Observation.obstime >=
-                 self.dateobs+datetime.timedelta(start_time)) &
-                (Observation.obstime <=
-                 self.dateobs+datetime.timedelta(end_time))).all()
-        else:
-            filter_id = bands[filt]
-            observations = Observation.query.filter(
-                (Observation.telescope == telescope.telescope) &
-                (Observation.obstime >=
-                 self.dateobs+datetime.timedelta(start_time)) &
-                (Observation.obstime <=
-                 self.dateobs+datetime.timedelta(end_time)) &
-                (Observation.filter_id == filter_id)).all()
+        
+        query = Observation.query.filter_by(telescope=telescope).filter(
+            Observation.obstime.between(
+                self.dateobs+datetime.timedelta(start_time), 
+                self.dateobs+datetime.timedelta(end_time))
+            ).filter(Observation.field_ids.in_(field_ids))
 
-        observation_list = []
-        for ii, observation in enumerate(observations):
-            if observation.field_id not in field_ids:
-                continue
-            observation_list.append(observation)
+        if filt is not None: query = query.filter_by(filter_id=bands[filt])
 
-        # once more, check for the overlap between observation.field_id and field_id
-
-        return observation_list
+        return query
 
 
 class Plan(db.Model):
@@ -1171,27 +1080,6 @@ class Observation(db.Model):
         db.Boolean,
         nullable=False,
         comment='processed successfully?')
-
-# class ObservationList(db.Model):
-#     """Observation information, including the field ID, exposure time, and
-#     filter."""
-
-#     telescope = db.Column(
-#         db.String,
-#         db.ForeignKey(Telescope.telescope),
-#         primary_key=True,
-#         comment='Telescope')
-
-#     dateobs = db.Column(
-#         db.DateTime,
-#         db.ForeignKey(Event.dateobs),
-#         primary_key=True,
-#         comment='UTC event timestamp')
-
-#     localization_name = db.Column(
-#         db.String,
-#         primary_key=True,
-#         comment='Localization name')
 
 
 class Candidate(db.Model):
