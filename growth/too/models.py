@@ -731,13 +731,16 @@ class Localization(db.Model):
 
     def observation_ipix(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        observation_list.ipix.union()
-        return {
-            i for observation in observation_list
-            if observation.field.ipix is not None
-            for i in observation.field.ipix}
-        # change ipix also so that only selects the union of the pixels
-        # found in observation.field.ipix so as not to double count the prob
+        # need a union between the observation field ipix for all observations
+        # to avoid double-counting primary vs secondary grid
+        field_ipix = {observation.field.ipix for observation in observation_list
+                        if observation.field.ipix is not None}
+        field_ipix = field_ipix.union() # ??
+        return field_ipix
+        # return {
+        #     i for observation in observation_list
+        #     if observation.field.ipix is not None
+        #     for i in observation.field.ipix}
 
 
     def observation_area(self, telescope, filt, start_time, end_time):
@@ -825,14 +828,11 @@ class Localization(db.Model):
         localization_ipix = range(len(prob))[idx]
         # select the fields that overlap with the ipix array; select fields where ipix && 90% ipix; && indicates overlap between tables
 
-        # now perform a 
-
         for field in fields:
             overlap = field.overlap(ipix=localization_ipix)
             if overlap == True: field_ids.append(field_id)
 
 
-        # if the field ids2 is not empty
         # if field.field_id > 800 and self.telescope == 'ZTF': 
 
         #     field_ids_1, field_ids_2 = np.array(field_ids_1), np.array(field_ids_2)
@@ -860,12 +860,12 @@ class Localization(db.Model):
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
         filts = list(telescope.filters)
-        filts.append('a')
+        # filts.append('a')
 
-        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6, 'a': 7}
+        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
         filter_id = bands[filt]
-        if filt == "a":
-            # FIXME: if the filt argument is not None, then don't filter by filter id
+        if filt is not None:
+            # if the filt argument is not None, then don't filter by filter id
             observations = Observation.query.filter(
                 (Observation.telescope == telescope.telescope) &
                 (Observation.obstime >=
@@ -873,6 +873,7 @@ class Localization(db.Model):
                 (Observation.obstime <=
                  self.dateobs+datetime.timedelta(end_time))).all()
         else:
+            filter_id = bands[filt]
             observations = Observation.query.filter(
                 (Observation.telescope == telescope.telescope) &
                 (Observation.obstime >=
