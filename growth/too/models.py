@@ -731,7 +731,7 @@ class Localization(db.Model):
     def observation_ipix(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         return {
-            observation.field.ipix 
+            observation.field.ipix
             for observation in observation_list
             if observation.field.ipix is not None
             }
@@ -744,7 +744,7 @@ class Localization(db.Model):
     def observation_nexp(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         return len({
-            observation.observation_id 
+            observation.observation_id
             for observation in observation_list
             })
 
@@ -757,11 +757,11 @@ class Localization(db.Model):
     def observation_totaltime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         observation_ids = [
-            observation.observation_id 
+            observation.observation_id
             for observation in observation_list
             ]
         return sum([
-            observation.exposure_time/60. 
+            observation.exposure_time/60.
             for idx, observation in enumerate(observation_list) if
             observation.observation_id not in observation_ids[:idx]
             ])
@@ -769,8 +769,8 @@ class Localization(db.Model):
     def observation_limmag(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         return np.median([
-            observation.limmag if observation.limmag
-            is not None for observation in observation_list
+            observation.limmag for observation in observation_list
+            if observation.limmag is not None
             ])
 
     def observation_probability(self, telescope, filt, start_time, end_time):
