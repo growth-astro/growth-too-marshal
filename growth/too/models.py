@@ -746,35 +746,26 @@ class Localization(db.Model):
 
     def observation_starttime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        if len(observation_list) == 0:
+        if not observation_list:
             return None
         return min(observation.obstime for observation in observation_list)
 
     def observation_totaltime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        tot = 0
-        observation_ids = []
-        for ii, observation in enumerate(observation_list):
-            if observation.observation_id not in observation_ids:
-                tot = tot + observation.exposure_time/60.0
-                observation_ids.append(observation.observation_id)
-        return tot
+        observation_ids = [observation.observation_id for observation
+            in observation_list]
+        return sum([TimeDelta(observation.exposure_time, format='sec').to(u.min) 
+            if observation.observation_id not in observation_ids[:idx] 
+            for observation, idx in enumerate(observation_list)])
 
     def observation_limmag(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        limmags = []
-        for ii, observation in enumerate(observation_list):
-            if observation.limmag is not None:
-                limmags.append(observation.limmag)
-        return np.median(limmags)
-
+        return np.median([observation.limmag if observation.limmag
+            is not None for observation in observation_list])
 
     def observation_probability(self, telescope, filt, start_time, end_time):
         ipix = np.asarray(list(self.observation_ipix(filt, start_time, end_time)))
-        if len(ipix) > 0:
-            return self.flat_2d[ipix].sum()
-        else:
-            return 0.0
+        return self.flat_2d[ipix].sum()
 
     def get_observations(self, telescope, filt, start_time, end_time):
         fields = Field.query.filter_by(telescope=telescope)        
