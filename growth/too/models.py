@@ -12,7 +12,7 @@ import gwemopt.ztf_tiling
 from astropy import table
 from astropy import coordinates
 from astropy import units as u
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -729,11 +729,9 @@ class Localization(db.Model):
             return self.flat_2d,
 
     def observation_ipix(self, telescope, filt, start_time, end_time):
-        
         observation_list = self.get_observations(filt, start_time, end_time)
-        field_ipix = {observation.field.ipix for observation in observation_list
-                        if observation.field.ipix is not None}
-        return field_ipix
+        return {observation.field.ipix for observation in observation_list
+                if observation.field.ipix is not None}
 
     def observation_area(self, telescope, filt, start_time, end_time):
         nside = self.nside
@@ -742,7 +740,8 @@ class Localization(db.Model):
 
     def observation_nexp(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
-        return len({observation.observation_id for observation in observation_list})
+        return len({observation.observation_id
+                for observation in observation_list})
 
     def observation_starttime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
@@ -753,38 +752,38 @@ class Localization(db.Model):
     def observation_totaltime(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         observation_ids = [observation.observation_id for observation
-            in observation_list]
-        return sum([TimeDelta(observation.exposure_time, format='sec').to(u.min) 
-            if observation.observation_id not in observation_ids[:idx] 
-            for observation, idx in enumerate(observation_list)])
+                            in observation_list]
+        return sum([TimeDelta(observation.exposure_time,
+                format='sec').to(u.min) if observation.observation_id
+                not in observation_ids[:idx] for idx, observation in
+                enumerate(observation_list)])
 
     def observation_limmag(self, telescope, filt, start_time, end_time):
         observation_list = self.get_observations(filt, start_time, end_time)
         return np.median([observation.limmag if observation.limmag
-            is not None for observation in observation_list])
+                is not None for observation in observation_list])
 
     def observation_probability(self, telescope, filt, start_time, end_time):
-        ipix = np.asarray(list(self.observation_ipix(filt, start_time, end_time)))
+        ipix = np.asarray(list(self.observation_ipix(
+                filt, start_time, end_time)))
         return self.flat_2d[ipix].sum()
 
     def get_observations(self, telescope, filt, start_time, end_time):
-        fields = Field.query.filter_by(telescope=telescope)        
+        fields = Field.query.filter_by(telescope=telescope)
         levels = self.credible_levels_2d()
         localization_ipix = np.flatnonzero(levels <= 0.90)
 
         query = models.Field.query.filter_by(telescope=telescope).filter(
             models.Field.ipix.overlaps(localization_ipix))
-
         field_ids = {field.field_id for field in query}
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
         filts = list(telescope.filters)
-
         bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
-        
+
         query = Observation.query.filter_by(telescope=telescope).filter(
             Observation.obstime.between(
-                self.dateobs+datetime.timedelta(start_time), 
+                self.dateobs+datetime.timedelta(start_time),
                 self.dateobs+datetime.timedelta(end_time))
             ).filter(Observation.field_ids.in_(field_ids))
 
