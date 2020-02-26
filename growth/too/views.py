@@ -273,6 +273,9 @@ def objects_data(dateobs):
     table['2D CL'] = np.ma.masked_invalid(results.searched_prob) * 100
     table['2D pdf'] = np.ma.masked_invalid(results.probdensity)
 
+    # Make first detection time column filterable
+    table['first_detection_time'] = table['first_detection_time'].astype(str)
+
     result = {}
 
     # Populate total number of records.
