@@ -12,7 +12,7 @@ import gwemopt.ztf_tiling
 from astropy import table
 from astropy import coordinates
 from astropy import units as u
-from astropy.time import Time, TimeDelta
+from astropy.time import Time
 from flask_login.mixins import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 import gcn
@@ -780,16 +780,14 @@ class Localization(db.Model):
         return self.flat_2d[ipix].sum()
 
     def get_observations(self, telescope, filt, start_time, end_time):
-        fields = Field.query.filter_by(telescope=telescope)
         levels = self.credible_levels_2d()
         localization_ipix = np.flatnonzero(levels <= 0.90)
 
-        query = models.Field.query.filter_by(telescope=telescope).filter(
-            models.Field.ipix.overlaps(localization_ipix))
+        query = Field.query.filter_by(telescope=telescope).filter(
+            Field.ipix.overlaps(localization_ipix))
         field_ids = {field.field_id for field in query}
 
         telescope = Telescope.query.filter_by(telescope=self.telescope).one()
-        filts = list(telescope.filters)
         bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5, 'U': 6}
 
         query = Observation.query.filter_by(telescope=telescope).filter(
@@ -798,7 +796,7 @@ class Localization(db.Model):
                 self.dateobs+datetime.timedelta(end_time))
             ).filter(Observation.field_ids.in_(field_ids))
 
-        if filt is not None: 
+        if filt is not None:
             query = query.filter_by(filter_id=bands[filt])
 
         return query
