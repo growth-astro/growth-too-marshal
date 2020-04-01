@@ -49,7 +49,7 @@ def text_everyone(body, **values):
     now = now_utc()
     for user in models.User.query.filter(models.User.phone.isnot(None)):
         if user_is_on_duty(now, user):
-            text_for.s(body, user.phone, **values).delay()
+            text_for.s(body, user.phone.e164, **values).delay()
 
 
 @celery.task(ignore_result=True, shared=False)
@@ -58,4 +58,4 @@ def call_everyone(endpoint, **values):
     for user in models.User.query.filter(models.User.phone.isnot(None)) \
             .filter(models.User.voice):
         if user_is_on_duty(now, user):
-            call_for.s(endpoint, user.phone, **values).delay()
+            call_for.s(endpoint, user.phone.e164, **values).delay()

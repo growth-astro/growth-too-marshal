@@ -32,6 +32,7 @@ from wtforms import BooleanField, FloatField, RadioField, TextField
 from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
+from wtforms_alchemy.fields import PhoneNumberField
 from passlib.apache import HtpasswdFile
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
@@ -1274,6 +1275,8 @@ class UserForm(ModelForm):
     class Meta:
         model = models.User
 
+    phone = PhoneNumberField(display_format='international')
+
 
 @app.route('/user', methods=['GET', 'POST'])
 @login_required
@@ -1298,13 +1301,14 @@ def user():
 def user_test():
     if current_user.phone:
         tasks.twilio.text_for.delay(
-            render_template('user_test.txt'), current_user.phone)
+            render_template('user_test.txt'), current_user.phone.e164)
         if current_user.voice:
             tasks.twilio.call_for.delay(
-                'user_test_voice_twiml', current_user.phone)
+                'user_test_voice_twiml', current_user.phone.e164)
         flash('A test alert was sent to {}. You should '
               'receive it momentarily if the server is correctly '
-              'configured.'.format(current_user.phone), 'success')
+              'configured.'.format(current_user.phone.international),
+              'success')
         return redirect(url_for('index'))
     else:
         flash('You have not yet set up your phone number.', 'danger')

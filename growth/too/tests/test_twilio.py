@@ -58,4 +58,4 @@ def test_call_everyone(mock_call_for, celery, database):
 
     # Now check that we woke up the right people.
     mock_call_for.assert_called_once_with(
-        'event_new_voice', leo.phone, dateobs=event.dateobs)
+        'event_new_voice', leo.phone.e164, dateobs=event.dateobs)
