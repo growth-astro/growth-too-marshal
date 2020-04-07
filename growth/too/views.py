@@ -261,7 +261,7 @@ def objects(dateobs):
     sources_growth_marshal_contour = \
         tasks.growthdb_cgi.select_sources_in_contour(
                                                      sources_growth_marshal,
-                                                     skymap, level=90
+                                                     skymap, level=95
                                                     )
     # Convert the coordinates in SkyCoord objects
     sources_coords = SkyCoord(ra=list(s["ra"] for s in

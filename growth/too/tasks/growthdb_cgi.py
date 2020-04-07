@@ -19,7 +19,7 @@ to Neutrinos']
 """
 
 
-def select_sources_in_contour(sources_growth_marshal, skymap, level=90):
+def select_sources_in_contour(sources_growth_marshal, skymap, level=95):
     """Select only those sources within a given contour
     level of the skymap"""
 
@@ -80,7 +80,7 @@ def get_source_autoannotations_and_photometry(sourceid):
 
 
 def get_candidates_growth_marshal(program_name, new=False, dateobs=None,
-                                  skymap=None, level=90,
+                                  skymap=None, level=95,
                                   sources_to_update=None):
     """Query the GROWTH marshal for a specific science program"""
     # Get the programidx
