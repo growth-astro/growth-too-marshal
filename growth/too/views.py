@@ -534,7 +534,7 @@ class PlanForm(ModelForm):
         choices=[('greedy', 'greedy'), ('sear', 'sear'),
                  ('airmass_weighted', 'airmass_weighted'),
                  ('greedy_slew', 'greedy_slew')],
-        default='greedy')
+        default='greedy_slew')
 
     dither = BooleanField(default=False)
 
