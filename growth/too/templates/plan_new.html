@@ -248,6 +248,7 @@ $('#telescope').on('input', function() {
         {% endfor %}
     };
     $('#dither').prop('disabled', telescope != 'DECam');
+    $('#balance').prop('checked', telescope == 'ZTF');
     $('#references').prop('checked', telescope == 'ZTF');
     $('#references').prop('disabled', telescope == 'Gattini');
     $('#available-filters').text(available_filters[telescope]); 
