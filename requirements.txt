@@ -10,7 +10,7 @@ flask_mail
 flask_sqlalchemy
 flask_twilio >= 0.0.6
 flask_wtf
-gwemopt == 0.0.65  # must be '==', since gwemopt does not have a stable API
+gwemopt == 0.0.69  # must be '==', since gwemopt does not have a stable API
 healpy
 h5py
 ligo-gracedb
