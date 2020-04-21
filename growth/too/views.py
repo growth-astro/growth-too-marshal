@@ -10,12 +10,13 @@ import tempfile
 
 from celery import group
 import numpy as np
+from astropy.coordinates import SkyCoord
 from astropy import time
 import astropy.units as u
 from astropy.table import Table
 import pandas as pd
 from ligo.skymap import io
-from ligo.skymap.postprocess import find_injection_moc
+from ligo.skymap.postprocess import crossmatch
 from ligo.skymap.tool.ligo_skymap_plot_airmass import main as plot_airmass
 from ligo.skymap.tool.ligo_skymap_plot_observability import main \
     as plot_observability
@@ -267,10 +268,9 @@ def objects_data(dateobs):
             dateobs=event.dateobs,
             localization_name=localization_name
         ).one_or_none() or event.localizations[-1])
-    results = find_injection_moc(
+    results = crossmatch(
         localization.table,
-        np.deg2rad(table['ra']),
-        np.deg2rad(table['dec']))
+        SkyCoord(table['ra'] * u.deg, table['dec'] * u.deg))
     table['2D CL'] = np.ma.masked_invalid(results.searched_prob) * 100
     table['2D pdf'] = np.ma.masked_invalid(results.probdensity)
 
@@ -945,11 +945,9 @@ def galaxies_data(dateobs):
             dateobs=event.dateobs,
             localization_name=localization_name
         ).one_or_none() or event.localizations[-1])
-    results = find_injection_moc(
+    results = crossmatch(
         localization.table,
-        table['ra'].to(u.rad).value,
-        table['dec'].to(u.rad).value,
-        table['distmpc'].to(u.Mpc).value)
+        SkyCoord(table['ra'], table['dec'], table['distmpc']))
     table['2D CL'][:] = np.ma.masked_invalid(results.searched_prob) * 100
     table['3D CL'][:] = np.ma.masked_invalid(results.searched_prob_vol) * 100
     table['2D pdf'][:] = np.ma.masked_invalid(results.probdensity)
