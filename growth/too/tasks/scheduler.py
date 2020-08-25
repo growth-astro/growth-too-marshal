@@ -17,7 +17,7 @@ from .. import views
 from flask import flash
 
 
-ZTF_URL = 'http://localhost:9999'
+ZTF_URL = 'http://tunnel:9999'
 """URL for the P48 scheduler."""
 
 
