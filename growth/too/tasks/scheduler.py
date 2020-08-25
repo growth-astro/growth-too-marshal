@@ -14,8 +14,10 @@ from astroplan.constraints import AltitudeConstraint
 from . import celery
 from .. import models
 from .. import views
+from flask import flash
 
-ZTF_URL = 'http://tunnel:9999'
+
+ZTF_URL = 'http://localhost:9999'
 """URL for the P48 scheduler."""
 
 
@@ -157,7 +159,14 @@ def schedule_ztf(json_data):
                            'validity_window_mjd':
                                json_data["validity_window_mjd"],
                            'queue_type': 'list'})
-    r.raise_for_status()
+
+    if r.status_code == 200:
+        if "already exists" in r.text:
+            flash(r.text, 'danger')
+        else:
+            flash('Successfully submitted', 'success')
+    elif r.status_code == 400:
+        flash('Submission failed... contact the admins.', 'danger')
 
 
 @celery.task(ignore_result=True, shared=False)
