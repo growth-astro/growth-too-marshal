@@ -11,11 +11,13 @@ from astropy.time import Time
 import astropy.units as u
 from astroplan import Observer, is_always_observable
 from astroplan.constraints import AltitudeConstraint
+from celery.utils.log import get_task_logger
 from . import celery
 from .. import models
 from .. import views
 from flask import flash
 
+log = get_task_logger(__name__)
 
 ZTF_URL = 'http://tunnel:9999'
 """URL for the P48 scheduler."""
@@ -163,11 +165,12 @@ def schedule_ztf(json_data):
     if r.status_code == 200:
         if "already exists" in r.text:
             flash(r.text, 'danger')
+            log.exception(r.text) 
         else:
             flash('Successfully submitted', 'success')
     elif r.status_code == 400:
         flash('Submission failed... contact the admins.', 'danger')
-
+        log.exception('Submission failed... contact the admins.')
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_gattini(json_data):
