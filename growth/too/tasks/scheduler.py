@@ -163,11 +163,13 @@ def schedule_ztf(json_data):
                                json_data["validity_window_mjd"],
                            'queue_type': 'list'})
 
-    if (r.status_code == 200) or (r.status_code == 400):
+    try:
+        r.raise_for_status()
+    except HTTPError:
+        log.exception('submission to scheduler failed (%s)', r.text)
         flash(r.text, 'danger')
-    elif r.status_code == 201:
+    else:
         flash(r.text, 'success')
-    log.exception(r.text)
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_gattini(json_data):
