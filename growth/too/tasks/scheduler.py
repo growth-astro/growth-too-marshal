@@ -162,15 +162,11 @@ def schedule_ztf(json_data):
                                json_data["validity_window_mjd"],
                            'queue_type': 'list'})
 
-    if r.status_code == 200:
-        if "already exists" in r.text:
-            flash(r.text, 'danger')
-            log.exception(r.text) 
-        else:
-            flash('Successfully submitted', 'success')
-    elif r.status_code == 400:
-        flash('Submission failed... contact the admins.', 'danger')
-        log.exception('Submission failed... contact the admins.')
+    if (r.status_code == 200) or (r.status_code == 400):
+        flash(r.text, 'danger')
+    elif r.status_code == 201:
+        flash(r.text, 'success')
+    log.exception(r.text)
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_gattini(json_data):
