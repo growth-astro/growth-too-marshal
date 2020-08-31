@@ -12,10 +12,11 @@ import astropy.units as u
 from astroplan import Observer, is_always_observable
 from astroplan.constraints import AltitudeConstraint
 from celery.utils.log import get_task_logger
+from flask import flash
+
 from . import celery
 from .. import models
 from .. import views
-from flask import flash
 
 log = get_task_logger(__name__)
 
