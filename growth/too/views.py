@@ -174,11 +174,11 @@ def queue():
         queue_info.append(f"   Number of unique field_ids: {n_fields}")
         w = queue['ordered']
         if np.sum(w) > 0:
-            queue_info.append(f"   Ordered requests:")
+            queue_info.append("   Ordered requests:")
             queue_info.append(queue.loc[w, ['field_id', 'ra', 'dec',
                                             'filter_id', 'program_id',
                                             'subprogram_name']].to_string())
-        queue_info.append(f"   Unordered requests:")
+        queue_info.append("   Unordered requests:")
         if 'slot_start_time' in queue.columns:
             grp = queue[~w].groupby('slot_start_time')
             for start_time, rows in grp:
