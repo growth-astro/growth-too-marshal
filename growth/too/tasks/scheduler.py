@@ -1,6 +1,7 @@
 import json
 import os.path
 import requests
+from requests import HTTPError
 import subprocess
 import tempfile
 import urllib.parse
@@ -170,6 +171,7 @@ def schedule_ztf(json_data):
         flash(r.text, 'danger')
     else:
         flash(r.text, 'success')
+
 
 @celery.task(ignore_result=True, shared=False)
 def schedule_gattini(json_data):
