@@ -13,7 +13,7 @@ flask_wtf
 gwemopt == 0.0.70  # must be '==', since gwemopt does not have a stable API
 healpy
 h5py
-ligo-gracedb
+ligo-gracedb < 2.7.0
 ligo-segments
 ligo.skymap >= 0.1.11
 lxml
