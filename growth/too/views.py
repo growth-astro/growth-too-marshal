@@ -782,6 +782,10 @@ def plan_manual():
         if form.validate():
             telescope = form.telescope.data
             json_data, queue_name = get_json_data_manual(form)
+            if not json_data["targets"]:
+                flash('Target list empty, submission failed.', 'danger')
+                return render_template('plan_manual.html', form=form,
+                                       telescopes=models.Telescope.query)
 
             group(
                 tasks.scheduler.submit_manual.s(
