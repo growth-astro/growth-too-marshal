@@ -778,23 +778,20 @@ def plan_manual():
     form.telescope.choices = [
         (row.telescope,) * 2 for row in models.Telescope.query]
 
-    if request.method == 'POST':
-        if form.validate():
-            telescope = form.telescope.data
-            json_data, queue_name = get_json_data_manual(form)
+    if request.method == 'POST' and form.validate():
+        telescope = form.telescope.data
+        json_data, queue_name = get_json_data_manual(form)
 
-            mess = 'Target list empty. None of the requested fields ' + \
-                   'have references in the band(s) requested.'
-
-            if not json_data["targets"] and bool(form.references.data):
-                flash(mess, 'danger')
-                return render_template('plan_manual.html', form=form,
-                                       telescopes=models.Telescope.query)
-            elif not json_data["targets"]:
-                flash('Target list empty.', 'danger')
-                return render_template('plan_manual.html', form=form,
-                                       telescopes=models.Telescope.query)
-
+        if not json_data["targets"] and bool(form.references.data):
+            msg = 'Target list empty. No observations requested because ' \
+                  'None of the requested fields ' \
+                  'have references in the filter(s) requested.'
+            flash(msg, 'danger')
+        elif not json_data["targets"]:
+            msg = 'Target list empty. No observations requested because' \
+                   'have references in the filter(s) requested.'
+            flash(msg, 'danger')
+        else:
             group(
                 tasks.scheduler.submit_manual.s(
                     telescope, json_data, queue_name),
