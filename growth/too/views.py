@@ -782,8 +782,16 @@ def plan_manual():
         if form.validate():
             telescope = form.telescope.data
             json_data, queue_name = get_json_data_manual(form)
-            if not json_data["targets"]:
-                flash('Target list empty, submission failed.', 'danger')
+
+            mess = 'Target list empty. None of the requested fields ' + \
+                   'have references in the band(s) requested.'
+
+            if not json_data["targets"] and bool(form.references.data):
+                flash(mess, 'danger')
+                return render_template('plan_manual.html', form=form,
+                                       telescopes=models.Telescope.query)
+            elif not json_data["targets"]:
+                flash('Target list empty.', 'danger')
                 return render_template('plan_manual.html', form=form,
                                        telescopes=models.Telescope.query)
 
