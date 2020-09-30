@@ -805,26 +805,16 @@ def plan_manual():
         telescope = form.telescope.data
         json_data, queue_name = get_json_data_manual(form)
 
-        if not json_data["targets"] and bool(form.references.data):
-            msg = 'Target list empty. No observations requested because ' \
-                  'None of the requested fields ' \
-                  'have references in the filter(s) requested.'
-            flash(msg, 'danger')
-        elif not json_data["targets"]:
-            msg = 'Target list empty. No observations requested because' \
-                   'have references in the filter(s) requested.'
-            flash(msg, 'danger')
-        else:
-            group(
-                tasks.scheduler.submit_manual.s(
-                    telescope, json_data, queue_name),
-                tasks.email.compose_too.s(
-                    telescope, queue_name),
-                tasks.slack.slack_too.s(
-                    telescope, queue_name)
-            ).delay()
+        group(
+            tasks.scheduler.submit_manual.s(
+                telescope, json_data, queue_name),
+            tasks.email.compose_too.s(
+                telescope, queue_name),
+            tasks.slack.slack_too.s(
+                telescope, queue_name)
+        ).delay()
 
-            flash('Submitted observing plan', 'success')
+        flash('Submitted observing plan', 'success')
 
     return render_template(
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
