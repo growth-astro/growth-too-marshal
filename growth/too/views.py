@@ -769,6 +769,29 @@ class PlanManualForm(ModelForm):
                 'Some filters are not available for this telescope: ' +
                 ', '.join(unavailable_filters))
 
+    def validate_field_ids(self, field):
+
+        telescope = self.telescope.data
+        filters = self.filters.data.split(",")
+        field_ids = [int(x) for x in self.field_ids.data.split(",")]
+        doRef = bool(self.references.data)
+
+        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
+
+        unavailable_references = []
+        for filt in filters:
+            filter_id = bands[filt]
+            for field_id in field_ids:
+                field = models.Field.query.filter_by(telescope=telescope,
+                                                     field_id=field_id).one()
+                if doRef and filter_id not in field.reference_filter_ids:
+                    unavailable_references.append(field)
+
+        if unavailable_references:
+            raise(validators.ValidationError(
+                  'Some references are not available for these ' +
+                  'fields: ' + ','.join(unavailable_references)))
+
 
 @app.route('/plan_manual', methods=['GET', 'POST'])
 @login_required
