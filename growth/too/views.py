@@ -75,6 +75,8 @@ cache = Cache(app, config={
     'CACHE_REDIS_HOST': tasks.celery.backend.client,
     'CACHE_TYPE': 'redis'})
 
+bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
+
 
 def one_or_404(query):
     # FIXME: https://github.com/mitsuhiko/flask-sqlalchemy/pull/527
@@ -774,17 +776,21 @@ class PlanManualForm(ModelForm):
         telescope = self.telescope.data
         filters = self.filters.data.split(",")
         field_ids = [int(x) for x in self.field_ids.data.split(",")]
-        doRef = bool(self.references.data)
-
-        bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
+        doref = bool(self.references.data)
 
         unavailable_references = []
         for filt in filters:
             filter_id = bands[filt]
             for field_id in field_ids:
-                field = models.Field.query.filter_by(telescope=telescope,
-                                                     field_id=field_id).one()
-                if doRef and filter_id not in field.reference_filter_ids:
+                try:
+                    field = models.Field.query.filter_by(telescope=telescope,
+                                                         field_id=field_id
+                                                         ).one()
+                except NoResultFound:
+                    raise(validators.ValidationError(
+                          'Field %d does not exist for %s' % (field_id,
+                                                              telescope)))
+                if doref and filter_id not in field.reference_filter_ids:
                     unavailable_references.append(field)
 
         if unavailable_references:
@@ -1118,7 +1124,6 @@ def get_json_data_manual(form):
                    'Gattini': 'Kasliwal', 'KPED': 'Coughlin',
                    'GROWTH-India': 'Bhalerao'}
 
-    bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
     json_data = {'queue_name': "ToO_" + queue_name,
                  'validity_window_mjd': [start_mjd, end_mjd]}
     targets = []
