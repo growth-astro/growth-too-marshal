@@ -29,7 +29,8 @@ from flask import (
 from flask_caching import Cache
 from flask_login import (
     current_user, login_required, login_user, logout_user, LoginManager)
-from wtforms import BooleanField, FloatField, RadioField, TextField
+from wtforms import (
+    BooleanField, FloatField, RadioField, TextField, IntegerField)
 from wtforms_components.fields import (
     DateTimeField, DecimalSliderField, SelectField)
 from wtforms import validators
@@ -743,6 +744,10 @@ class PlanManualForm(ModelForm):
         validators=[validators.DataRequired()],
         default='REPLACE ME')
 
+    mode_num = IntegerField(
+        [validators.NumberRange(min=0)],
+        default=0)
+
     subprogram_name = TextField(
         validators=[validators.DataRequired()],
         default='GW')
@@ -1088,6 +1093,7 @@ def get_json_data_manual(form):
     subprogram_name = form.subprogram_name.data
     username = current_user.name
     program_id = int(form.program_id.data)
+    mode_num = int(form.mode_num.data)
 
     start_mjd = time.Time(form.validity_window_start.data).mjd
     end_mjd = time.Time(form.validity_window_end.data).mjd
@@ -1117,7 +1123,8 @@ def get_json_data_manual(form):
                       'filter_id': filter_id,
                       'exposure_time': exposure_time,
                       'program_pi': program_pis[telescope] + '/' + username,
-                      'subprogram_name': "ToO_" + subprogram_name
+                      'subprogram_name': "ToO_" + subprogram_name,
+                      'mode_num': mode_num
                       }
             targets.append(target)
             cnt = cnt + 1
