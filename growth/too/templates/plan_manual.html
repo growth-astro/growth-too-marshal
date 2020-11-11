@@ -60,6 +60,14 @@
                     <label for=fieldids>Field IDs</label>
                     {{ render_field(form.field_ids, placeholder='comma or space separated list') }}
                 </div>
+                <div class="form-group col-sm-4">
+                    <label for=mode_num>Mode Number (ZTF Only)</label>
+                    {{ render_field(form.mode_num, placeholder='Mode number') }}
+                <small id="balanceHelpBlock" class="form-text text-muted">
+                0 for standard imaging and readout
+                </small>
+                </div>
+            </div>
             </div>
             <div class=form-row>
                 <div class="form-group col-sm-6">
