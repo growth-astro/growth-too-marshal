@@ -95,7 +95,8 @@ def create(sample):
         models.db.session.merge(models.User(name='fritz'))
         models.db.session.commit()
 
-        filenames = ['S200213t-5-Update.xml']
+        filenames = ['glg_healpix_all_bn200826187.fit']
+                     #'S200213t-5-Update.xml'
                      #'S200213t-3-Initial.xml',
                      #'S191216ap-2-Initial.xml',
                      #'GRB180116A_Fermi_GBM_Alert.xml',
