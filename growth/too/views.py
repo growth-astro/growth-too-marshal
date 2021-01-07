@@ -782,6 +782,7 @@ def plan_manual():
     form = PlanManualForm()
     form.telescope.choices = [
         (row.telescope,) * 2 for row in models.Telescope.query]
+    form.program_id.choices = [('2',) * 2, ('3',) * 2]
 
     if request.method == 'POST':
         if form.validate():
@@ -1343,3 +1344,95 @@ def about():
         'about.html',
         packages=pkg_resources.working_set,
         versions=get_versions())
+
+class ObservationForm(ModelForm):
+
+    dateobs = DateTimeField()
+
+    telescope = SelectField(default='ZTF')
+
+    localization = SelectField()
+
+    def _localization_query(self):
+        return models.Localization.query.filter_by(dateobs=self.dateobs.data)
+
+    start_time = FloatField(default=0)
+
+    end_time = FloatField(default=3)
+
+
+@app.route('/event/<datetime:dateobs>/observations', methods=['GET', 'POST'])
+@login_required
+def observations(dateobs):
+
+    form = ObservationForm(dateobs=dateobs)
+    form.telescope.choices = [
+        (row.telescope,) * 2 for row in models.Telescope.query]
+    form.localization.choices = [
+        (row.localization_name,) * 2 for row in
+        models.Localization.query.filter_by(dateobs=dateobs)]
+
+    telescope = form.telescope.data
+
+    # telescope = 'ZTF'
+
+    # useful for testing the query
+    # start_time = time.Time('2019-09-30T14:34:08.00', format='isot')
+    # end_time = time.Time('2019-10-02T14:34:08.00', format='isot')    
+
+    # if telescope == 'ZTF': tasks.ztf_client.ztf_depot(start_time = start_time, end_time = end_time)
+    # if telescope == 'DECam': tasks.decam_client.decam_obs(start_time = start_time, end_time = end_time)
+
+    start_time = 0.0
+    end_time = 3.0   
+
+    localization_name = models.Localization.query.filter_by(
+        dateobs=dateobs).all()[-1].localization_name
+
+    observation_list = models.ObservationList.query.filter_by(telescope=telescope,
+                                                              dateobs=dateobs,
+                                                              localization_name=localization_name).all()
+
+    telescope = models.Telescope.query.filter_by(telescope=telescope).one()
+
+    if len(observation_list) == 0:
+        observation_list = models.ObservationList(dateobs=dateobs,
+                                                  telescope=telescope.telescope,
+                                                  localization_name=localization_name)
+        models.db.session.merge(observation_list)
+        models.db.session.commit()
+    else:
+        observation_list = observation_list[0]
+
+
+    if request.method == 'POST':
+        if form.validate():
+            telescope = form.telescope.data
+            localization_name = form.localization.data
+            start_time = float(form.start_time.data)
+            end_time = float(form.end_time.data)
+
+            telescope = models.Telescope.query.filter_by(
+                telescope=telescope).one()
+            observation_list = models.ObservationList.query.filter_by(
+                telescope=telescope.telescope,
+                dateobs=dateobs,
+                localization_name=localization_name).all()
+            if len(observation_list) == 0:
+                observation_list = models.ObservationList(
+                    dateobs=dateobs,
+                    telescope=telescope.telescope,
+                    localization_name=localization_name)
+                models.db.session.merge(observation_list)
+                models.db.session.commit()
+            else:
+                observation_list = observation_list[0]
+
+    return render_template('observations.html',
+                           form=form,
+                           event=models.Event.query.get_or_404(dateobs),
+                           telescope=telescope,
+                           observation_list=observation_list,
+                           start_time=start_time,
+                           end_time=end_time)
+    
