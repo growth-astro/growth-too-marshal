@@ -42,7 +42,7 @@ def slack_too(telescope, queue_name):
                            queue_name=queue_name)
 
     response = client.chat_postMessage(
-        channel='#general',
+        channel='#too-alerts',
         username='Grobot',
         as_user=False,
         icon_url='https://vignette.wikia.nocookie.net/mario/images/9/99/Grobot.png/revision/latest?cb=20130903151824',  # noqa: E501
@@ -59,7 +59,7 @@ def slack_everyone(dateobs):
     body = render_template('event_new.email', event=event)
 
     response = client.chat_postMessage(
-        channel='#general',
+        channel='#too-alerts',
         username='Grobot',
         as_user=False,
         icon_url='https://vignette.wikia.nocookie.net/mario/images/9/99/Grobot.png/revision/latest?cb=20130903151824',  # noqa: E501
