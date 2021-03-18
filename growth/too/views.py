@@ -748,6 +748,10 @@ class PlanManualForm(ModelForm):
         [validators.NumberRange(min=0)],
         default=0)
 
+    ewr_num_images = IntegerField(
+        [validators.NumberRange(min=1)],
+        default=1)
+
     subprogram_name = TextField(
         validators=[validators.DataRequired()],
         default='GW')
@@ -1094,6 +1098,7 @@ def get_json_data_manual(form):
     username = current_user.name
     program_id = int(form.program_id.data)
     mode_num = int(form.mode_num.data)
+    ewr_num_images = int(form.ewr_num_images.data)
 
     start_mjd = time.Time(form.validity_window_start.data).mjd
     end_mjd = time.Time(form.validity_window_end.data).mjd
@@ -1124,7 +1129,8 @@ def get_json_data_manual(form):
                       'exposure_time': exposure_time,
                       'program_pi': program_pis[telescope] + '/' + username,
                       'subprogram_name': "ToO_" + subprogram_name,
-                      'mode_num': mode_num
+                      'mode_num': mode_num,
+                      'ewr_num_images': ewr_num_images
                       }
             targets.append(target)
             cnt = cnt + 1
