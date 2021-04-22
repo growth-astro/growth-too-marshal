@@ -49,4 +49,6 @@ jobs:
         PYTEST_ADDOPTS: -vv --durations=0 --cov
       run: python setup.py test
     - name: Upload coverage
-      run: pytest --flake8
+      run: |
+        pip install coveralls
+        coveralls
