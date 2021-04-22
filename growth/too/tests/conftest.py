@@ -13,6 +13,7 @@ from ..flask import app
 @pytest.fixture(autouse=True, scope='session')
 def database(postgresql_proc):
     """Use a disposible Postgresql database for all tests."""
+    socket_allow_hosts([postgresql_proc.host])
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
         proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
@@ -49,7 +50,3 @@ def slackclient(monkeypatch):
     client = create_autospec(PromiseProxy)
     client.chat_postMessage = {"ok": True}
     monkeypatch.setattr(tasks.slack, 'client', MagicMock(client))
-
-
-def pytest_runtest_setup():
-    socket_allow_hosts(['127.0.0.1', '::1'])
