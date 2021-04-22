@@ -46,7 +46,7 @@ jobs:
         pip install pytest-cov coveralls -r test-requirements.txt -e .
     - name: Run tests
       env:
-        PYTEST_ADDOPTS: -vv --durations=0 --postgresql-host=localhost --postgresql-password=postgres --cov
+        PYTEST_ADDOPTS: -vv --durations=0 --cov
       run: python setup.py test
     - name: Upload coverage
       run: pytest --flake8
