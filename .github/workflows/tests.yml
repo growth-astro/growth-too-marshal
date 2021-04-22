@@ -45,8 +45,6 @@ jobs:
         pip install --upgrade pip setuptools wheel
         pip install pytest-cov -r test-requirements.txt -e .
     - name: Run tests
-      env:
-        PYTEST_ADDOPTS: -vv --durations=0 --cov
-      run: python setup.py test
+      run: python setup.py test --addopts='-vv --durations=0 --cov'
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
