@@ -31,6 +31,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
     - uses: actions/checkout@v2
@@ -44,7 +46,7 @@ jobs:
         pip install pytest-cov coveralls -r test-requirements.txt -e .
     - name: Run tests
       env:
-        PYTEST_ADDOPTS: -vv --durations=0 --postgresql-host=postgres --postgresql-password=postgres --cov
+        PYTEST_ADDOPTS: -vv --durations=0 --postgresql-host=localhost --postgresql-password=postgres --cov
       run: python setup.py test
     - name: Upload coverage
       run: pytest --flake8
