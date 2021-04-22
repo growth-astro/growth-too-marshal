@@ -17,7 +17,7 @@ def postgresql_server(request):
     if config['host'] == '127.0.0.1':
         return request.getfixturevalue('postgresql_proc')
     else:
-        return request.getfixturevalue('postgresql_noproc')
+        return request.getfixturevalue('postgresql_nooproc')
 
 
 @pytest.fixture(autouse=True, scope='session')
