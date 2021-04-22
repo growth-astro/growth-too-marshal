@@ -25,5 +25,5 @@ def test_sqlalchemy():
     """Check that we are using the test configuration for SQLAlchemy.
     If this test fails, then there is a danger that we might accidentally
     modify the production database!"""
-    assert re.match(r'^postgresql://postgres@127\.0\.0\.1:\d+$',
+    assert re.match(r'^postgresql://postgres:@127\.0\.0\.1:\d+$',
                     str(db.engine.url)) is not None
