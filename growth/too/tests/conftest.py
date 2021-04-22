@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 from unittest.mock import create_autospec
 
 import pytest
-import pytest_postgresql.factories
 from pytest_socket import socket_allow_hosts
 
 from celery.local import PromiseProxy
@@ -11,21 +10,12 @@ from .. import tasks
 from ..flask import app
 
 
-@pytest.fixture(scope='session')
-def postgresql_server(request):
-    config = pytest_postgresql.factories.get_config(request)
-    if config['host'] == '127.0.0.1':
-        return request.getfixturevalue('postgresql_proc')
-    else:
-        return request.getfixturevalue('postgresql_nooproc')
-
-
 @pytest.fixture(autouse=True, scope='session')
-def database(postgresql_server):
+def database(postgresql_proc):
     """Use a disposible Postgresql database for all tests."""
-    socket_allow_hosts([postgresql_server.host])
+    socket_allow_hosts([postgresql_proc.host])
     database_uri = 'postgresql://postgres@{proc.host}:{proc.port}'.format(
-        proc=postgresql_server)
+        proc=postgresql_proc)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
     for key in app.config['SQLALCHEMY_BINDS']:
         app.config['SQLALCHEMY_BINDS'][key] = database_uri
