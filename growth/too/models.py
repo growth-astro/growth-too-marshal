@@ -19,12 +19,17 @@ import gcn
 import healpy as hp
 from ligo.skymap.postprocess import find_greedy_credible_levels
 from ligo.skymap.bayestar import rasterize
+from ligo.skymap.postprocess import find_greedy_credible_levels
+
 import lxml.etree
 import pkg_resources
 import numpy as np
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import EmailType, PhoneNumberType
+from sqlalchemy.dialects import postgresql as psql
+from sqlalchemy import Index
+
 from tqdm import tqdm
 
 from .flask import app
@@ -514,6 +519,8 @@ class Field(db.Model):
         db.ARRAY(db.Integer),
         comment='Healpix indices')
 
+    idx = Index(ipix, postgresql_using='gin')
+
     subfields = db.relationship(lambda: SubField)
 
 
@@ -727,6 +734,18 @@ class Localization(db.Model):
             return hp.reorder(result, 'NESTED', 'RING')
         else:
             return self.flat_2d,
+
+    def ipix_in_greedy_confidence_interval(self, ranking):
+        """Return an array of ipix values within the greedy confidence interval
+        defined by `ranking`."""
+
+        arr = np.flatnonzero(find_greedy_credible_levels(self.flat_2d) <= ranking)
+        return psql.array(arr.tolist())
+
+    def observations_contained_within_contour(self, ranking):
+        ipix_arr = self.ipix_in_greedy_confidence_interval(ranking)
+        query = db.session.query(Observation).join(Field).filter(ipix_arr.overlap(Field.ipix))
+        return query
 
 
 class Plan(db.Model):
