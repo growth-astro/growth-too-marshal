@@ -76,6 +76,8 @@ cache = Cache(app, config={
     'CACHE_REDIS_HOST': tasks.celery.backend.client,
     'CACHE_TYPE': 'redis'})
 
+bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
+
 
 def one_or_404(query):
     # FIXME: https://github.com/mitsuhiko/flask-sqlalchemy/pull/527
@@ -778,6 +780,33 @@ class PlanManualForm(ModelForm):
                 'Some filters are not available for this telescope: ' +
                 ', '.join(unavailable_filters))
 
+    def validate_field_ids(self, field):
+
+        telescope = self.telescope.data
+        filters = self.filters.data.split(",")
+        field_ids = [int(x) for x in self.field_ids.data.split(",")]
+        doref = bool(self.references.data)
+
+        unavailable_references = []
+        for filt in filters:
+            filter_id = bands[filt]
+            for field_id in field_ids:
+                try:
+                    field = models.Field.query.filter_by(telescope=telescope,
+                                                         field_id=field_id
+                                                         ).one()
+                except NoResultFound:
+                    raise(validators.ValidationError(
+                          'Field %d does not exist for %s' % (field_id,
+                                                              telescope)))
+                if doref and filter_id not in field.reference_filter_ids:
+                    unavailable_references.append(field)
+
+        if unavailable_references:
+            raise(validators.ValidationError(
+                  'Some references are not available for these ' +
+                  'fields: ' + ','.join(unavailable_references)))
+
 
 @app.route('/plan_manual', methods=['GET', 'POST'])
 @login_required
@@ -787,21 +816,20 @@ def plan_manual():
     form.telescope.choices = [
         (row.telescope,) * 2 for row in models.Telescope.query]
 
-    if request.method == 'POST':
-        if form.validate():
-            telescope = form.telescope.data
-            json_data, queue_name = get_json_data_manual(form)
+    if request.method == 'POST' and form.validate():
+        telescope = form.telescope.data
+        json_data, queue_name = get_json_data_manual(form)
 
-            group(
-                tasks.scheduler.submit_manual.s(
-                    telescope, json_data, queue_name),
-                tasks.email.compose_too.s(
-                    telescope, queue_name),
-                tasks.slack.slack_too.s(
-                    telescope, queue_name)
-            ).delay()
+        group(
+            tasks.scheduler.submit_manual.s(
+                telescope, json_data, queue_name),
+            tasks.email.compose_too.s(
+                telescope, queue_name),
+            tasks.slack.slack_too.s(
+                telescope, queue_name)
+        ).delay()
 
-            flash('Submitted observing plan', 'success')
+        flash('Submitted observing plan', 'success')
 
     return render_template(
         'plan_manual.html', form=form, telescopes=models.Telescope.query)
@@ -1107,7 +1135,6 @@ def get_json_data_manual(form):
                    'Gattini': 'Kasliwal', 'KPED': 'Coughlin',
                    'GROWTH-India': 'Bhalerao'}
 
-    bands = {'g': 1, 'r': 2, 'i': 3, 'z': 4, 'J': 5}
     json_data = {'queue_name': "ToO_" + queue_name,
                  'validity_window_mjd': [start_mjd, end_mjd]}
     targets = []
