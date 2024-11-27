@@ -1,6 +1,7 @@
 import os
-from urllib.error import URLError
+from urllib.error import URLError, HTTPError
 from urllib.parse import urlparse
+from urllib.request import urlopen
 
 from astropy.coordinates import ICRS, SkyCoord
 from astropy import units as u
@@ -14,6 +15,16 @@ from . import celery
 from .. import models
 
 __all__ = ('download', 'from_cone', 'contour')
+
+
+@celery.task(shared=False)
+def _check_multiorder_url_existence(multiorder_url, url):
+    try:
+        urlopen(url)
+    except HTTPError as err:
+        if err.status == 404:
+            return url
+    return multiorder_url
 
 
 @celery.task(autoretry_for=(URLError,), max_retries=20, shared=False)
